@@ -1,0 +1,3 @@
+code,name,description,career_focus,difficulty_rating,research_oriented,source
+Machine Intelligence,,"Focus on artificial intelligence, machine learning, and data science",,0,False,cli_bot
+Software Engineering,,"Focus on large-scale software systems, development methodologies, and software project management",,0,False,cli_bot

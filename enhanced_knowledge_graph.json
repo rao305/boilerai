@@ -1,0 +1,151 @@
+{
+  "metadata": {
+    "version": "5.0_ENHANCED",
+    "lastUpdated": "2025-01-15",
+    "description": "Enhanced knowledge base merging JSON, CSV, and relationship data",
+    "sources": ["comprehensive_knowledge_graph.json", "neo4j_courses.csv", "neo4j_sqlite_prerequisites.csv"],
+    "programs": ["Computer Science", "Data Science", "Artificial Intelligence"],
+    "note": "Single source of truth - all other knowledge files can be deleted"
+  },
+  
+  "courses": {
+    "CS 18000": {
+      "title": "Problem Solving and Object-Oriented Programming",
+      "credits": 4,
+      "description": "Introduction to Java programming, object-oriented concepts, and problem-solving techniques.",
+      "prerequisites": [],
+      "prerequisite_relationships": {},
+      "corequisites": ["MA 16100"],
+      "typical_semester": "freshman_fall",
+      "offered_semesters": ["fall", "spring", "summer"],
+      "difficulty": 4.2,
+      "workload_hours": 12,
+      "time_commitment": "15-20 hours per week",
+      "difficulty_level": "Hard",
+      "required": true,
+      "is_critical": true,
+      "course_type": "foundation",
+      "program_usage": ["Computer Science", "Data Science", "Artificial Intelligence"]
+    },
+    
+    "CS 18200": {
+      "title": "Foundations of Computer Science", 
+      "credits": 3,
+      "description": "Mathematical foundations including discrete mathematics, logic, and proof techniques.",
+      "prerequisites": ["CS 18000"],
+      "prerequisite_relationships": {
+        "CS 18000": {"type": "required", "strength": 1.0}
+      },
+      "corequisites": [],
+      "typical_semester": "freshman_spring",
+      "offered_semesters": ["fall", "spring"],
+      "difficulty": 4.0,
+      "workload_hours": 10,
+      "time_commitment": "12-15 hours per week",
+      "difficulty_level": "Hard",
+      "required": true,
+      "is_critical": true,
+      "course_type": "foundation",
+      "program_usage": ["Computer Science", "Data Science", "Artificial Intelligence"]
+    },
+
+    "CS 25100": {
+      "title": "Data Structures",
+      "credits": 3,
+      "description": "Linear and nonlinear data structures, algorithm analysis, and implementation.",
+      "prerequisites": ["CS 25000", "CS 18200"],
+      "prerequisite_relationships": {
+        "CS 25000": {"type": "required", "strength": 1.0},
+        "CS 18200": {"type": "required", "strength": 0.9}
+      },
+      "corequisites": [],
+      "typical_semester": "sophomore_fall",
+      "offered_semesters": ["fall", "spring"],
+      "difficulty": 4.5,
+      "workload_hours": 14,
+      "time_commitment": "18-25 hours per week",
+      "difficulty_level": "Very Hard",
+      "required": true,
+      "is_critical": true,
+      "course_type": "foundation",
+      "program_usage": ["Computer Science", "Data Science", "Artificial Intelligence"]
+    },
+
+    "CS 37300": {
+      "title": "Data Mining and Machine Learning",
+      "credits": 3,
+      "description": "Machine learning algorithms, data preprocessing, and model evaluation.",
+      "prerequisites": ["CS 25100"],
+      "prerequisite_relationships": {
+        "CS 25100": {"type": "required", "strength": 0.9},
+        "MA 26500": {"type": "recommended", "strength": 0.7}
+      },
+      "corequisites": [],
+      "typical_semester": "junior_fall",
+      "offered_semesters": ["fall", "spring"],
+      "difficulty": 4.2,
+      "workload_hours": 14,
+      "time_commitment": "15-18 hours per week",
+      "difficulty_level": "Hard",
+      "required": false,
+      "is_critical": true,
+      "course_type": "track_required",
+      "program_usage": ["Computer Science", "Data Science", "Artificial Intelligence"]
+    }
+  },
+
+  "degree_requirements": {
+    "Computer Science": {
+      "type": "major_with_tracks",
+      "tracks": ["Machine Intelligence", "Software Engineering"],
+      "total_credits": 120,
+      "core_requirements": {
+        "foundation_courses": ["CS 18000", "CS 18200", "CS 24000", "CS 25000", "CS 25100", "CS 25200"],
+        "mathematics": ["MA 16100", "MA 16200", "MA 26100", "MA 26500", "STAT 35000"],
+        "algorithms": ["CS 38100"]
+      }
+    },
+    "Data Science": {
+      "type": "standalone_major", 
+      "tracks": null,
+      "total_credits": 120,
+      "core_requirements": {
+        "foundation_courses": ["CS 18000", "CS 18200", "CS 24200", "CS 25300"],
+        "mathematics": ["MA 16100", "MA 16200", "MA 26100", "MA 35100", "STAT 35500"],
+        "statistics": ["STAT 41600", "STAT 41700"]
+      }
+    },
+    "Artificial Intelligence": {
+      "type": "standalone_major",
+      "tracks": null, 
+      "total_credits": 120,
+      "core_requirements": {
+        "foundation_courses": ["CS 17600", "CS 18000", "CS 18200", "CS 24300", "CS 25300"],
+        "mathematics": ["MA 16100", "MA 16200", "MA 26100", "MA 26500", "MA 41600"],
+        "psychology": ["PSY 12000", "PSY 20000"],
+        "philosophy": ["PHIL 20700", "PHIL 22100"]
+      }
+    }
+  },
+
+  "prerequisite_chains": {
+    "CS_foundation_chain": ["CS 18000", "CS 18200", "CS 25000", "CS 25100", "CS 25200"],
+    "math_foundation_chain": ["MA 16100", "MA 16200", "MA 26100", "MA 26500"],
+    "ML_track_chain": ["CS 25100", "CS 37300", "CS 47100", "CS 47300"]
+  },
+
+  "tracks": {
+    "Machine Intelligence": {
+      "required_courses": ["CS 37300", "CS 47100"],
+      "elective_options": ["CS 47300", "CS 48900", "STAT 41600"],
+      "career_focus": "AI/ML engineering, research"
+    },
+    "Software Engineering": {
+      "required_courses": ["CS 40700", "CS 40800"],
+      "elective_options": ["CS 35200", "CS 42200", "CS 49000"],
+      "career_focus": "Software development, systems engineering"
+    }
+  }
+}
+
+

@@ -1,0 +1,135 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Boiler AI - Purdue-Inspired Minimalist Design System
+   Sophisticated grey and gold palette for modern academic interface
+   All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Purdue-inspired minimalist grey and gold palette */
+    --background: 42 8% 96%;             /* #F7F6F4 - Warm light grey background */
+    --foreground: 42 15% 25%;            /* #483F36 - Warm dark grey text (gold undertones) */
+
+    --card: 42 12% 98%;                  /* #FAFAF9 - Slightly warmer white for cards */
+    --card-foreground: 42 15% 25%;       /* #483F36 - Consistent with foreground */
+
+    --popover: 42 12% 98%;               /* #FAFAF9 - Match card background */
+    --popover-foreground: 42 15% 25%;    /* #483F36 - Match foreground */
+
+    --primary: 42 65% 45%;               /* #B8860B - Rich Purdue gold (primary actions) */
+    --primary-foreground: 42 8% 96%;     /* #F7F6F4 - Light background on gold */
+
+    --secondary: 42 12% 92%;             /* #EEEDE9 - Subtle warm grey */
+    --secondary-foreground: 42 15% 25%;  /* #483F36 - Dark grey text */
+
+    --muted: 42 10% 94%;                 /* #F2F1EE - Very light warm grey */
+    --muted-foreground: 42 12% 45%;      /* #73695D - Medium warm grey text */
+
+    --accent: 42 55% 55%;                /* #CFA726 - Lighter gold accent */
+    --accent-foreground: 42 8% 96%;      /* #F7F6F4 - Light text on gold */
+
+    --destructive: 0 84% 60%;            /* #E53E3E - Red for destructive actions */
+    --destructive-foreground: 0 0% 98%;  /* #FAFAFA - Light text on red */
+
+    --border: 42 15% 88%;                /* #E0DDD6 - Subtle warm grey borders */
+    --input: 42 15% 88%;                 /* #E0DDD6 - Input borders */
+    --ring: 42 65% 45%;                  /* #B8860B - Focus ring in Purdue gold */
+
+    --radius: 0.5rem;
+
+    /* Sidebar colors to match the theme */
+    --sidebar-background: 42 12% 98%;
+    --sidebar-foreground: 42 15% 25%;
+    --sidebar-primary: 42 65% 45%;
+    --sidebar-primary-foreground: 42 8% 96%;
+    --sidebar-accent: 42 10% 94%;
+    --sidebar-accent-foreground: 42 15% 25%;
+    --sidebar-border: 42 15% 88%;
+    --sidebar-ring: 42 65% 45%;
+  }
+
+  .dark {
+    /* Dark mode with sophisticated dark grey and gold */
+    --background: 42 15% 8%;             /* #1A1813 - Deep warm dark grey */
+    --foreground: 42 25% 85%;            /* #E8E2D4 - Warm light text */
+
+    --card: 42 15% 10%;                  /* #1F1C16 - Slightly lighter dark grey */
+    --card-foreground: 42 25% 85%;       /* #E8E2D4 - Light text on cards */
+
+    --popover: 42 15% 10%;               /* #1F1C16 - Match card background */
+    --popover-foreground: 42 25% 85%;    /* #E8E2D4 - Light text */
+
+    --primary: 42 65% 55%;               /* #DAA520 - Brighter gold for dark mode */
+    --primary-foreground: 42 15% 8%;     /* #1A1813 - Dark text on gold */
+
+    --secondary: 42 15% 15%;             /* #262018 - Medium dark grey */
+    --secondary-foreground: 42 25% 85%;  /* #E8E2D4 - Light text */
+
+    --muted: 42 15% 12%;                 /* #211E17 - Dark muted background */
+    --muted-foreground: 42 15% 60%;      /* #9A8F7F - Medium light grey */
+
+    --accent: 42 55% 50%;                /* #C19A06 - Medium gold accent */
+    --accent-foreground: 42 15% 8%;      /* #1A1813 - Dark text on gold */
+
+    --destructive: 0 62.8% 50%;          /* #B91C1C - Darker red for dark mode */
+    --destructive-foreground: 42 25% 85%; /* #E8E2D4 - Light text on red */
+
+    --border: 42 15% 20%;                /* #2D261C - Dark borders */
+    --input: 42 15% 20%;                 /* #2D261C - Input borders */
+    --ring: 42 65% 55%;                  /* #DAA520 - Bright gold focus ring */
+    
+    /* Dark mode sidebar */
+    --sidebar-background: 42 15% 10%;
+    --sidebar-foreground: 42 25% 85%;
+    --sidebar-primary: 42 65% 55%;
+    --sidebar-primary-foreground: 42 15% 8%;
+    --sidebar-accent: 42 15% 15%;
+    --sidebar-accent-foreground: 42 25% 85%;
+    --sidebar-border: 42 15% 20%;
+    --sidebar-ring: 42 65% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+  
+  /* Refined micro-interactions */
+  .transition-refined {
+    transition: all 0.2s cubic-bezier(0.4, 0.0, 0.2, 1);
+  }
+  
+  /* Subtle hover states */
+  .hover-lift:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+  
+  /* Custom scrollbar styling */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.3);
+  }
+}

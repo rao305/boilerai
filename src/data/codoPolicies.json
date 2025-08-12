@@ -1,0 +1,266 @@
+{
+  "computer_science": {
+    "program_name": "Computer Science",
+    "degree_type": "BS",
+    "college": "College of Science",
+    "department": "Computer Science",
+    "codo_requirements": {
+      "minimum_gpa": 3.0,
+      "purdue_gpa_requirement": 2.5,
+      "credit_requirements": {
+        "minimum_purdue_credits": 12,
+        "maximum_total_credits": 86
+      },
+      "required_courses": [
+        {
+          "course_code": "CS 18000",
+          "course_title": "Problem Solving and Object-Oriented Programming",
+          "minimum_grade": "C",
+          "required": true,
+          "alternatives": [],
+          "notes": "Must be completed with C or better"
+        },
+        {
+          "course_code": "MA 16500",
+          "course_title": "Analytic Geometry and Calculus I",
+          "minimum_grade": "C",
+          "required": true,
+          "alternatives": ["MA 16100"],
+          "notes": "MA 16100 is acceptable but MA 16500 preferred"
+        },
+        {
+          "course_code": "MA 16600",
+          "course_title": "Analytic Geometry and Calculus II",
+          "minimum_grade": "C",
+          "required": false,
+          "alternatives": ["MA 16200"],
+          "notes": "Strongly recommended but not required for CODO"
+        }
+      ],
+      "recommended_courses": [
+        {
+          "course_code": "CS 18200",
+          "course_title": "Foundations of Computer Science",
+          "notes": "Recommended for better preparation"
+        },
+        {
+          "course_code": "PHYS 17200",
+          "course_title": "Modern Mechanics",
+          "notes": "Required for degree, helpful to complete early"
+        }
+      ],
+      "application_periods": {
+        "fall_deadline": "March 1",
+        "spring_deadline": "October 1",
+        "summer_deadline": "March 1"
+      },
+      "additional_requirements": {
+        "essay_required": true,
+        "advisor_meeting": true,
+        "prerequisite_planning": true
+      }
+    },
+    "competitiveness": {
+      "acceptance_rate": "30-40%",
+      "average_gpa": 3.4,
+      "notes": "Highly competitive program. Strong performance in CS 18000 and math courses essential."
+    },
+    "career_outlook": {
+      "job_placement_rate": "95%+",
+      "average_starting_salary": "$75,000-$95,000",
+      "top_employers": ["Google", "Microsoft", "Amazon", "Apple", "Meta", "Salesforce"]
+    }
+  },
+  "data_science": {
+    "program_name": "Data Science",
+    "degree_type": "BS",
+    "college": "College of Science",
+    "department": "Statistics",
+    "codo_requirements": {
+      "minimum_gpa": 3.2,
+      "purdue_gpa_requirement": 2.75,
+      "credit_requirements": {
+        "minimum_purdue_credits": 12,
+        "maximum_total_credits": 86
+      },
+      "required_courses": [
+        {
+          "course_code": "MA 16500",
+          "course_title": "Analytic Geometry and Calculus I",
+          "minimum_grade": "B-",
+          "required": true,
+          "alternatives": ["MA 16100"],
+          "notes": "Strong math foundation required"
+        },
+        {
+          "course_code": "MA 16600",
+          "course_title": "Analytic Geometry and Calculus II",
+          "minimum_grade": "B-",
+          "required": true,
+          "alternatives": ["MA 16200"],
+          "notes": "Must demonstrate strong calculus proficiency"
+        },
+        {
+          "course_code": "CS 18000",
+          "course_title": "Problem Solving and Object-Oriented Programming",
+          "minimum_grade": "B-",
+          "required": true,
+          "alternatives": [],
+          "notes": "Programming foundation essential"
+        },
+        {
+          "course_code": "STAT 35000",
+          "course_title": "Introduction to Statistics",
+          "minimum_grade": "B-",
+          "required": false,
+          "alternatives": ["STAT 30100", "STAT 51100"],
+          "notes": "Statistics background strongly recommended"
+        }
+      ],
+      "recommended_courses": [
+        {
+          "course_code": "MA 26100",
+          "course_title": "Multivariate Calculus",
+          "notes": "Essential for advanced data science concepts"
+        },
+        {
+          "course_code": "CS 18200",
+          "course_title": "Foundations of Computer Science",
+          "notes": "Important for computational thinking"
+        }
+      ],
+      "application_periods": {
+        "fall_deadline": "March 1",
+        "spring_deadline": "October 1",
+        "summer_deadline": "March 1"
+      },
+      "additional_requirements": {
+        "essay_required": true,
+        "advisor_meeting": true,
+        "math_placement": true
+      }
+    },
+    "competitiveness": {
+      "acceptance_rate": "25-35%",
+      "average_gpa": 3.5,
+      "notes": "Very competitive. Strong math and programming skills required. Growing demand."
+    },
+    "career_outlook": {
+      "job_placement_rate": "92%+",
+      "average_starting_salary": "$70,000-$90,000",
+      "top_employers": ["Netflix", "Uber", "Airbnb", "LinkedIn", "IBM", "Accenture"]
+    }
+  },
+  "artificial_intelligence": {
+    "program_name": "Artificial Intelligence",
+    "degree_type": "BS",
+    "college": "College of Science",
+    "department": "Computer Science",
+    "codo_requirements": {
+      "minimum_gpa": 3.3,
+      "purdue_gpa_requirement": 2.75,
+      "credit_requirements": {
+        "minimum_purdue_credits": 12,
+        "maximum_total_credits": 86
+      },
+      "required_courses": [
+        {
+          "course_code": "CS 18000",
+          "course_title": "Problem Solving and Object-Oriented Programming",
+          "minimum_grade": "B",
+          "required": true,
+          "alternatives": [],
+          "notes": "Strong programming foundation essential"
+        },
+        {
+          "course_code": "MA 16500",
+          "course_title": "Analytic Geometry and Calculus I",
+          "minimum_grade": "B",
+          "required": true,
+          "alternatives": ["MA 16100"],
+          "notes": "Advanced math required for AI algorithms"
+        },
+        {
+          "course_code": "MA 16600",
+          "course_title": "Analytic Geometry and Calculus II",
+          "minimum_grade": "B",
+          "required": true,
+          "alternatives": ["MA 16200"],
+          "notes": "Multivariable calculus concepts crucial"
+        },
+        {
+          "course_code": "MA 26100",
+          "course_title": "Multivariate Calculus",
+          "minimum_grade": "B-",
+          "required": false,
+          "alternatives": [],
+          "notes": "Highly recommended for machine learning"
+        }
+      ],
+      "recommended_courses": [
+        {
+          "course_code": "CS 18200",
+          "course_title": "Foundations of Computer Science",
+          "notes": "Essential for algorithmic thinking"
+        },
+        {
+          "course_code": "STAT 35000",
+          "course_title": "Introduction to Statistics",
+          "notes": "Statistical foundations for ML"
+        },
+        {
+          "course_code": "PHYS 17200",
+          "course_title": "Modern Mechanics",
+          "notes": "Physics principles used in AI"
+        }
+      ],
+      "application_periods": {
+        "fall_deadline": "February 15",
+        "spring_deadline": "September 15",
+        "summer_deadline": "February 15"
+      },
+      "additional_requirements": {
+        "essay_required": true,
+        "advisor_meeting": true,
+        "portfolio_encouraged": true,
+        "interview_possible": true
+      }
+    },
+    "competitiveness": {
+      "acceptance_rate": "20-30%",
+      "average_gpa": 3.6,
+      "notes": "Extremely competitive new program. Exceptional math and CS performance required."
+    },
+    "career_outlook": {
+      "job_placement_rate": "98%+",
+      "average_starting_salary": "$85,000-$110,000",
+      "top_employers": ["OpenAI", "DeepMind", "NVIDIA", "Tesla", "Boston Dynamics", "Microsoft AI"]
+    }
+  },
+  "general_codo_info": {
+    "application_process": {
+      "steps": [
+        "Meet with academic advisor",
+        "Complete prerequisite courses",
+        "Submit CODO application online",
+        "Write personal statement essay",
+        "Attend information sessions",
+        "Wait for admission decision"
+      ],
+      "timeline": "Applications reviewed twice per year",
+      "notification": "Decisions released 4-6 weeks after deadline"
+    },
+    "important_notes": {
+      "grade_trends": "Upward grade trends viewed favorably",
+      "repeat_courses": "Course repeats may impact competitiveness",
+      "credit_limits": "Exceeding credit limits may disqualify application",
+      "backup_plans": "Students should have alternative major plans"
+    },
+    "resources": {
+      "codo_website": "https://www.purdue.edu/advisors/codo/",
+      "cs_advising": "https://www.cs.purdue.edu/undergraduate/advising.html",
+      "data_science_info": "https://www.stat.purdue.edu/academic_programs/undergraduate/data_science/",
+      "ai_program_info": "https://www.cs.purdue.edu/undergraduate/curriculum/artificial-intelligence.html"
+    }
+  }
+}

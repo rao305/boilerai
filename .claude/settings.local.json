@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test:*)",
+      "Bash(python3:*)",
+      "Bash(python:*)",
+      "Bash(pip install:*)",
+      "Bash(npm install)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(./start-dev.sh:*)",
+      "Bash(taskkill:*)",
+      "Bash(powershell:*)",
+      "Bash(set PYTHONIOENCODING=utf-8)",
+      "Bash(chcp:*)",
+      "Bash(npm start)",
+      "Bash(tasklist:*)",
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run typecheck:*)",
+      "Bash(npm run:*)",
+      "Bash(rm:*)",
+      "Bash(PORT=3000 npm run dev)",
+      "Bash(cmd //c:*)",
+      "Bash(copy env.example .env)",
+      "Bash(cp:*)",
+      "Bash(./start-app.sh:*)",
+      "Bash(node:*)",
+      "Bash(cat:*)",
+      "Bash(mv:*)",
+      "Bash(cmd /c:*)",
+      "Bash(if not exist .env copy .env.example .env)",
+      "Bash(./setup_venv.sh)",
+      "Bash(venv/Scripts/activate:*)",
+      "Bash(set OPENAI_API_KEY=test_key)"
+    ],
+    "deny": []
+  }
+}
