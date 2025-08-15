@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>UI Sync Test</title>
+    <script>
+        function testBackendConnection() {
+            console.log('Testing backend connection...');
+            fetch('http://localhost:5002/api/health')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('✅ Backend is running:', data);
+                    document.getElementById('backend-status').textContent = 'Backend: Connected ✅';
+                })
+                .catch(error => {
+                    console.error('❌ Backend connection failed:', error);
+                    document.getElementById('backend-status').textContent = 'Backend: Disconnected ❌';
+                });
+        }
+
+        function testAPIValidation() {
+            const testKey = 'sk-test-1234567890123456789012345';
+            console.log('Testing API validation...');
+            fetch('http://localhost:5002/api/settings/validate-openai-key', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ apiKey: testKey })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('API validation response:', data);
+                    if (data.success && !data.valid) {
+                        document.getElementById('api-status').textContent = 'API Validation: Working (test key correctly rejected) ✅';
+                    } else {
+                        document.getElementById('api-status').textContent = 'API Validation: Unexpected response ⚠️';
+                    }
+                })
+                .catch(error => {
+                    console.error('API validation failed:', error);
+                    document.getElementById('api-status').textContent = 'API Validation: Failed ❌';
+                });
+        }
+
+        function testFrontendConnection() {
+            console.log('Testing frontend connection...');
+            fetch('http://localhost:3007/')
+                .then(response => {
+                    if (response.ok) {
+                        console.log('✅ Frontend is running');
+                        document.getElementById('frontend-status').textContent = 'Frontend: Running on port 3007 ✅';
+                    } else {
+                        document.getElementById('frontend-status').textContent = 'Frontend: Response error ⚠️';
+                    }
+                })
+                .catch(error => {
+                    console.error('Frontend connection failed:', error);
+                    document.getElementById('frontend-status').textContent = 'Frontend: Connection failed ❌';
+                });
+        }
+
+        window.onload = function() {
+            testBackendConnection();
+            testAPIValidation();
+            testFrontendConnection();
+        };
+    </script>
+</head>
+<body style="font-family: Arial, sans-serif; padding: 20px; background: #1a1a1a; color: white;">
+    <h1>🧪 UI Synchronization Test</h1>
+    <div style="margin: 20px 0;">
+        <h3>System Status:</h3>
+        <p id="backend-status">Backend: Testing...</p>
+        <p id="api-status">API Validation: Testing...</p>
+        <p id="frontend-status">Frontend: Testing...</p>
+    </div>
+    
+    <div style="margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px;">
+        <h3>Expected Behavior:</h3>
+        <ul>
+            <li>✅ Backend should be running on port 5002</li>
+            <li>✅ API validation should correctly reject test keys (but respond with success: true, valid: false)</li>
+            <li>✅ Frontend should be running on port 3007</li>
+            <li>✅ "AI Ready" button should show correct state based on actual API key validation</li>
+            <li>✅ "Connected/Disconnected" status in Settings should sync with global validation</li>
+            <li>✅ All greyed-out features should be enabled when a valid API key is detected</li>
+        </ul>
+    </div>
+
+    <div style="margin: 20px 0; padding: 15px; border: 1px solid #333; border-radius: 5px;">
+        <h3>Manual Test Instructions:</h3>
+        <ol>
+            <li>Go to <a href="http://localhost:3007" target="_blank" style="color: #4a9eff;">http://localhost:3007</a></li>
+            <li>Check that the "AI Ready" button shows correct state</li>
+            <li>Go to Settings and check "Connected/Disconnected" status</li>
+            <li>Try to upload a transcript and verify proper API key validation messages</li>
+            <li>Check that validation results are consistent across all components</li>
+        </ol>
+    </div>
+</body>
+</html>

@@ -1,0 +1,140 @@
+// BoilerAI Privacy-First Database Schema
+// This file is read by the Prisma CLI and ORM
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL") // For migrations with Supabase
+}
+
+// Auth.js required models
+model Account {
+  id                       String  @id @default(cuid())
+  userId                   String  @map("user_id")
+  type                     String
+  provider                 String
+  providerAccountId        String  @map("provider_account_id")
+  refresh_token            String? @db.Text
+  access_token             String? @db.Text
+  expires_at               Int?
+  token_type               String?
+  scope                    String?
+  id_token                 String? @db.Text
+  session_state            String?
+  refresh_token_expires_in Int?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts  Account[]
+  sessions  Session[]
+  profile   Profile?
+  vaultItems VaultItem[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// BoilerAI specific models
+model Profile {
+  id          String   @id @default(cuid())
+  userId      String   @unique @map("user_id")
+  displayName String?  @map("display_name")
+  role        Role     @default(STUDENT)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("profiles")
+}
+
+model VaultItem {
+  id         String     @id @default(cuid())
+  userId     String     @map("user_id")
+  kind       VaultKind
+  ciphertext Bytes      // AES-GCM encrypted data
+  nonce      Bytes      // AES-GCM nonce (96-bit)
+  aad        String?    // Additional authenticated data (optional)
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, kind]) // One item per kind per user
+  @@map("vault_items")
+}
+
+model SignalMetric {
+  id         String   @id @default(cuid())
+  day        DateTime @db.Date // Daily aggregation key
+  name       String   // Metric name (e.g., 'thumbs_down', 'no_answer')
+  noisyCount Int      @map("noisy_count") // DP-noised count
+  epsilon    Float    // Privacy parameter used
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([day, name]) // One aggregate per metric per day
+  @@index([day, name])
+  @@map("signal_metrics")
+}
+
+model RedactedExample {
+  id           String   @id @default(cuid())
+  textRedacted String   @map("text_redacted") @db.Text
+  category     String?  // Optional categorization
+  tag          String?  // Failure reason or context
+  createdAt    DateTime @default(now()) @map("created_at")
+  expiresAt    DateTime @map("expires_at") // 30-day TTL
+
+  @@index([expiresAt]) // For efficient cleanup
+  @@map("redacted_examples")
+}
+
+// Enums
+enum Role {
+  STUDENT
+  FACULTY
+  STAFF
+  ADMIN
+}
+
+enum VaultKind {
+  API_KEY              // OpenAI, etc.
+  ASSISTANT_SETTINGS   // AI assistant preferences
+  CHAT_HISTORY         // E2EE chat history (optional sync)
+  DEK_WRAPPED          // Wrapped data encryption key
+}

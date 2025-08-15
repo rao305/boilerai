@@ -1,0 +1,14 @@
+course_code,course_title,credits,department,difficulty_level,difficulty_score,semester_offered,workload_hours,success_rate,is_foundation,is_critical_path
+CS 18000,Problem Solving and Object-Oriented Programming,4,CS,Hard,4.2,"Fall,Spring",12.0,0.73,1,1
+CS 18200,Discrete Mathematics,3,CS,Medium,3.8,"Fall,Spring",10.0,0.78,1,1
+CS 24000,Programming in C,3,CS,Medium,3.5,"Fall,Spring",10.0,0.82,1,1
+CS 25000,Computer Architecture,4,CS,Hard,4.0,"Fall,Spring",11.0,0.75,1,1
+CS 25100,Data Structures and Algorithms,4,CS,Very Hard,4.5,"Fall,Spring",14.0,0.68,1,1
+CS 25200,Systems Programming,4,CS,Hard,4.1,"Fall,Spring",13.0,0.72,1,1
+CS 38100,Introduction to Analysis of Algorithms,3,CS,Hard,4.3,"Fall,Spring",11.0,0.7,0,1
+CS 37300,Data Mining and Machine Learning,3,CS,Very Hard,4.6,"Fall,Spring",12.0,0.65,0,0
+CS 47100,Introduction to Artificial Intelligence,3,CS,Hard,4.2,"Fall,Spring",11.0,0.71,0,0
+MA 16100,Plane Analytic Geometry And Calculus I,5,MATH,Hard,4.0,"Fall,Spring,Summer",12.0,0.74,1,1
+MA 16200,Plane Analytic Geometry And Calculus II,5,MATH,Hard,4.1,"Fall,Spring,Summer",12.0,0.72,1,1
+MA 26100,Multivariate Calculus,4,MATH,Hard,4.2,"Fall,Spring",11.0,0.73,1,0
+MA 26500,Linear Algebra,3,MATH,Medium,3.7,"Fall,Spring,Summer",9.0,0.79,1,0

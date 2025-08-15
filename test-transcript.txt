@@ -1,0 +1,25 @@
+PURDUE UNIVERSITY OFFICIAL TRANSCRIPT
+
+Student Information:
+Name: Jane Smith
+Student ID: 987654321
+Program: Computer Science
+College: College of Science
+Campus: West Lafayette
+
+Academic Record:
+
+Fall 2023
+CS 18000 Problem Solving and Object-Oriented Programming    4.0    A
+MA 16100 Plane Analytic Geometry and Calculus I           5.0    B+
+ENGL 10600 First-Year Composition                         3.0    A-
+Semester GPA: 3.75    Credits: 12.0
+
+Spring 2024
+CS 18200 Foundations of Computer Science                   3.0    A
+MA 16200 Plane Analytic Geometry and Calculus II          5.0    B
+PHYS 17200 Modern Mechanics                               4.0    B+
+Semester GPA: 3.47    Credits: 12.0
+
+Cumulative GPA: 3.61
+Total Credits: 24.0

@@ -1,0 +1,16 @@
+id,course_code,prerequisite_code,relationship_type,strength
+1,CS 18200,CS 18000,required,1.0
+2,CS 24000,CS 18000,required,1.0
+3,CS 25000,CS 18200,required,0.9
+4,CS 25000,CS 24000,required,0.8
+5,CS 25100,CS 25000,required,1.0
+6,CS 25100,CS 18200,required,0.9
+7,CS 25200,CS 25000,required,0.9
+8,CS 25200,CS 24000,required,1.0
+9,CS 38100,CS 25100,required,1.0
+10,CS 37300,CS 25100,required,0.9
+11,CS 37300,MA 26500,recommended,0.7
+12,CS 47100,CS 25100,required,0.9
+13,CS 47100,CS 38100,recommended,0.8
+14,MA 16200,MA 16100,required,1.0
+15,MA 26100,MA 16200,required,1.0

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Proxy Login Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h2>🔧 Proxy Login Test</h2>
+    <p>Testing login through the Vite proxy on port 8080</p>
+    
+    <button onclick="testProxyLogin()">Test Proxy Login</button>
+    
+    <div id="results"></div>
+    
+    <script>
+    async function testProxyLogin() {
+        const results = document.getElementById('results');
+        results.innerHTML = '<div class="result">Testing login through proxy...</div>';
+        
+        try {
+            // This should work now since it goes through the Vite proxy
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    email: 'testdev@purdue.edu',
+                    password: 'password123'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                results.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ PROXY LOGIN SUCCESSFUL!</h3>
+                        <p><strong>User:</strong> ${data.user.name}</p>
+                        <p><strong>Email:</strong> ${data.user.email}</p>
+                        <p><strong>Token:</strong> ${data.token.substring(0, 50)}...</p>
+                        <p><strong>🎉 The main app should work now!</strong></p>
+                        <p><strong>Go to:</strong> <a href="http://localhost:8080" target="_blank">http://localhost:8080</a></p>
+                    </div>
+                `;
+            } else {
+                const errorData = await response.text();
+                results.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Login Failed</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Error:</strong> ${errorData}</p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            results.innerHTML = `
+                <div class="result error">
+                    <h3>❌ Proxy Test Failed</h3>
+                    <p><strong>Error:</strong> ${error.message}</p>
+                    <p>Make sure you're accessing this from http://localhost:8080</p>
+                </div>
+            `;
+        }
+    }
+    
+    // Auto-run test
+    window.onload = () => {
+        setTimeout(testProxyLogin, 1000);
+    };
+    </script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* BoilerAI - Purdue-Inspired Dark Theme for NextAuth */
+@layer base {
+  :root {
+    /* Dark mode with sophisticated dark grey and gold */
+    --background: 42 15% 8%;             /* #1A1813 - Deep warm dark grey */
+    --foreground: 42 25% 85%;            /* #E8E2D4 - Warm light text */
+
+    --card: 42 15% 10%;                  /* #1F1C16 - Slightly lighter dark grey */
+    --card-foreground: 42 25% 85%;       /* #E8E2D4 - Light text on cards */
+
+    --popover: 42 15% 10%;               /* #1F1C16 - Match card background */
+    --popover-foreground: 42 25% 85%;    /* #E8E2D4 - Light text */
+
+    --primary: 42 65% 55%;               /* #DAA520 - Brighter gold for dark mode */
+    --primary-foreground: 42 15% 8%;     /* #1A1813 - Dark text on gold */
+
+    --secondary: 42 15% 15%;             /* #262018 - Medium dark grey */
+    --secondary-foreground: 42 25% 85%;  /* #E8E2D4 - Light text */
+
+    --muted: 42 15% 12%;                 /* #211E17 - Dark muted background */
+    --muted-foreground: 42 15% 60%;      /* #9A8F7F - Medium light grey */
+
+    --accent: 42 55% 50%;                /* #C19A06 - Medium gold accent */
+    --accent-foreground: 42 15% 8%;      /* #1A1813 - Dark text on gold */
+
+    --destructive: 0 62.8% 50%;          /* #B91C1C - Darker red for dark mode */
+    --destructive-foreground: 42 25% 85%; /* #E8E2D4 - Light text on red */
+
+    --border: 42 15% 20%;                /* #2D261C - Dark borders */
+    --input: 42 15% 20%;                 /* #2D261C - Input borders */
+    --ring: 42 65% 55%;                  /* #DAA520 - Bright gold focus ring */
+
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+}

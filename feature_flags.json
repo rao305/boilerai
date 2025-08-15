@@ -1,0 +1,10 @@
+{
+  "career_networking": {
+    "enabled": false,
+    "description": "Clado API integration for career networking and alumni discovery",
+    "added_date": "2025-07-23",
+    "experimental": true
+  },
+  "version": "1.0.0",
+  "last_updated": "2025-07-23"
+}
