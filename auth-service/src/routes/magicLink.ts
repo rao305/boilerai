@@ -254,12 +254,15 @@ router.get('/magic-link', checkMagicLinkEnabled, noCache, (req: Request, res: Re
                 const successContainer = document.getElementById('success-container');
                 
                 // Clear previous messages
-                errorContainer.innerHTML = '';
-                successContainer.innerHTML = '';
+                errorContainer.textContent = '';
+                successContainer.textContent = '';
                 
                 // Validate email
                 if (!email.endsWith('@purdue.edu')) {
-                    errorContainer.innerHTML = '<div class="error-message">Please enter a valid @purdue.edu email address.</div>';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = 'Please enter a valid @purdue.edu email address.';
+                    errorContainer.appendChild(errorDiv);
                     return;
                 }
                 
@@ -279,13 +282,22 @@ router.get('/magic-link', checkMagicLinkEnabled, noCache, (req: Request, res: Re
                     const data = await response.json();
                     
                     if (data.success) {
-                        successContainer.innerHTML = '<div class="success-message">✅ Check your email! We sent you a sign-in link that expires in 10 minutes.</div>';
+                        const successDiv = document.createElement('div');
+                        successDiv.className = 'success-message';
+                        successDiv.textContent = '✅ Check your email! We sent you a sign-in link that expires in 10 minutes.';
+                        successContainer.appendChild(successDiv);
                         document.getElementById('magic-link-form').style.display = 'none';
                     } else {
-                        errorContainer.innerHTML = '<div class="error-message">' + (data.error || 'Failed to send email. Please try again.') + '</div>';
+                        const errorDiv = document.createElement('div');
+                        errorDiv.className = 'error-message';
+                        errorDiv.textContent = data.error || 'Failed to send email. Please try again.';
+                        errorContainer.appendChild(errorDiv);
                     }
                 } catch (error) {
-                    errorContainer.innerHTML = '<div class="error-message">Network error. Please try again.</div>';
+                    const errorDiv = document.createElement('div');
+                    errorDiv.className = 'error-message';
+                    errorDiv.textContent = 'Network error. Please try again.';
+                    errorContainer.appendChild(errorDiv);
                 } finally {
                     submitBtn.disabled = false;
                     loading.style.display = 'none';

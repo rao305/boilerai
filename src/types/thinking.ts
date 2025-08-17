@@ -5,6 +5,40 @@ export interface ThinkingStep {
   content: string;
   status: 'pending' | 'processing' | 'completed';
   timestamp: Date;
+  metadata?: {
+    // Retrieval step metadata
+    retrieval_results?: any[];
+    hit_rate?: number;
+    top_sources?: Array<{
+      title?: string;
+      name?: string;
+      section?: string;
+      authority_level?: 'official' | 'derived' | 'computed';
+      url?: string;
+    }>;
+    
+    // Verification step metadata
+    violations?: Array<{
+      id: string;
+      type: string;
+      severity: 'critical' | 'warning' | 'info';
+      title: string;
+      description: string;
+      affected_courses?: string[];
+      remediation_steps?: string[];
+    }>;
+    
+    // General metadata
+    citations?: Array<{
+      source: string;
+      section: string;
+      authority_level: 'official' | 'derived' | 'computed';
+      url?: string;
+      content_preview?: string;
+    }>;
+    processing_time?: number;
+    confidence?: number;
+  };
 }
 
 export interface AIReasoningResponse {
@@ -32,6 +66,33 @@ export interface EnhancedMessage {
     reasoning_time?: number;
     model_used?: string;
     thinkingSummary?: string;
+    
+    // SmartCourse-specific metadata
+    retrieval_hit_rate?: number;
+    privacy_redacted?: boolean;
+    user_id?: string;
+    
+    // Overall citations and violations
+    citations?: Array<{
+      source: string;
+      section: string;
+      authority_level: 'official' | 'derived' | 'computed';
+      url?: string;
+      content_preview?: string;
+      last_updated?: string;
+    }>;
+    
+    policy_violations?: Array<{
+      id: string;
+      type: 'prerequisite_missing' | 'gpa_insufficient' | 'credit_overload' | 'corequisite_missing' | 'graduation_requirement' | 'policy_violation' | 'schedule_conflict' | 'deadline_warning';
+      severity: 'critical' | 'warning' | 'info';
+      title: string;
+      description: string;
+      affected_courses?: string[];
+      remediation_steps?: string[];
+      deadline?: string;
+      auto_resolvable?: boolean;
+    }>;
   };
 }
 

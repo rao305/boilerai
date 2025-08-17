@@ -8,6 +8,13 @@ import { aiConfig } from './aiConfig';
 import { knowledgeBaseService } from './knowledgeBaseService';
 import { codoevaluationService } from './codoevaluationService';
 import { contextualMemoryService } from './contextualMemoryService';
+import { logger } from '@/utils/logger';
+import type { 
+  StudentProfile, 
+  DataContainer, 
+  ApiResponse,
+  UserContext 
+} from '@/types/common';
 
 interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -15,9 +22,9 @@ interface ChatMessage {
 }
 
 interface EnhancedContext {
-  studentProfile: any;
+  studentProfile: StudentProfile | null;
   contextPrompt: string;
-  transcriptData: any;
+  transcriptData: TranscriptData | null;
 }
 
 class OpenAIChatService {
@@ -25,8 +32,6 @@ class OpenAIChatService {
   private transcriptContext: string = '';
   private enhancedContext: EnhancedContext | null = null;
   private reasoningMode: boolean = true; // Enable reasoning by default
-  private lastRateLimitTime: number = 0;
-  private rateLimitBackoffMs: number = 30000; // 30 seconds initial backoff
   private primaryModel: string = 'gpt-4o-mini'; // Primary model for most conversations
   private complexModel: string = 'gpt-4o'; // For complex reasoning tasks
 
@@ -34,13 +39,14 @@ class OpenAIChatService {
     this.initializeOpenAI();
   }
 
+
   private initializeOpenAI(): boolean {
     try {
       // Get API key from localStorage first, then fallback to env
       const apiKey = localStorage.getItem('openai_api_key') || import.meta.env.VITE_OPENAI_API_KEY;
       
       if (!apiKey || apiKey === 'your_openai_api_key_here' || apiKey.length < 10) {
-        console.log('❌ No valid OpenAI API key found');
+        logger.warn('No valid OpenAI API key found', 'OPENAI');
         return false;
       }
 
@@ -55,22 +61,22 @@ class OpenAIChatService {
       
       // Also reinitialize the fallback system with new API key
       pureAIFallback.reinitialize();
-      console.log('✅ OpenAI client initialized successfully');
+      logger.info('OpenAI client initialized successfully', 'OPENAI');
       return true;
     } catch (error) {
-      console.error('Failed to initialize OpenAI client:', error);
+      logger.error('Failed to initialize OpenAI client', 'OPENAI', error);
       return false;
     }
   }
 
   // Intelligent model selection based on query complexity and context
-  private selectOptimalModel(message: string, context?: any): string {
+  private selectOptimalModel(message: string, context?: DataContainer): string {
     // Always use mini model to conserve tokens and reduce rate limiting
     // GPT-4o-mini is highly capable for academic conversations
     return this.primaryModel;
   }
 
-  private isComplexQuery(message: string, context?: any): boolean {
+  private isComplexQuery(message: string, context?: DataContainer): boolean {
     const complexityIndicators = [
       // Academic complexity
       /complex.*analysis|deep.*thinking|comprehensive.*review/i,
@@ -96,20 +102,8 @@ class OpenAIChatService {
            (context?.transcriptData && message.includes('degree') && message.length > 200);
   }
 
-  // Check if API is available and not rate limited
+  // Check if API is available
   async isApiAvailable(): Promise<boolean> {
-    if (!this.openaiClient) {
-      return false;
-    }
-
-    // Check if we're still in backoff period from rate limiting
-    const now = Date.now();
-    if (this.lastRateLimitTime && (now - this.lastRateLimitTime) < this.rateLimitBackoffMs) {
-      return false;
-    }
-
-    // Skip health check to reduce API calls - just check if client exists
-    // This reduces unnecessary API calls that cause rate limiting
     return !!this.openaiClient;
   }
 
@@ -217,7 +211,7 @@ User Query: ${message}`;
       const response = await this.openaiClient.chat.completions.create({
         model: selectedModel,
         messages: messages,
-        max_tokens: 600, // Reduced to conserve tokens // Reduced to conserve tokens
+        max_tokens: 600,
         temperature: 0.7
       });
 
@@ -243,33 +237,57 @@ User Query: ${message}`;
     } catch (error: any) {
       console.error('OpenAI reasoning error:', error);
       
-      // Handle rate limiting more efficiently
-      if (error.status === 429 || error.message?.includes('429') || error.message?.includes('rate limit')) {
-        this.lastRateLimitTime = Date.now();
-        this.rateLimitBackoffMs = Math.min(this.rateLimitBackoffMs * 2, 900000);
-        console.log(`🚦 Rate limit detected, backing off for ${this.rateLimitBackoffMs / 1000}s`);
+      // Handle different types of OpenAI errors with specific user guidance
+      let errorMessage = '';
+      let errorType = 'technical';
+      
+      if (error.status === 429) {
+        if (error.message?.includes('quota')) {
+          errorType = 'quota';
+          errorMessage = `Your OpenAI API key has insufficient credits or has exceeded the quota limit. Please check your OpenAI billing and usage at https://platform.openai.com/usage`;
+        } else {
+          errorType = 'rate_limit';
+          errorMessage = `You're sending requests too quickly. Please wait a moment and try again.`;
+        }
+      } else if (error.status === 401) {
+        errorType = 'auth';
+        errorMessage = `Your OpenAI API key appears to be invalid. Please check your API key in the settings.`;
+      } else if (error.status === 402) {
+        errorType = 'payment';
+        errorMessage = `Your OpenAI account has a payment issue. Please check your billing at https://platform.openai.com/account/billing`;
+      } else {
+        errorMessage = `There was a technical issue communicating with OpenAI. Please try again in a moment.`;
       }
       
-      // Provide a simple fallback response without additional AI calls
       return {
         thinking_steps: [{
           id: 'error-fallback',
           title: 'analyze',
-          content: `Service temporarily unavailable - providing basic response`,
+          content: `OpenAI API Error (${errorType}): ${errorMessage}`,
           status: 'completed',
           timestamp: new Date()
         }],
-        final_response: `I'm having trouble connecting to the AI service right now. This might be due to high usage or rate limits. 
+        final_response: `${errorMessage}
 
-Here's what I can suggest in the meantime:
-- If you're asking about course planning, check the Purdue Course Catalog online
-- For academic policies, visit the Purdue Academic Regulations website
-- For urgent academic matters, contact your academic advisor directly
-- Try asking your question again in a few minutes
+${errorType === 'quota' || errorType === 'payment' ? `
+💡 To resolve this:
+1. Visit https://platform.openai.com/usage to check your usage
+2. Visit https://platform.openai.com/account/billing to add credits
+3. Make sure your payment method is valid and up-to-date
 
-I apologize for the inconvenience and appreciate your patience!`,
+Once you've added credits to your OpenAI account, try again.` : 
+errorType === 'auth' ? `
+💡 To fix this:
+1. Go to Settings in this app
+2. Enter a valid OpenAI API key
+3. You can get an API key from https://platform.openai.com/api-keys` :
+`
+💡 While we resolve this:
+- For course planning questions, check the Purdue Course Catalog
+- For academic policies, visit Purdue Academic Regulations  
+- For urgent matters, contact your academic advisor directly`}`,
         reasoning_time: Date.now() - startTime,
-        model_used: 'basic-fallback'
+        model_used: 'error-fallback'
       };
     }
   }
@@ -315,7 +333,7 @@ Based on this evaluation, provide personalized advice and guidance.`;
         const response = await this.openaiClient.chat.completions.create({
           model: provider.model,
           messages: messages,
-          max_tokens: 600, // Reduced to conserve tokens
+          max_tokens: 600,
           temperature: 0.7
         });
 
@@ -345,7 +363,7 @@ Based on this evaluation, provide personalized advice and guidance.`;
       const response = await this.openaiClient.chat.completions.create({
         model: provider.model,
         messages: messages,
-        max_tokens: 600, // Reduced to conserve tokens
+        max_tokens: 600,
         temperature: 0.7
       });
 
@@ -361,21 +379,44 @@ Based on this evaluation, provide personalized advice and guidance.`;
     } catch (error: any) {
       console.error('OpenAI chat error:', error);
       
-      // Handle rate limiting
-      if (error.status === 429 || error.message?.includes('429') || error.message?.includes('rate limit')) {
-        this.lastRateLimitTime = Date.now();
-        this.rateLimitBackoffMs = Math.min(this.rateLimitBackoffMs * 2, 900000);
-        console.log(`🚦 Rate limit detected, backing off for ${this.rateLimitBackoffMs / 1000}s`);
+      // Handle different types of OpenAI errors with specific user guidance
+      if (error.status === 429) {
+        if (error.message?.includes('quota')) {
+          return `Your OpenAI API key has insufficient credits or has exceeded the quota limit. 
+
+💡 To resolve this:
+1. Visit https://platform.openai.com/usage to check your usage
+2. Visit https://platform.openai.com/account/billing to add credits  
+3. Make sure your payment method is valid and up-to-date
+
+Once you've added credits to your OpenAI account, try again.`;
+        } else {
+          return `You're sending requests too quickly. Please wait a moment and try again.`;
+        }
+      } else if (error.status === 401) {
+        return `Your OpenAI API key appears to be invalid. 
+
+💡 To fix this:
+1. Go to Settings in this app
+2. Enter a valid OpenAI API key
+3. You can get an API key from https://platform.openai.com/api-keys`;
+      } else if (error.status === 402) {
+        return `Your OpenAI account has a payment issue. 
+
+💡 To resolve this:
+1. Visit https://platform.openai.com/account/billing 
+2. Add a valid payment method or add credits
+3. Make sure your payment is up-to-date
+
+Once resolved, try again.`;
       }
       
-      // Provide simple fallback without additional API calls
-      return `I'm experiencing some technical difficulties right now. This might be due to high usage or service limits.
+      return `There was a technical issue communicating with OpenAI. Please try again in a moment.
 
-Here are some alternatives while I recover:
+💡 While we resolve this:
 - For course information, check the Purdue Course Catalog
 - For academic policies, visit the Purdue Academic Regulations page
 - For immediate assistance, contact your academic advisor
-- Please try again in a few minutes
 
 Thanks for your patience!`;
     }
@@ -613,6 +654,7 @@ Consider these related majors: ${evaluation.alternativeOptions.join(', ')}`;
   getReasoningMode(): boolean {
     return this.reasoningMode;
   }
+
 
   private async buildDynamicSystemPrompt(userMessage: string, userId: string, sessionId?: string): Promise<string> {
     const currentSessionId = sessionId || 'default';

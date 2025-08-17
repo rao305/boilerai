@@ -1,24 +1,13 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+
+// Import app without starting server
 const app = require('../src/server');
 const User = require('../src/models/User');
 
 describe('Authentication API', () => {
-  beforeAll(async () => {
-    // Connect to test database
-    const mongoUrl = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/purdue_planner_test';
-    await mongoose.connect(mongoUrl);
-  });
-
-  beforeEach(async () => {
-    // Clean up test data
-    await User.deleteMany({});
-  });
-
-  afterAll(async () => {
-    await mongoose.connection.close();
-  });
+  // Setup is handled by global jest setup file
 
   describe('POST /api/auth/register', () => {
     const validUserData = {

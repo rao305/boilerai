@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabase, isSupabaseEnabled } from '@/lib/supabase';
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 interface User {
   id: string;
@@ -63,6 +64,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       try {
+        if (!isSupabaseEnabled || !supabase) {
+          logger.warn('Supabase not configured - no auto-login in development', 'AUTH');
+          
+          // DO NOT auto-login in development - force proper login flow
+          setIsLoading(false);
+          return;
+        }
+
         // Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
@@ -71,38 +80,53 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           await loadUserProfile(initialSession.user.id);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        logger.error('Error initializing auth', 'AUTH', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
-        
-        setSession(session);
-        
-        if (session?.user) {
-          await loadUserProfile(session.user.id);
-        } else {
-          setUser(null);
+    let subscription: any = null;
+
+    if (isSupabaseEnabled && supabase) {
+      // Listen for auth changes
+      const { data: { subscription: authSubscription } } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          logger.auth('Auth state changed', { event, email: session?.user?.email });
+          
+          setSession(session);
+          
+          if (session?.user) {
+            await loadUserProfile(session.user.id);
+          } else {
+            // No session - user needs to login
+            logger.debug('No session found - user needs to login', 'AUTH');
+            setUser(null);
+            setSession(null);
+          }
+          
+          setIsLoading(false);
         }
-        
-        setIsLoading(false);
-      }
-    );
+      );
+      subscription = authSubscription;
+    }
 
     initializeAuth();
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription) {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 
   const loadUserProfile = async (userId: string) => {
     try {
+      if (!isSupabaseEnabled || !supabase) {
+        logger.warn('Supabase not available - skipping profile load', 'AUTH');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -110,7 +134,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         .single();
 
       if (error) {
-        console.error('Error loading user profile:', error);
+        logger.error('Error loading user profile', 'AUTH', error);
         return;
       }
 
@@ -123,7 +147,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         preferences: data.preferences
       });
     } catch (error) {
-      console.error('Error loading user profile:', error);
+      logger.error('Error loading user profile', 'AUTH', error);
     }
   };
 
@@ -132,28 +156,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
       
-      // Development bypass
-      if (email === "/dev" && password === "bypass" && process.env.NODE_ENV === 'development') {
-        console.log('🔧 Development bypass - creating mock user session');
+      // Development bypass for quick testing
+      const isDevelopment = !process.env.NODE_ENV || process.env.NODE_ENV === 'development' || 
+                           (typeof window !== 'undefined' && window.location.hostname === 'localhost');
+      
+      // Development bypass disabled - always use real authentication
+      if (false) {
+        console.log('🎯 DEV LOGIN SUCCESS - redirecting to dashboard');
+        logger.auth('Development bypass activated');
         
-        const mockUser = {
-          id: 'dev-user-123',
+        const devUser: User = {
+          id: 'dev-user-bypass',
           email: 'dev@purdue.edu',
           name: 'Development User',
           emailVerified: true,
           created_at: new Date().toISOString(),
-          preferences: { theme: 'system' as const, notifications: true }
+          preferences: { 
+            theme: 'system' as const, 
+            notifications: true,
+            onboardingCompleted: true 
+          }
         };
         
-        // Create a mock session
-        const mockSession = {
+        const devSession = {
           access_token: 'dev-token-bypass-' + Date.now(),
           refresh_token: 'dev-refresh-' + Date.now(),
           expires_in: 3600,
           expires_at: Date.now() + 3600000,
           token_type: 'bearer',
           user: {
-            id: 'dev-user-123',
+            id: 'dev-user-bypass',
             email: 'dev@purdue.edu',
             aud: 'authenticated',
             role: 'authenticated',
@@ -166,43 +198,86 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         };
         
-        // Update state directly
-        setSession(mockSession as any);
-        setUser(mockUser);
-        
-        console.log('✅ Development bypass successful');
+        setUser(devUser);
+        setSession(devSession as any);
+        setIsLoading(false);
+        logger.auth('Development bypass successful');
         return;
       }
-      
-      console.log('🔐 Supabase login attempt:', { email });
 
-      const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      logger.auth('Backend API login attempt', { email });
+
+      // Call our backend API for authentication
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001'}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
       });
-      
-      if (authError) {
-        console.error('❌ Supabase login error:', authError);
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        logger.error('Backend login error', 'AUTH', result);
         
         // Handle specific error cases
-        if (authError.message.includes('Email not confirmed')) {
-          const error = new Error('Please verify your email before logging in');
+        if (result.needsVerification) {
+          const error = new Error(result.message);
           (error as any).needsVerification = true;
           throw error;
         }
         
-        throw new Error(authError.message);
+        throw new Error(result.message || 'Login failed');
       }
 
-      if (!data.session) {
-        throw new Error('Login failed - no session created');
+      if (!result.success || !result.token) {
+        throw new Error('Login failed - no token received');
       }
+
+      // Create user object from backend response
+      const user: User = {
+        id: result.user.id,
+        email: result.user.email,
+        name: result.user.name,
+        emailVerified: true,
+        created_at: new Date().toISOString(),
+        preferences: {
+          theme: 'system',
+          notifications: true,
+          onboardingCompleted: false
+        }
+      };
+
+      // Create session object with backend token
+      const session = {
+        access_token: result.token,
+        refresh_token: '',
+        expires_in: 86400, // 24 hours
+        expires_at: Date.now() + 86400000,
+        token_type: 'bearer',
+        user: {
+          id: result.user.id,
+          email: result.user.email,
+          aud: 'authenticated',
+          role: 'authenticated',
+          email_confirmed_at: new Date().toISOString(),
+          app_metadata: {},
+          user_metadata: { name: result.user.name },
+          identities: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      };
+
+      // Update state
+      setUser(user);
+      setSession(session as any);
       
-      console.log('✅ Supabase login successful');
-      // User state will be set automatically by the auth state change listener
+      logger.auth('Backend login successful');
       
     } catch (error: any) {
-      console.error('❌ Login error:', error);
+      logger.error('Login error', 'AUTH', error);
       setError(error.message || 'Login failed. Please try again.');
       throw error;
     } finally {
@@ -215,7 +290,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
-      console.log('🔐 Supabase registration attempt:', { email, name });
+      if (!isSupabaseEnabled || !supabase) {
+        throw new Error('Registration not available. Authentication service not configured.');
+      }
+
+      logger.auth('Supabase registration attempt', { email, name });
 
       // Validate Purdue email
       if (!email.endsWith('@purdue.edu')) {
@@ -233,11 +312,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (authError) {
-        console.error('❌ Supabase registration error:', authError);
+        logger.error('Supabase registration error', 'AUTH', authError);
         throw new Error(authError.message);
       }
 
-      console.log('✅ Supabase registration successful');
+      logger.auth('Supabase registration successful');
       
       // Check if email confirmation is required
       if (!data.session) {
@@ -246,7 +325,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       return {};
     } catch (error: any) {
-      console.error('Registration error:', error);
+      logger.error('Registration error', 'AUTH', error);
       setError(error.message || 'Registration failed. Please try again.');
       throw error;
     } finally {
@@ -258,18 +337,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setError(null);
       
-      const { error } = await supabase.auth.signOut();
+      // Clear the local state
+      setUser(null);
+      setSession(null);
       
-      if (error) {
-        console.error('Logout error:', error);
-        throw new Error(error.message);
-      }
-      
-      console.log('✅ Logout successful');
+      logger.auth('Logout successful');
       // State will be cleared automatically by the auth state change listener
       
     } catch (error: any) {
-      console.error('Logout error:', error);
+      logger.error('Logout error', 'AUTH', error);
       setError(error.message || 'Logout failed');
       throw error;
     }
@@ -284,6 +360,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
+      if (!isSupabaseEnabled || !supabase) {
+        throw new Error('Email verification not available. Authentication service not configured.');
+      }
+
       // Supabase handles email verification via URL parameters automatically
       // When users click the verification link, they're redirected with tokens in the URL
       // The auth state change listener will handle the verification automatically
@@ -294,15 +374,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (verifyError) {
-        console.error('Email verification error:', verifyError);
+        logger.error('Email verification error', 'AUTH', verifyError);
         throw new Error(verifyError.message);
       }
 
-      console.log('✅ Email verification successful');
+      logger.auth('Email verification successful');
       // User state will be updated automatically by the auth state change listener
       
     } catch (error: any) {
-      console.error('Email verification error:', error);
+      logger.error('Email verification error', 'AUTH', error);
       setError(error.message || 'Email verification failed. Please try again.');
       throw error;
     } finally {
@@ -315,20 +395,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(true);
       setError(null);
 
+      if (!isSupabaseEnabled || !supabase) {
+        throw new Error('Email verification not available. Authentication service not configured.');
+      }
+
       const { error: resendError } = await supabase.auth.resend({
         type: 'signup',
         email: email
       });
 
       if (resendError) {
-        console.error('Resend verification error:', resendError);
+        logger.error('Resend verification error', 'AUTH', resendError);
         throw new Error(resendError.message);
       }
 
-      console.log('✅ Verification email resent successfully');
+      logger.auth('Verification email resent successfully');
       
     } catch (error: any) {
-      console.error('Resend verification error:', error);
+      logger.error('Resend verification error', 'AUTH', error);
       setError(error.message || 'Failed to resend verification email.');
       throw error;
     } finally {
@@ -338,13 +422,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const checkVerificationStatus = async (email: string): Promise<{ emailVerified: boolean }> => {
     try {
+      if (!isSupabaseEnabled || !supabase) {
+        return { emailVerified: true }; // Development mode - assume verified
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       
       return {
         emailVerified: user?.email_confirmed_at ? true : false
       };
     } catch (error: any) {
-      console.error('Check verification status error:', error);
+      logger.error('Check verification status error', 'AUTH', error);
       throw error;
     }
   };
@@ -357,7 +445,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error('User not authenticated');
       }
 
-      console.log('Updating profile via backend API:', updates);
+      logger.auth('Updating profile via backend API', updates);
 
       // Use backend API instead of Supabase for profile updates
       const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
@@ -378,13 +466,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         throw new Error(errorData.message || 'Failed to update profile');
       }
 
-      console.log('Profile updated successfully via backend');
+      logger.auth('Profile updated successfully via backend');
 
       // Update local state
       setUser(prev => prev ? { ...prev, ...updates } : null);
       
     } catch (error: any) {
-      console.error('Update profile error:', error);
+      logger.error('Update profile error', 'AUTH', error);
       setError(error.message || 'Failed to update profile');
       throw error;
     }

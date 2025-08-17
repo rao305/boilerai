@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bot, User, TrendingUp, AlertCircle, Star, ChevronRight, Loader2, BookOpen, Target, Calendar } from "lucide-react";
-// import { aiService } from "@/services/aiService";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";

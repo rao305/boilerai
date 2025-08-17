@@ -1,5 +1,7 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
+
+// Import app without starting server  
 const app = require('../src/server');
 const User = require('../src/models/User');
 
@@ -7,16 +9,7 @@ describe('Transcript API', () => {
   let authToken;
   let userId;
 
-  beforeAll(async () => {
-    // Connect to test database
-    const mongoUrl = process.env.MONGODB_TEST_URI || 'mongodb://localhost:27017/purdue_planner_test';
-    await mongoose.connect(mongoUrl);
-  });
-
   beforeEach(async () => {
-    // Clean up test data
-    await User.deleteMany({});
-
     // Create a test user and get auth token
     const registerResponse = await request(app)
       .post('/api/auth/register')
@@ -30,10 +23,6 @@ describe('Transcript API', () => {
 
     authToken = registerResponse.body.token;
     userId = registerResponse.body.user.id;
-  });
-
-  afterAll(async () => {
-    await mongoose.connection.close();
   });
 
   describe('POST /api/transcript/process-text', () => {

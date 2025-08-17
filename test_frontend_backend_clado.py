@@ -94,7 +94,7 @@ def test_direct_clado_api():
     print("\n" + "=" * 50)
     print("Testing Direct Clado API...")
     
-    clado_api_key = "lk_26267cec2bcd4f34b9894bc07a00af1b"
+    clado_api_key = "sk-MDE5OGIwOGYtMTliNC03MDAwLTk2NTct"
     
     try:
         response = requests.get(

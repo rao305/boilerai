@@ -13,7 +13,7 @@ def test_clado_api_directly():
     print("Testing Clado API Integration...")
     
     # Use the API key from the frontend service
-    clado_api_key = "lk_26267cec2bcd4f34b9894bc07a00af1b"
+    clado_api_key = "sk-MDE5OGIwOGYtMTliNC03MDAwLTk2NTct"
     
     test_queries = [
         "software engineers at Google",

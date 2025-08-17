@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Auth State</title>
+</head>
+<body>
+    <h1>Clearing Authentication State...</h1>
+    <script>
+        // Clear all localStorage
+        localStorage.clear();
+        
+        // Clear specific auth keys
+        localStorage.removeItem('msUser');
+        localStorage.removeItem('msAccessToken');
+        localStorage.removeItem('apiKey');
+        localStorage.removeItem('user');
+        localStorage.removeItem('session');
+        
+        // Clear sessionStorage too
+        sessionStorage.clear();
+        
+        console.log('All authentication data cleared');
+        alert('Authentication cleared! You can close this tab.');
+    </script>
+</body>
+</html>

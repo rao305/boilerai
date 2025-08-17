@@ -34,9 +34,8 @@ export const validateEnvironment = (): EnvValidationResult => {
     }
   }
 
-  // Optional variables (warnings only)
+  // Optional variables (warnings only) - excluding user-provided API keys
   const optionalVars = {
-    VITE_OPENAI_API_KEY: import.meta.env.VITE_OPENAI_API_KEY,
     VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL,
     VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY,
   };
@@ -46,6 +45,8 @@ export const validateEnvironment = (): EnvValidationResult => {
       warnings.push(`${key} is not set. Some features may not work properly.`);
     }
   });
+
+  // Note: VITE_OPENAI_API_KEY is intentionally not checked here as users provide their own API keys through the app interface
 
   return {
     isValid: errors.length === 0,
@@ -69,8 +70,13 @@ export const logEnvironmentStatus = (): void => {
     }
   }
   
-  // Only show warnings in development mode and only for OpenAI key
-  if (import.meta.env.DEV && result.warnings.some(w => w.includes('VITE_OPENAI_API_KEY'))) {
-    console.warn('⚠️ OpenAI API key not configured. Users can add their own key in the app.');
+  // Show configuration status in development mode
+  if (import.meta.env.DEV) {
+    console.info('ℹ️ User API Key Model: Users provide their own OpenAI API keys through the Settings page.');
+  }
+  
+  // Development-only info about common browser extension errors
+  if (import.meta.env.DEV) {
+    console.info('ℹ️ Browser extension errors (utils.js, extensionState.js, SecretSessionError) are normal and can be ignored.');
   }
 };

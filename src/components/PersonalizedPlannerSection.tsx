@@ -24,7 +24,6 @@ import {
   Loader2,
   RefreshCw
 } from "lucide-react";
-// import { openaiChatService } from "@/services/openaiChatService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 

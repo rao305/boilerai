@@ -2,16 +2,6 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 import { useTheme } from "@/contexts/ThemeContext";
-// Temporarily remove recharts to fix 504 error
-// import {
-//   LineChart,
-//   Line,
-//   XAxis,
-//   YAxis,
-//   CartesianGrid,
-//   Tooltip,
-//   ResponsiveContainer,
-// } from "recharts";
 import {
   FileUp,
   Brain,

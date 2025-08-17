@@ -1,16 +1,30 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://oydzgpyctttxjjbjjtnb.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95ZHpncHljdHR0eGpqYmpqdG5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTUwNDE3NjksImV4cCI6MjA3MDYxNzc2OX0.EH_wdZ9Jda7Lr-x4LC-ROil6D1GnCYtzEFTn-pwpS24'
+// Only use Supabase if properly configured, otherwise use null
+const envSupabaseUrl = import.meta.env.VITE_SUPABASE_URL
+const envSupabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+// Check if Supabase is properly configured (not placeholder values)
+const isSupabaseConfigured = envSupabaseUrl && 
+  envSupabaseKey && 
+  envSupabaseUrl !== 'your_supabase_url_here' && 
+  envSupabaseKey !== 'your_supabase_anon_key_here' &&
+  envSupabaseUrl.startsWith('https://')
+
+const supabaseUrl = isSupabaseConfigured ? envSupabaseUrl : 'https://placeholder.supabase.co'
+const supabaseAnonKey = isSupabaseConfigured ? envSupabaseKey : 'placeholder-key'
+
+export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
   }
-})
+}) : null
+
+// Export the configuration status for components to check
+export const isSupabaseEnabled = isSupabaseConfigured
 
 // Database types
 export interface Database {

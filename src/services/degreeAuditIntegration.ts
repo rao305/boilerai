@@ -1,5 +1,3 @@
-// import { useAcademicPlan } from '@/contexts/AcademicPlanContext';
-
 /**
  * Degree Audit Integration Service
  * 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Card, PurdueButton, PurdueInput } from "@/components/PurdueUI";
 import { Eye, EyeOff, Mail, Lock, Loader2, AlertCircle, CheckCircle, Shield } from "lucide-react";
@@ -6,7 +6,32 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useMicrosoftAuth } from "@/contexts/MicrosoftAuthContext";
 import { BoilerAILogo } from "@/components/BoilerAILogo";
 
+// Component for the redirecting state
+function RedirectingToLogin({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+  const [hasRedirected, setHasRedirected] = useState(false);
+  
+  useEffect(() => {
+    if (!hasRedirected) {
+      console.log('🔄 Already authenticated, redirecting to dashboard');
+      setHasRedirected(true);
+      navigate('/main', { replace: true });
+    }
+  }, [navigate, hasRedirected]);
+
+  return (
+    <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center">
+      <div className="text-center">
+        <p>Redirecting to dashboard...</p>
+      </div>
+    </div>
+  );
+}
+
 export default function Login() {
+  const { login, register, error, clearError, isLoading, isAuthenticated } = useAuth();
+  const { login: microsoftLogin, isLoading: isMsLoading, error: msError, clearError: clearMsError, isAuthenticated: isMsAuthenticated } = useMicrosoftAuth();
+  const navigate = useNavigate();
+  
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
@@ -15,28 +40,20 @@ export default function Login() {
   const [name, setName] = useState("");
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState("");
-  
-  const { login, register, error, clearError, isLoading, isAuthenticated } = useAuth();
-  const { login: microsoftLogin, isLoading: isMsLoading, error: msError, clearError: clearMsError, isAuthenticated: isMsAuthenticated } = useMicrosoftAuth();
-  const navigate = useNavigate();
+  const [devLoginAttempted, setDevLoginAttempted] = useState(false);
   const [useMicrosoft, setUseMicrosoft] = useState(false);
 
-  // Redirect if already authenticated (either method)
-  useEffect(() => {
-    if (isAuthenticated || isMsAuthenticated) {
-      navigate('/dashboard');
-    }
-  }, [isAuthenticated, isMsAuthenticated, navigate]);
+  // Removed duplicate useEffect - authentication redirect handled below
 
   // Clear error when switching between login/register
   useEffect(() => {
-    clearError();
-    clearMsError();
+    if (typeof clearError === 'function') clearError();
+    if (typeof clearMsError === 'function') clearMsError();
     setEmail("");
     setPassword("");
     setConfirmPassword("");
     setName("");
-  }, [isLogin, clearError, clearMsError]);
+  }, [isLogin]); // Only depend on isLogin, safely call functions
 
   const validatePurdueEmail = (email: string) => {
     return email.endsWith("@purdue.edu");
@@ -44,13 +61,28 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Don't process if already authenticated
+    if (isAuthenticated || isMsAuthenticated) {
+      console.log('🚫 Already authenticated, skipping login');
+      return;
+    }
+    
     clearError();
 
-    // Development bypass - if email is "/dev", bypass login
-    if (email === "/dev" && process.env.NODE_ENV === 'development') {
-      console.log('🔧 Development bypass activated');
-      await login("/dev", "bypass");
-      return;
+    // Development bypass disabled - always use real authentication
+    if (false) {
+      console.log('🔧 Login component: Development bypass triggered - ONCE ONLY');
+      setDevLoginAttempted(true);
+      try {
+        await login("/dev", "bypass");
+        console.log('🎯 Login component: Dev login successful');
+        return;
+      } catch (err) {
+        console.error('❌ Login component: Dev login failed', err);
+        setDevLoginAttempted(false); // Reset on failure
+        return;
+      }
     }
 
     if (!validatePurdueEmail(email)) {
@@ -86,6 +118,23 @@ export default function Login() {
       console.error('Authentication error:', error);
     }
   };
+
+  // Clear any stuck authentication on component mount
+  useEffect(() => {
+    // Force clear any stuck authentication state
+    localStorage.removeItem('msUser');
+    localStorage.removeItem('msAccessToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('session');
+  }, []);
+
+  // Redirect if authenticated, but with protection against loops
+  useEffect(() => {
+    if ((isAuthenticated || isMsAuthenticated) && window.location.pathname === '/login') {
+      console.log('🔄 Authenticated user detected, redirecting to dashboard');
+      navigate('/main', { replace: true });
+    }
+  }, [isAuthenticated, isMsAuthenticated, navigate]);
 
   return (
     <div className="min-h-screen bg-neutral-950 text-neutral-100 flex items-center justify-center px-4">

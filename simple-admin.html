@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚂 Boiler AI Mission Control</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000;
+            color: #fff;
+            line-height: 1.6;
+        }
+        
+        .header {
+            background: #000;
+            border-bottom: 2px solid #CEB888;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #CEB888;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .avatar {
+            width: 32px;
+            height: 32px;
+            background: #CEB888;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+        
+        .sidebar {
+            width: 250px;
+            background: #111;
+            border-right: 2px solid #CEB888;
+            padding: 2rem 1rem;
+        }
+        
+        .nav-item {
+            display: block;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            margin-bottom: 0.5rem;
+            background: none;
+            border: none;
+            color: #ccc;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .nav-item:hover, .nav-item.active {
+            background: #CEB888;
+            color: #000;
+            font-weight: 600;
+        }
+        
+        .main-content {
+            flex: 1;
+            padding: 2rem;
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #CEB888;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: #111;
+            border: 2px solid #CEB888;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        
+        .kpi-title {
+            color: #CEB888;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 0.25rem;
+        }
+        
+        .kpi-subtitle {
+            color: #888;
+            font-size: 0.875rem;
+        }
+        
+        .users-section {
+            background: #111;
+            border: 2px solid #CEB888;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .section-title {
+            color: #CEB888;
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            text-align: center;
+        }
+        
+        .user-stat {
+            padding: 1rem;
+        }
+        
+        .user-stat-value {
+            font-size: 1.75rem;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 0.5rem;
+        }
+        
+        .user-stat-label {
+            color: #888;
+            font-size: 0.875rem;
+        }
+        
+        .table-container {
+            background: #111;
+            border: 2px solid #CEB888;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        .reveal-btn {
+            background: #CEB888;
+            color: #000;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .reveal-btn:hover {
+            background: #D4C299;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #CEB888;
+            color: #000;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #333;
+        }
+        
+        tr:hover {
+            background: #222;
+        }
+        
+        .role-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .role-admin {
+            background: #DC2626;
+            color: #FEE2E2;
+        }
+        
+        .role-analyst {
+            background: #2563EB;
+            color: #DBEAFE;
+        }
+        
+        .role-user {
+            background: #6B7280;
+            color: #F3F4F6;
+        }
+        
+        .privacy-notice {
+            background: #111;
+            border: 2px solid #CEB888;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .privacy-title {
+            color: #CEB888;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .privacy-text {
+            color: #ccc;
+            font-size: 0.875rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">🚂 Boiler AI Mission Control</div>
+        <div class="user-info">
+            <span>admin@purdue.edu</span>
+            <div class="avatar">A</div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <button class="nav-item active" onclick="showPage('overview')">📊 Overview</button>
+            <button class="nav-item" onclick="showPage('users')">👥 Registered Users</button>
+            <button class="nav-item" onclick="showPage('usage')">📈 Usage</button>
+            <button class="nav-item" onclick="showPage('quality')">🔍 Quality</button>
+            <button class="nav-item" onclick="showPage('security')">🛡️ Security</button>
+            <button class="nav-item" onclick="showPage('logs')">📝 Logs</button>
+            <button class="nav-item" onclick="showPage('alerts')">🚨 Alerts</button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Overview Page -->
+            <div id="overview-page">
+                <h1 class="page-title">System Overview</h1>
+                
+                <!-- KPI Cards -->
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-title">Uptime</div>
+                        <div class="kpi-value" id="uptime">99.8%</div>
+                        <div class="kpi-subtitle">Last 30 days</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-title">Avg Response Time</div>
+                        <div class="kpi-value" id="response-time">850ms</div>
+                        <div class="kpi-subtitle">P95 latency</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-title">Success Rate</div>
+                        <div class="kpi-value" id="success-rate">96.8%</div>
+                        <div class="kpi-subtitle">Last 24 hours</div>
+                    </div>
+                    
+                    <div class="kpi-card">
+                        <div class="kpi-title">Requests/Sec</div>
+                        <div class="kpi-value" id="rps">12.4</div>
+                        <div class="kpi-subtitle">Current rate</div>
+                    </div>
+                </div>
+
+                <!-- Active Users Section -->
+                <div class="users-section">
+                    <h2 class="section-title">Active Users</h2>
+                    <div class="users-grid">
+                        <div class="user-stat">
+                            <div class="user-stat-value" id="daily-users">157</div>
+                            <div class="user-stat-label">Daily Active</div>
+                        </div>
+                        <div class="user-stat">
+                            <div class="user-stat-value" id="weekly-users">423</div>
+                            <div class="user-stat-label">Weekly Active</div>
+                        </div>
+                        <div class="user-stat">
+                            <div class="user-stat-value" id="monthly-users">1,250</div>
+                            <div class="user-stat-label">Monthly Active</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="users-page" class="hidden">
+                <div class="table-container">
+                    <div class="table-header">
+                        <h1 class="page-title" style="margin: 0;">Registered Users</h1>
+                        <button class="reveal-btn" onclick="toggleEmails()">
+                            <span id="reveal-text">👁️ Reveal Emails (OWNER Only)</span>
+                        </button>
+                    </div>
+                    
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="loading">
+                                <td colspan="4">Loading user data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Other pages (placeholders) -->
+            <div id="usage-page" class="hidden">
+                <h1 class="page-title">Usage Analytics</h1>
+                <div class="kpi-card">
+                    <div class="kpi-title">Feature Usage</div>
+                    <p style="color: #ccc; margin-top: 1rem;">Cache hit rate, API endpoint usage, and feature adoption metrics would be displayed here.</p>
+                </div>
+            </div>
+
+            <div id="quality-page" class="hidden">
+                <h1 class="page-title">Quality Metrics</h1>
+                <div class="kpi-card">
+                    <div class="kpi-title">Quality Indicators</div>
+                    <p style="color: #ccc; margin-top: 1rem;">No-answer rates, A/B testing win rates, and quality trends would be displayed here.</p>
+                </div>
+            </div>
+
+            <div id="security-page" class="hidden">
+                <h1 class="page-title">Security & Audit</h1>
+                <div class="kpi-card">
+                    <div class="kpi-title">Security Events</div>
+                    <p style="color: #ccc; margin-top: 1rem;">Failed login attempts, RBAC changes, and audit logs would be displayed here.</p>
+                </div>
+            </div>
+
+            <div id="logs-page" class="hidden">
+                <h1 class="page-title">Logs & Traces</h1>
+                <div class="kpi-card">
+                    <div class="kpi-title">Redacted Logs</div>
+                    <p style="color: #ccc; margin-top: 1rem;">Sanitized log search and trace analysis would be displayed here.</p>
+                </div>
+            </div>
+
+            <div id="alerts-page" class="hidden">
+                <h1 class="page-title">Alerts & Monitoring</h1>
+                <div class="kpi-card">
+                    <div class="kpi-title">Current Alerts</div>
+                    <p style="color: #ccc; margin-top: 1rem;">System alerts, runbooks, and monitoring dashboards would be displayed here.</p>
+                </div>
+            </div>
+
+            <!-- Privacy Notice -->
+            <div class="privacy-notice">
+                <div class="privacy-title">🔒 Privacy-First Design</div>
+                <div class="privacy-text">
+                    This admin interface shows only aggregated, anonymized metrics. No raw user prompts, 
+                    AI responses, or personal information is stored or displayed. All data follows FERPA 
+                    compliance guidelines with automatic TTL cleanup.
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        let showEmails = false;
+        let userData = [];
+
+        // Mock user data (in production, this would come from the API)
+        const mockUsers = [
+            { name: 'John Doe', email: 'j***@purdue.edu', fullEmail: 'john.doe@purdue.edu', role: 'ADMIN', lastLogin: '2024-01-15T10:30:00Z' },
+            { name: 'Jane Smith', email: 's***@purdue.edu', fullEmail: 'jane.smith@purdue.edu', role: 'ANALYST', lastLogin: '2024-01-15T09:15:00Z' },
+            { name: 'Bob Wilson', email: 'w***@purdue.edu', fullEmail: 'bob.wilson@purdue.edu', role: 'USER', lastLogin: '2024-01-14T16:45:00Z' },
+            { name: 'Alice Johnson', email: 'a***@purdue.edu', fullEmail: 'alice.johnson@purdue.edu', role: 'ADMIN', lastLogin: '2024-01-14T14:20:00Z' },
+            { name: 'Charlie Brown', email: 'c***@purdue.edu', fullEmail: 'charlie.brown@purdue.edu', role: 'USER', lastLogin: '2024-01-13T11:45:00Z' }
+        ];
+
+        function showPage(pageId) {
+            // Hide all pages
+            const pages = document.querySelectorAll('[id$="-page"]');
+            pages.forEach(page => page.classList.add('hidden'));
+            
+            // Remove active class from all nav items
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            // Show selected page
+            document.getElementById(pageId + '-page').classList.remove('hidden');
+            
+            // Add active class to selected nav item
+            event.target.classList.add('active');
+            
+            // Load data if needed
+            if (pageId === 'users' && userData.length === 0) {
+                loadUserData();
+            } else if (pageId === 'overview') {
+                loadMetrics();
+            }
+        }
+
+        function toggleEmails() {
+            showEmails = !showEmails;
+            const revealText = document.getElementById('reveal-text');
+            revealText.textContent = showEmails ? '🙈 Mask Emails' : '👁️ Reveal Emails (OWNER Only)';
+            renderUserTable();
+        }
+
+        function loadUserData() {
+            // Simulate API call
+            setTimeout(() => {
+                userData = mockUsers;
+                renderUserTable();
+            }, 500);
+        }
+
+        function renderUserTable() {
+            const tbody = document.querySelector('#users-table tbody');
+            
+            if (userData.length === 0) {
+                tbody.innerHTML = '<tr class="loading"><td colspan="4">Loading user data...</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = userData.map(user => `
+                <tr>
+                    <td>${user.name}</td>
+                    <td>${showEmails ? user.fullEmail : user.email}</td>
+                    <td><span class="role-badge role-${user.role.toLowerCase()}">${user.role}</span></td>
+                    <td>${new Date(user.lastLogin).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadMetrics() {
+            try {
+                const response = await fetch('http://localhost:3001/api/metrics');
+                const data = await response.json();
+                
+                // Update KPI values
+                document.getElementById('uptime').textContent = data.performance.uptime + '%';
+                document.getElementById('response-time').textContent = data.performance.avgResponseTime + 'ms';
+                document.getElementById('success-rate').textContent = data.performance.successRate + '%';
+                document.getElementById('rps').textContent = data.performance.requestsPerSecond;
+                
+                // Update active users
+                document.getElementById('daily-users').textContent = data.activeUsers.daily.toLocaleString();
+                document.getElementById('weekly-users').textContent = data.activeUsers.weekly.toLocaleString();
+                document.getElementById('monthly-users').textContent = data.activeUsers.monthly.toLocaleString();
+                
+            } catch (error) {
+                console.error('Failed to load metrics:', error);
+            }
+        }
+
+        // Load initial data
+        loadMetrics();
+    </script>
+</body>
+</html>

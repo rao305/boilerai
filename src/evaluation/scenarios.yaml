@@ -1,0 +1,270 @@
+# Academic Advisor Evaluation Scenarios
+# Test cases for measuring retrieval quality, reasoning accuracy, and policy compliance
+
+scenarios:
+  - id: "prereq_late_1"
+    name: "Late Prerequisite Discovery"
+    description: "Student discovers they're missing a prerequisite late in their academic plan"
+    student_profile:
+      major: "Computer Science"
+      year: "Junior"
+      gpa: 3.2
+      completed_courses: ["CS 18000", "CS 18200", "MA 16500", "PHYS 17200"]
+      current_semester: "Fall 2024"
+    query: "I want to take CS 25100 next semester but I think I'm missing some prerequisites"
+    expected_retrieval:
+      - type: "course"
+        content: "CS 25100 course details"
+        relevance: 1.0
+      - type: "course" 
+        content: "CS 18200 prerequisite information"
+        relevance: 0.9
+      - type: "policy"
+        content: "Prerequisite waiver policy"
+        relevance: 0.7
+    expected_reasoning:
+      steps: ["retrieve", "reason", "verify", "revise", "respond"]
+      should_identify: 
+        - "Missing CS 25000 prerequisite"
+        - "Alternative enrollment options"
+        - "Timeline impact"
+      should_cite:
+        - "Course catalog prerequisite requirements"
+        - "Academic policy documentation"
+    expected_response:
+      contains:
+        - "prerequisite requirements"
+        - "CS 25000"
+        - "advisor consultation"
+        - "alternative options"
+      tone: "supportive"
+      provides_alternatives: true
+    grading_criteria:
+      retrieval_accuracy: 0.9
+      policy_compliance: 1.0
+      response_helpfulness: 0.8
+
+  - id: "codo_overload_1" 
+    name: "CODO with Credit Overload"
+    description: "Student wants to change major but is taking 18+ credits"
+    student_profile:
+      major: "Exploratory Studies"
+      year: "Sophomore"
+      gpa: 3.4
+      completed_courses: ["MA 16500", "MA 16600", "CHM 11500", "PHYS 17200", "CS 18000"]
+      current_credits: 18
+      current_semester: "Spring 2024"
+    query: "I want to CODO to Computer Science and I'm taking 18 credits this semester. Will this affect my application?"
+    expected_retrieval:
+      - type: "policy"
+        content: "Computer Science CODO requirements"
+        relevance: 1.0
+      - type: "policy"
+        content: "Credit overload policies"
+        relevance: 0.9
+      - type: "course"
+        content: "CS 18000 completion status"
+        relevance: 0.8
+    expected_reasoning:
+      steps: ["retrieve", "reason", "verify", "revise", "respond"]
+      should_identify:
+        - "CODO eligibility status"
+        - "Overload policy impact"
+        - "GPA requirement compliance"
+        - "Application timing"
+      should_cite:
+        - "CS CODO requirements document"
+        - "Credit hour policies"
+    expected_response:
+      contains:
+        - "CODO eligible"
+        - "overload approved"
+        - "application deadline"
+        - "required courses"
+      provides_timeline: true
+      includes_next_steps: true
+    grading_criteria:
+      retrieval_accuracy: 0.95
+      policy_compliance: 1.0
+      response_completeness: 0.9
+
+  - id: "transfer_credit_1"
+    name: "Transfer Credit Evaluation"
+    description: "Student has transfer credits that may affect degree requirements"
+    student_profile:
+      major: "Data Science"
+      year: "Sophomore"
+      gpa: 3.6
+      transfer_credits: 24
+      completed_courses: ["CALC_TRANSFER", "PHYS_TRANSFER", "CS 18000", "STAT 30100"]
+      current_semester: "Fall 2024"
+    query: "I have transfer credits for calculus and physics. How do these count toward my Data Science degree requirements?"
+    expected_retrieval:
+      - type: "policy"
+        content: "Transfer credit evaluation policies"
+        relevance: 1.0
+      - type: "requirement"
+        content: "Data Science degree requirements"
+        relevance: 0.9
+      - type: "policy"
+        content: "Course equivalency guidelines"
+        relevance: 0.8
+    expected_reasoning:
+      should_identify:
+        - "Transfer credit applicability"
+        - "Remaining requirements"
+        - "Graduation timeline impact"
+      should_cite:
+        - "Transfer credit policy"
+        - "Data Science degree requirements"
+    grading_criteria:
+      retrieval_accuracy: 0.8
+      policy_compliance: 0.9
+      response_helpfulness: 0.85
+
+  - id: "catalog_year_change_1"
+    name: "Catalog Year Change Impact"
+    description: "Student affected by curriculum changes between catalog years"
+    student_profile:
+      major: "Computer Science"
+      year: "Senior"
+      catalog_year: "2022"
+      gpa: 3.1
+      completed_courses: ["CS 18000", "CS 18200", "CS 25100", "CS 25000", "CS 35100"]
+      current_semester: "Spring 2025"
+    query: "I started under the 2022 catalog but some of my remaining courses have changed. What are my options?"
+    expected_retrieval:
+      - type: "policy"
+        content: "Catalog year policies"
+        relevance: 1.0
+      - type: "requirement"
+        content: "CS degree requirements 2022 vs current"
+        relevance: 0.9
+    expected_reasoning:
+      should_identify:
+        - "Catalog year protection rights"
+        - "Substitution options"
+        - "Graduation impact"
+      should_cite:
+        - "Academic catalog policies"
+        - "Degree requirement changes"
+    grading_criteria:
+      retrieval_accuracy: 0.85
+      policy_compliance: 1.0
+      response_clarity: 0.9
+
+  - id: "scheduling_conflict_1"
+    name: "Complex Scheduling Conflict"
+    description: "Student has multiple course conflicts with required courses"
+    student_profile:
+      major: "Computer Science"
+      year: "Junior"
+      gpa: 3.3
+      completed_courses: ["CS 18000", "CS 18200", "CS 25100", "CS 25000"]
+      current_semester: "Fall 2024"
+    query: "CS 35100 and MA 26100 both conflict with my work schedule. I need both for graduation next year. What can I do?"
+    expected_retrieval:
+      - type: "course"
+        content: "CS 35100 alternative sections"
+        relevance: 1.0
+      - type: "course"
+        content: "MA 26100 scheduling options"
+        relevance: 1.0
+      - type: "policy"
+        content: "Course substitution policies"
+        relevance: 0.7
+    expected_reasoning:
+      should_identify:
+        - "Alternative section availability"
+        - "Summer course options"
+        - "Course substitution possibilities"
+        - "Graduation timeline impact"
+    grading_criteria:
+      retrieval_accuracy: 0.9
+      solution_creativity: 0.8
+      response_practicality: 0.9
+
+evaluation_metrics:
+  retrieval_quality:
+    hit_rate_at_k: [1, 3, 5, 10]
+    relevance_scores: [0.0, 1.0]
+    citation_accuracy: [0.0, 1.0]
+    
+  reasoning_quality:
+    step_completion: [0.0, 1.0]
+    logical_consistency: [0.0, 1.0]
+    policy_adherence: [0.0, 1.0]
+    
+  response_quality:
+    helpfulness: [1, 5]
+    accuracy: [0.0, 1.0]
+    completeness: [0.0, 1.0]
+    tone_appropriateness: [1, 5]
+    
+  policy_compliance:
+    cite_accuracy: [0.0, 1.0]
+    no_fabrication: [0.0, 1.0]
+    privacy_protection: [0.0, 1.0]
+    
+  user_experience:
+    response_time_ms: [0, 5000]
+    clarity_score: [1, 5]
+    actionability: [1, 5]
+
+grading_rubric:
+  retrieval_accuracy:
+    excellent: [0.9, 1.0]
+    good: [0.8, 0.9)
+    fair: [0.7, 0.8)
+    poor: [0.0, 0.7)
+    
+  policy_compliance:
+    compliant: [0.95, 1.0]
+    mostly_compliant: [0.8, 0.95)
+    needs_improvement: [0.6, 0.8)
+    non_compliant: [0.0, 0.6)
+    
+  response_quality:
+    excellent: [0.9, 1.0]
+    good: [0.8, 0.9)
+    satisfactory: [0.7, 0.8)
+    needs_improvement: [0.0, 0.7)
+
+test_configurations:
+  quick_test:
+    scenarios: ["prereq_late_1", "codo_overload_1"]
+    iterations: 1
+    
+  comprehensive_test:
+    scenarios: ["prereq_late_1", "codo_overload_1", "transfer_credit_1", "catalog_year_change_1", "scheduling_conflict_1"]
+    iterations: 3
+    
+  stress_test:
+    scenarios: ["prereq_late_1", "codo_overload_1", "transfer_credit_1", "catalog_year_change_1", "scheduling_conflict_1"]
+    iterations: 10
+    concurrent_users: 5
+
+dashboard_requirements:
+  retrieval_metrics:
+    - "Hit rate at k=1, k=3, k=5"
+    - "Average relevance score"
+    - "Citation accuracy percentage"
+    - "ELO score trends over time"
+    
+  reasoning_metrics:
+    - "Step completion rate"
+    - "Policy compliance percentage"
+    - "Average reasoning confidence"
+    - "Response generation time"
+    
+  quality_metrics:
+    - "Response helpfulness scores"
+    - "User satisfaction ratings"
+    - "Hallucination detection rate"
+    - "Privacy compliance score"
+    
+  system_metrics:
+    - "Average response time"
+    - "System availability"
+    - "Error rate by component"
+    - "Resource utilization"

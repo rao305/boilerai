@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthContext';
+import { useMicrosoftAuth } from '@/contexts/MicrosoftAuthContext';
 import { Card, PurdueButton, PurdueInput } from '@/components/PurdueUI';
 import { BoilerAILogo } from '@/components/BoilerAILogo';
 import { 
@@ -85,6 +86,7 @@ export default function Onboarding() {
   const [isLoading, setIsLoading] = useState(false);
   
   const { user, updateProfile } = useAuth();
+  const { completeOnboarding } = useMicrosoftAuth();
   const navigate = useNavigate();
 
   // Apply theme changes in real-time
@@ -429,11 +431,10 @@ export default function Onboarding() {
   const handleComplete = async () => {
     setIsLoading(true);
     try {
-      console.log('Starting onboarding completion...');
+      console.log('🎯 Starting onboarding completion...');
       
-      // For now, just skip the profile update and go to dashboard
-      // TODO: Fix the authentication mismatch between Supabase and backend
-      console.log('Onboarding data collected:', {
+      // Collect onboarding data
+      const onboardingData = {
         theme: data.theme,
         notifications: data.notifications,
         major: data.major,
@@ -441,24 +442,38 @@ export default function Onboarding() {
         graduationYear: data.graduationYear,
         interests: data.interests,
         goals: data.goals,
-        hasTranscript: data.hasTranscript
-      });
+        hasTranscript: data.hasTranscript,
+        onboardingCompleted: true
+      };
       
-      // Simulate successful completion
-      console.log('Simulating successful onboarding completion...');
+      console.log('📝 Onboarding data collected:', onboardingData);
       
-      // Mark onboarding completed locally to prevent redirect loops
-      try {
-        localStorage.setItem('onboardingCompleted', 'true');
-      } catch (e) {}
+      // Try to update user profile if available
+      if (updateProfile) {
+        try {
+          await updateProfile({
+            preferences: {
+              ...onboardingData
+            }
+          });
+          console.log('✅ User profile updated in legacy auth system');
+        } catch (err) {
+          console.warn('⚠️ Could not update legacy auth profile:', err);
+        }
+      }
       
-      // Navigate to dashboard using React Router
+      // Mark onboarding as completed in Microsoft auth context
+      await completeOnboarding();
+      
+      console.log('🎉 Onboarding completed successfully!');
+      
+      // Navigate to main app
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 300);
+        navigate('/main', { replace: true });
+      }, 500);
       
     } catch (error) {
-      console.error('Failed to complete onboarding:', error);
+      console.error('❌ Failed to complete onboarding:', error);
       alert('Failed to complete setup. Please try again.');
     } finally {
       setIsLoading(false);

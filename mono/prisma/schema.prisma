@@ -1,0 +1,156 @@
+// Prisma schema for Boiler AI - Privacy-first with RLS
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  orgId        String   @map("org_id") @db.Uuid
+  name         String
+  email        String   @unique
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  // Relations
+  userRoles    UserRole[]
+  outcomes     Outcome[]
+  adminAudits  AdminAudit[] @relation("AdminAuditActor")
+  
+  @@map("users")
+}
+
+model UserRole {
+  id     String @id @default(cuid())
+  orgId  String @map("org_id") @db.Uuid
+  userId String @map("user_id")
+  role   Role
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, orgId, role])
+  @@map("user_roles")
+}
+
+model Outcome {
+  id        String        @id @default(cuid())
+  orgId     String        @map("org_id") @db.Uuid
+  userId    String?       @map("user_id")
+  topicKey  String        @map("topic_key")
+  status    OutcomeStatus
+  latencyMs Int           @map("latency_ms")
+  tokensIn  Int           @map("tokens_in")
+  tokensOut Int           @map("tokens_out")
+  createdAt DateTime      @default(now()) @map("created_at")
+  
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@index([orgId, createdAt])
+  @@index([orgId, topicKey])
+  @@map("outcomes")
+}
+
+model IntentStats {
+  id         String   @id @default(cuid())
+  orgId      String   @map("org_id") @db.Uuid
+  intentHash String   @map("intent_hash")
+  topicKey   String   @map("topic_key")
+  count      Int      @default(1)
+  lastSeenAt DateTime @map("last_seen_at") @default(now())
+  
+  @@unique([orgId, intentHash])
+  @@index([orgId, topicKey])
+  @@map("intent_stats")
+}
+
+model RedactedExample {
+  id        String   @id @default(cuid())
+  orgId     String   @map("org_id") @db.Uuid
+  snippet   String
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  @@index([orgId, createdAt])
+  @@map("redacted_examples")
+}
+
+model DpMetric {
+  id           String   @id @default(cuid())
+  orgId        String   @map("org_id") @db.Uuid
+  metricKey    String   @map("metric_key")
+  valueNumeric Float    @map("value_numeric")
+  labels       Json?
+  createdAt    DateTime @default(now()) @map("created_at")
+  
+  @@index([orgId, metricKey, createdAt])
+  @@map("dp_metrics")
+}
+
+model EloTopic {
+  id       String @id @default(cuid())
+  orgId    String @map("org_id") @db.Uuid
+  topicKey String @map("topic_key")
+  rating   Float  @default(1000)
+  rd       Float  @default(350)
+  vol      Float  @default(0.06)
+  
+  matches EloMatch[]
+  
+  @@unique([orgId, topicKey])
+  @@map("elo_topic")
+}
+
+model EloMatch {
+  id        String      @id @default(cuid())
+  orgId     String      @map("org_id") @db.Uuid
+  topicKey  String      @map("topic_key")
+  modelA    String      @map("model_a")
+  modelB    String      @map("model_b")
+  winner    MatchWinner
+  judge     String
+  createdAt DateTime    @default(now()) @map("created_at")
+  
+  topic EloTopic @relation(fields: [orgId, topicKey], references: [orgId, topicKey])
+  
+  @@index([orgId, createdAt])
+  @@map("elo_match")
+}
+
+model AdminAudit {
+  id          String   @id @default(cuid())
+  orgId       String   @map("org_id") @db.Uuid
+  actorUserId String   @map("actor_user_id")
+  action      String
+  details     Json?
+  createdAt   DateTime @default(now()) @map("created_at")
+  
+  actor User @relation("AdminAuditActor", fields: [actorUserId], references: [id])
+  
+  @@index([orgId, createdAt])
+  @@index([orgId, actorUserId])
+  @@map("admin_audit")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+  ANALYST
+  DEVOPS
+  USER
+}
+
+enum OutcomeStatus {
+  success
+  fallback
+  policy_block
+  no_answer
+}
+
+enum MatchWinner {
+  A
+  B
+  draw
+}

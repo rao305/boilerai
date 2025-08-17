@@ -33,7 +33,7 @@ const VerifyEmail: React.FC = () => {
         
         // Redirect to dashboard after 3 seconds
         setTimeout(() => {
-          navigate('/dashboard');
+          navigate('/main');
         }, 3000);
       } catch (error: any) {
         console.error('Email verification failed:', error);
@@ -142,7 +142,7 @@ const VerifyEmail: React.FC = () => {
                 </Alert>
                 
                 <Button 
-                  onClick={() => navigate('/dashboard')}
+                  onClick={() => navigate('/main')}
                   className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                 >
                   Go to BoilerAI Dashboard

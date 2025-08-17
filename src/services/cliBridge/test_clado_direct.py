@@ -8,7 +8,7 @@ import asyncio
 import sys
 
 # Set the API key directly
-os.environ["CLADO_API_KEY"] = "lk_26267cec2bcd4f34b9894bc07a00af1b"
+os.environ["CLADO_API_KEY"] = "sk-MDE5OGIwOGYtMTliNC03MDAwLTk2NTct"
 
 try:
     from clado_ai_client import search_professionals_sync

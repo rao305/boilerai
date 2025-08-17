@@ -3,6 +3,8 @@ const router = express.Router();
 const nodemailer = require('nodemailer');
 const fs = require('fs').promises;
 const path = require('path');
+const { logger } = require('../utils/logger');
+const { authenticateToken } = require('../middleware/auth');
 
 // Store email configuration in memory (in production, use database)
 let emailConfig = {
@@ -192,6 +194,74 @@ router.post('/reset-email', (req, res) => {
     success: true,
     message: 'Email configuration reset successfully'
   });
+});
+
+// GET /api/admin/metrics - System metrics and analytics
+router.get('/metrics', authenticateToken, async (req, res) => {
+  try {
+    const { timeRange = '7d' } = req.query;
+
+    logger.info('Admin metrics request', {
+      userId: req.user.id,
+      timeRange
+    });
+
+    // Mock metrics data
+    const metrics = {
+      users: {
+        total: 1247,
+        active: 856,
+        newThisWeek: 23,
+        registrations: {
+          thisWeek: 23,
+          lastWeek: 31,
+          trend: -25.8
+        }
+      },
+      transcripts: {
+        processed: 1891,
+        successful: 1803,
+        failed: 88,
+        successRate: 95.3,
+        avgProcessingTime: 2.4
+      },
+      advisor: {
+        chatSessions: 3421,
+        plansGenerated: 567,
+        auditsRun: 234,
+        avgResponseTime: 1.8
+      },
+      system: {
+        uptime: '14 days, 3 hours',
+        cpu: 23.4,
+        memory: 67.2,
+        storage: 45.8,
+        responseTime: 245
+      },
+      errors: {
+        total: 156,
+        critical: 3,
+        warnings: 42,
+        info: 111
+      }
+    };
+
+    res.json({
+      success: true,
+      data: {
+        metrics,
+        timeRange,
+        generated: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    logger.error('Admin metrics error', { error: error.message, userId: req.user?.id });
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve system metrics'
+    });
+  }
 });
 
 module.exports = router;

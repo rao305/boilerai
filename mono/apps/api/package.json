@@ -1,0 +1,37 @@
+{
+  "name": "@boiler-ai/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev -p 3001",
+    "lint": "next lint",
+    "start": "next start"
+  },
+  "dependencies": {
+    "@auth/prisma-adapter": "^1.0.0",
+    "@opentelemetry/api": "^1.4.1",
+    "@opentelemetry/auto-instrumentations-node": "^0.39.4",
+    "@opentelemetry/exporter-jaeger": "^1.15.2",
+    "@opentelemetry/exporter-prometheus": "^0.41.2",
+    "@opentelemetry/instrumentation": "^0.41.2",
+    "@opentelemetry/sdk-node": "^0.41.2",
+    "@prisma/client": "^5.0.0",
+    "@sentry/nextjs": "^7.64.0",
+    "next": "14.0.0",
+    "next-auth": "5.0.0-beta.4",
+    "openai": "^4.0.0",
+    "react": "^18",
+    "react-dom": "^18",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "14.0.0",
+    "prisma": "^5.0.0",
+    "typescript": "^5"
+  }
+}

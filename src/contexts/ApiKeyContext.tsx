@@ -27,9 +27,12 @@ export const ApiKeyProvider: React.FC<ApiKeyProviderProps> = ({ children }) => {
   const [hasApiKey, setHasApiKey] = useState(false);
 
   const checkApiKey = async (): Promise<boolean> => {
+    // User API Key Model: Users provide their own OpenAI API keys through Settings
     const storedKey = localStorage.getItem('openai_api_key');
+    // Environment key is intentionally empty - users provide their own keys
     const envKey = import.meta.env.VITE_OPENAI_API_KEY;
     
+    // Prioritize user-provided key from localStorage
     const key = storedKey || envKey;
     
     // Basic format validation - if no key is found, clear everything
@@ -165,8 +168,9 @@ export const ApiKeyProvider: React.FC<ApiKeyProviderProps> = ({ children }) => {
   }, [isApiKeyValid]);
 
   useEffect(() => {
-    // Check if key exists and validate it immediately
+    // Check if user has provided their own API key and validate it immediately
     const storedKey = localStorage.getItem('openai_api_key');
+    // Environment key is typically empty in user API key model
     const envKey = import.meta.env.VITE_OPENAI_API_KEY;
     const key = storedKey || envKey;
     

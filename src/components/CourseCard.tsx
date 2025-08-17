@@ -24,7 +24,7 @@ interface CourseCardProps {
   className?: string;
 }
 
-export function CourseCard({ course, onAddToPlan, className }: CourseCardProps) {
+export const CourseCard = React.memo(function CourseCard({ course, onAddToPlan, className }: CourseCardProps) {
   const enrollmentPercentage = course.capacity > 0 ? (course.enrollment / course.capacity) * 100 : 0;
   
   return (
@@ -104,4 +104,4 @@ export function CourseCard({ course, onAddToPlan, className }: CourseCardProps) 
       </div>
     </div>
   );
-}
+});

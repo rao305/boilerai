@@ -1,5 +1,6 @@
 // Lightweight Named Entity Recognition for client-side PII detection
 // Simple rule-based approach that works offline
+import { safeRegexExec } from '@/utils/safeRegex';
 
 export interface NEREntity {
   text: string
@@ -121,17 +122,17 @@ export class SimpleNER {
   private findPersons(text: string): NEREntity[] {
     const entities: NEREntity[] = []
 
-    // Use predefined patterns
+    // Use predefined patterns with safe regex execution
     for (const pattern of this.personPatterns) {
-      let match
-      while ((match = pattern.exec(text)) !== null) {
+      const matches = safeRegexExec(pattern, text, { maxMatches: 100, timeout: 50 });
+      for (const match of matches) {
         entities.push({
-          text: match[0],
+          text: match.match,
           label: 'PERSON',
           start: match.index,
-          end: match.index + match[0].length,
+          end: match.index + match.match.length,
           confidence: 0.8,
-        })
+        });
       }
     }
 
@@ -165,15 +166,15 @@ export class SimpleNER {
     const entities: NEREntity[] = []
 
     for (const pattern of this.orgPatterns) {
-      let match
-      while ((match = pattern.exec(text)) !== null) {
+      const matches = safeRegexExec(pattern, text, { maxMatches: 50, timeout: 50 });
+      for (const match of matches) {
         entities.push({
-          text: match[0],
+          text: match.match,
           label: 'ORG',
           start: match.index,
-          end: match.index + match[0].length,
+          end: match.index + match.match.length,
           confidence: 0.85,
-        })
+        });
       }
     }
 
@@ -187,15 +188,15 @@ export class SimpleNER {
     const entities: NEREntity[] = []
 
     for (const pattern of this.coursePatterns) {
-      let match
-      while ((match = pattern.exec(text)) !== null) {
+      const matches = safeRegexExec(pattern, text, { maxMatches: 100, timeout: 50 });
+      for (const match of matches) {
         entities.push({
-          text: match[0],
+          text: match.match,
           label: 'COURSE',
           start: match.index,
-          end: match.index + match[0].length,
+          end: match.index + match.match.length,
           confidence: 0.9,
-        })
+        });
       }
     }
 

@@ -19,9 +19,15 @@ class DatabaseManager {
    */
   async connect() {
     try {
+      // Prevent multiple connections
+      if (this.isConnected || mongoose.connection.readyState === 1) {
+        logger.info('✅ MongoDB already connected');
+        return this.connection;
+      }
+      
       const dbConfig = configManager.get('database');
       
-      // Enhanced connection options
+      // Enhanced connection options (deprecated options removed)
       const connectionOptions = {
         ...dbConfig.options,
         // Connection pool settings
@@ -55,6 +61,12 @@ class DatabaseManager {
         });
       }
 
+      // Prevent EventEmitter memory leaks by setting max listeners
+      mongoose.connection.setMaxListeners(20);
+      
+      // Remove existing listeners to prevent duplicates
+      mongoose.connection.removeAllListeners();
+      
       // Connection event handlers
       mongoose.connection.on('connected', () => {
         this.isConnected = true;

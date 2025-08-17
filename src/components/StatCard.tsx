@@ -1,3 +1,4 @@
+import React from "react";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -13,7 +14,7 @@ interface StatCardProps {
   };
 }
 
-export function StatCard({ title, value, subtitle, icon: Icon, className, trend }: StatCardProps) {
+export const StatCard = React.memo(function StatCard({ title, value, subtitle, icon: Icon, className, trend }: StatCardProps) {
   return (
     <div className={cn(
       "rounded-lg border border-border bg-card p-6 transition-refined hover-lift",
@@ -46,4 +47,4 @@ export function StatCard({ title, value, subtitle, icon: Icon, className, trend 
       </div>
     </div>
   );
-}
+});

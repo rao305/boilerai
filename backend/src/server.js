@@ -54,8 +54,11 @@ async function ensureTestUser() {
       testUser.emailVerificationExpires = undefined;
       testUser.lastLogin = new Date();
       
-      // Update password if needed (will be hashed by pre-save hook)
-      testUser.hashedPassword = testPassword;
+      // Only update password if it doesn't work with current password
+      const passwordWorks = await testUser.comparePassword(testPassword);
+      if (!passwordWorks) {
+        testUser.hashedPassword = testPassword; // Will be hashed by pre-save hook
+      }
       await testUser.save();
       
       logger.info(`✅ Test user verified and updated`, { email: testEmail });
@@ -291,6 +294,8 @@ app.use('/api/courses', require('./routes/courses'));
 app.use('/api/planner', require('./routes/planner'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/settings', require('./routes/settings'));
+app.use('/api/advisor', require('./routes/advisor'));
+app.use('/api/rag', require('./routes/rag'));
 
 // Admin routes for email configuration
 app.use('/api/admin', adminRoutes);
@@ -336,11 +341,17 @@ app.use('*', (req, res) => {
 // Error logging middleware
 app.use(errorLogger);
 
-app.listen(PORT, () => {
-  logger.info('🚀 Backend server started', {
-    port: PORT,
-    environment: process.env.NODE_ENV || 'development',
-    healthCheck: `http://localhost:${PORT}/api/health`,
-    timestamp: new Date().toISOString()
+// Export app for testing
+module.exports = app;
+
+// Only start server if not in test environment and not imported
+if (process.env.NODE_ENV !== 'test' && require.main === module) {
+  app.listen(PORT, () => {
+    logger.info('🚀 Backend server started', {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      healthCheck: `http://localhost:${PORT}/api/health`,
+      timestamp: new Date().toISOString()
+    });
   });
-}); 
+} 

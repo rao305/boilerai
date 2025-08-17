@@ -371,7 +371,7 @@ export default function AIAssistant() {
       await new Promise(resolve => setTimeout(resolve, 1500));
 
       if (aiService === 'clado') {
-        // Use Clado service for all queries (LinkedIn + general AI)
+        // Use Clado service for LinkedIn searches only
         console.log('🔗 Using Clado AI service:', trimmedInput);
         
         let aiResponseText: string;
@@ -387,11 +387,54 @@ export default function AIAssistant() {
             aiResponseText = cladoService.formatSearchResults(cladoResponse);
           } catch (error) {
             console.error('Clado search failed:', error);
-            aiResponseText = `LinkedIn search error: ${error.message}. Try rephrasing your search or check if Clado is enabled.`;
+            aiResponseText = `LinkedIn search error: ${error instanceof Error ? error.message : 'Unknown error'}. Try rephrasing your search or check if Clado is enabled.`;
           }
         } else {
-          // Use Clado backend for general AI chat
-          aiResponseText = await sendToAIBackend(trimmedInput, userId);
+          // For non-LinkedIn queries, fall back to OpenAI directly
+          try {
+            if (reasoningMode) {
+              const reasoningResponse: AIReasoningResponse = await openaiChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
+              aiResponseText = reasoningResponse.final_response;
+            } else {
+              aiResponseText = await openaiChatService.sendMessage(trimmedInput, userId);
+            }
+          } catch (error) {
+            console.error('OpenAI fallback failed:', error);
+            // Check if it's a rate limit error
+            const isRateLimit = error instanceof Error && (
+              error.message.includes('rate limit') || 
+              error.message.includes('429') ||
+              error.message.includes('quota')
+            );
+            
+            if (isRateLimit) {
+              aiResponseText = `⚠️ **Rate Limit Reached**
+
+I'm currently experiencing high usage and have reached the API rate limit. This is a temporary issue.
+
+**What you can do:**
+- **Wait 1-2 minutes** and try your question again
+- Switch to **LinkedIn search mode** by typing \`/clado\` first, then your networking question
+- For immediate academic help, visit the [Purdue Course Catalog](https://catalog.purdue.edu)
+
+**Alternative Resources:**
+- Academic Planning: [myPurdue Portal](https://mypurdue.purdue.edu)
+- Course Scheduling: [Purdue Time Table](https://timetable.mypurdue.purdue.edu)
+- Academic Policies: [Academic Regulations](https://catalog.purdue.edu/content.php?catoid=15&navoid=17654)
+
+I'll be back to full capacity shortly! 🚀`;
+            } else {
+              aiResponseText = `I'm having trouble connecting to the AI service right now. This might be due to high usage or rate limits. 
+
+Here's what I can suggest in the meantime:
+- If you're asking about course planning, check the Purdue Course Catalog online
+- For academic policies, visit the Purdue Academic Regulations website
+- For urgent academic matters, contact your academic advisor directly
+- Try asking your question again in a few minutes
+
+I apologize for the inconvenience and appreciate your patience!`;
+            }
+          }
         }
 
         aiMessage = { 
@@ -399,9 +442,11 @@ export default function AIAssistant() {
           role: "assistant", 
           content: aiResponseText, 
           timestamp: new Date(),
-                      metadata: {
-              thinkingSummary: `Processed via Clado AI: analyzed query → applied ${transcriptData ? 'your academic context and' : ''} professional networking knowledge → generated career-focused guidance`
-            }
+          metadata: {
+            thinkingSummary: isLinkedInSearchQuery(trimmedInput) || trimmedInput.toLowerCase().startsWith('/clado') 
+              ? `LinkedIn Search via Clado: analyzed query → searched professional profiles → formatted networking results`
+              : `Clado Mode + OpenAI: analyzed query → applied ${transcriptData ? 'your academic context and' : ''} professional knowledge → generated career-focused guidance`
+          }
         };
       } else {
         // Use OpenAI service

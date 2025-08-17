@@ -27,21 +27,18 @@ import { MicrosoftAuthProvider } from "@/contexts/MicrosoftAuthContext";
 import { AcademicPlanProvider } from "@/contexts/AcademicPlanContext";
 import { ApiKeyProvider } from "@/contexts/ApiKeyContext";
 import { ThemeProvider, useTheme } from "@/contexts/ThemeContext";
+import { SessionAwareComponent } from "@/components/SessionAwareComponent";
+import { UserSessionControl } from "@/components/UserSessionControl";
+import { OnboardingHandler } from "@/components/OnboardingHandler";
+import type { User } from "@/contexts/AuthContext";
 import { BoilerAILogo } from "@/components/BoilerAILogo";
 import { logEnvironmentStatus } from "@/utils/envValidation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useApiKey } from "@/contexts/ApiKeyContext";
 
 // Keep login and auth pages as regular imports
 import Login from "./pages/Login";
+import StreamlinedLogin from "./pages/StreamlinedLogin";
 import VerifyEmail from "./pages/VerifyEmail";
 import ResendVerification from "./pages/ResendVerification";
 import Onboarding from "./pages/Onboarding";
@@ -163,7 +160,7 @@ function ApiKeyStatusBadge({ onShowSettings }: { onShowSettings: () => void }) {
             ? 'bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100'
             : 'bg-amber-900/20 border-amber-800 text-amber-300 hover:bg-amber-900/30'
       }`}
-      title={isApiKeyValid ? "AI features unlocked - Click to manage" : "Click to setup OpenAI API key or refresh status"}
+      title={isApiKeyValid ? "AI features unlocked - Click to manage your API key" : "Click to setup your own OpenAI API key or refresh status"}
     >
       {isApiKeyValid ? (
         <>
@@ -173,18 +170,20 @@ function ApiKeyStatusBadge({ onShowSettings }: { onShowSettings: () => void }) {
       ) : (
         <>
           <Brain size={14} />
-          <span className="text-xs font-medium">Setup AI</span>
+          <span className="text-xs font-medium">Add Your API Key</span>
         </>
       )}
     </button>
   );
 }
 
-function Topbar({ onGlobalAsk, user, onNavigateToSettings }: { 
-  onGlobalAsk: (query: string) => void; 
-  user: any;
+interface TopbarProps {
+  onGlobalAsk: (query: string) => void;
+  user: User | null;
   onNavigateToSettings: () => void;
-}) {
+}
+
+function Topbar({ onGlobalAsk, user, onNavigateToSettings }: TopbarProps) {
   const [q, setQ] = useState("");
   const { logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -241,61 +240,7 @@ function Topbar({ onGlobalAsk, user, onNavigateToSettings }: {
         )}
         
         {/* User Profile Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className={`ml-1 flex items-center gap-2 rounded-2xl border px-2 py-1 ${
-                theme === 'light'
-                  ? 'border-neutral-200 bg-neutral-50'
-                  : 'border-neutral-800 bg-neutral-900/70'
-              }`}
-            >
-              <div className={`h-6 w-6 rounded-full ${
-                theme === 'light' ? 'bg-neutral-300' : 'bg-neutral-700'
-              }`} />
-              <span className={`text-sm ${
-                theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'
-              }`}>{user?.name || 'User'}</span>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {user?.email && (
-              <>
-                <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-              </>
-            )}
-            <DropdownMenuItem onClick={onNavigateToSettings}>Settings</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { window.location.href = '/onboarding'; }}>Onboarding</DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={async () => {
-                try { await logout(); } catch (_) {}
-                try {
-                  localStorage.removeItem('transcriptData');
-                  localStorage.removeItem('academicPlan');
-                  localStorage.removeItem('academicPlanSemesters');
-                  sessionStorage.clear();
-                } catch (_) {}
-                window.location.href = '/login';
-              }}
-            >
-              Reset app state
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={async () => {
-                try {
-                  await logout();
-                  // Redirect to login after successful logout
-                  window.location.href = '/login';
-                } catch (_) {
-                  window.location.href = '/login';
-                }
-              }}
-            >
-              Logout
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <UserSessionControl />
       </div>
     </div>
   );
@@ -346,11 +291,12 @@ function MainApp() {
   const { theme } = useTheme();
   
   return (
-    <div className={`min-h-screen flex flex-col ${
-      theme === 'light' 
-        ? 'bg-white text-neutral-900' 
-        : 'bg-neutral-950 text-neutral-100'
-    }`}>
+    <SessionAwareComponent requireAuth={true} dataIsolation={true}>
+      <div className={`min-h-screen flex flex-col ${
+        theme === 'light' 
+          ? 'bg-white text-neutral-900' 
+          : 'bg-neutral-950 text-neutral-100'
+      }`}>
       <Topbar onGlobalAsk={onGlobalAsk} user={user} onNavigateToSettings={onNavigateToSettings} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar current={current} onSelect={setCurrent} />
@@ -390,7 +336,8 @@ function MainApp() {
         ::-webkit-scrollbar { height: 8px; width: 8px; }
         ::-webkit-scrollbar-thumb { background: ${theme === 'light' ? '#bbb' : '#3a3a3a'}; border-radius: 8px; }
       `}</style>
-    </div>
+      </div>
+    </SessionAwareComponent>
   );
 }
 
@@ -411,22 +358,37 @@ const App = () => {
             <ApiKeyProvider>
               <AcademicPlanProvider>
                 <TooltipProvider>
-                  <BrowserRouter>
-                    <Routes>
-                      {/* Public routes */}
-                      <Route path="/login" element={<Login />} />
-                      <Route path="/verify-email" element={<VerifyEmail />} />
-                      <Route path="/resend-verification" element={<ResendVerification />} />
-                      <Route path="/onboarding" element={<Onboarding />} />
-                      <Route path="/dev" element={<DevDashboard />} />
+                  <BrowserRouter 
+                    future={{ 
+                      v7_startTransition: true,
+                      v7_relativeSplatPath: true 
+                    }}
+                  >
+                    <OnboardingHandler>
+                      <Routes>
+                        {/* Root route redirects to streamlined login */}
+                        <Route path="/" element={<StreamlinedLogin />} />
+                        
+                        {/* Public routes */}
+                        <Route path="/login" element={<StreamlinedLogin />} />
+                        <Route path="/login/legacy" element={<Login />} />
+                        <Route path="/verify-email" element={<VerifyEmail />} />
+                        <Route path="/resend-verification" element={<ResendVerification />} />
+                        <Route path="/onboarding" element={<Onboarding />} />
+                        <Route path="/dev" element={
+                          <ProtectedRoute>
+                            <DevDashboard />
+                          </ProtectedRoute>
+                        } />
 
-                      {/* Protected catch-all */}
-                      <Route path="*" element={
-                        <ProtectedRoute>
-                          <MainApp />
-                        </ProtectedRoute>
-                      } />
-                    </Routes>
+                        {/* Protected catch-all */}
+                        <Route path="*" element={
+                          <ProtectedRoute>
+                            <MainApp />
+                          </ProtectedRoute>
+                        } />
+                      </Routes>
+                    </OnboardingHandler>
                   </BrowserRouter>
                   <Toaster />
                   <Sonner />

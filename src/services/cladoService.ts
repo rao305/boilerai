@@ -101,9 +101,9 @@ interface RateLimitInfo {
 
 class CladoService {
   private baseUrl = 'https://search.clado.ai';
-  // Embedded API key - hardcoded for automatic functionality
-  private readonly EMBEDDED_API_KEY = 'lk_26267cec2bcd4f34b9894bc07a00af1b';
-  private isEnabled: boolean = false;
+  // Embedded API key - Note: This key may need renewal
+  private readonly EMBEDDED_API_KEY = 'sk-MDE5OGIwOGYtMTliNC03MDAwLTk2NTct';
+  private isEnabled: boolean = false; // Start disabled, enable with /clado command
   
   // Free tier rate limiting: 20 requests per minute
   private rateLimit: RateLimitInfo = {
@@ -144,7 +144,7 @@ class CladoService {
 
   // Get API key status (now always true if service is available)
   hasApiKey(): boolean {
-    return this.EMBEDDED_API_KEY.startsWith('lk_') && this.EMBEDDED_API_KEY.length > 10;
+    return (this.EMBEDDED_API_KEY.startsWith('lk_') || this.EMBEDDED_API_KEY.startsWith('sk-')) && this.EMBEDDED_API_KEY.length > 10;
   }
 
   // Check if we can make a request (rate limiting)
@@ -264,7 +264,7 @@ class CladoService {
         }
 
         if (response.status === 401) {
-          throw new Error('Invalid or expired Clado API key. Please check your API key.');
+          throw new Error('⚠️ **Clado API Key Issue**\n\nThe LinkedIn search feature is temporarily unavailable due to an expired API key. This is a known issue that the development team is working to resolve.\n\n**Alternative Options:**\n- Use the regular AI assistant for career advice\n- Visit [LinkedIn](https://linkedin.com) directly for networking\n- Try rephrasing as a general career question');
         } else if (response.status === 429) {
           throw new Error('Rate limit exceeded. Please wait before making another request.');
         } else if (response.status === 400) {

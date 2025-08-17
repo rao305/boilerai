@@ -997,9 +997,9 @@ async def search_clado_api(query: str, user_id: str) -> str:
     """Search using the actual Clado secret API"""
     
     # Check if we have the secret Clado API key
-    clado_api_key = os.environ.get("CLADO_API_KEY", "lk_26267cec2bcd4f34b9894bc07a00af1b")  # Fallback to the one from frontend
+    clado_api_key = os.environ.get("CLADO_API_KEY", "sk-MDE5OGIwOGYtMTliNC03MDAwLTk2NTct")  # Fallback to the one from frontend
     
-    if not clado_api_key or not clado_api_key.startswith('lk_'):
+    if not clado_api_key or not (clado_api_key.startswith('lk_') or clado_api_key.startswith('sk-')):
         return "LinkedIn networking search is not configured. Please contact support to enable professional networking features."
     
     try:

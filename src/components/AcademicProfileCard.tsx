@@ -16,7 +16,6 @@ import {
   RefreshCw,
   Loader2
 } from "lucide-react";
-// import { aiService } from "@/services/aiService";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 
