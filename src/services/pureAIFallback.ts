@@ -16,9 +16,39 @@ class PureAIFallbackSystem {
     this.initializeOpenAI();
   }
 
+  private getUserApiKey(): string {
+    // Use same logic as openaiChatService for consistent API key detection
+    try {
+      // First check session storage (for non-remembered keys)
+      const sessionKey = sessionStorage.getItem('current_session_openai_key');
+      if (sessionKey && sessionKey.length > 10) {
+        return sessionKey;
+      }
+
+      // Then check user-specific storage (for remembered keys)
+      // Note: We don't have user ID here, so we'll check legacy storage as fallback
+      const legacyKey = localStorage.getItem('openai_api_key');
+      if (legacyKey && legacyKey.length > 10) {
+        return legacyKey;
+      }
+
+      // Environment key (typically empty in user API key model)
+      const envKey = (window as any).VITE_OPENAI_API_KEY;
+      if (envKey && envKey.length > 10) {
+        return envKey;
+      }
+
+      return '';
+    } catch (error) {
+      console.error('Error getting user API key in fallback:', error);
+      return '';
+    }
+  }
+
   private initializeOpenAI(): boolean {
     try {
-      const apiKey = localStorage.getItem('openai_api_key');
+      // Use the same API key detection logic as openaiChatService
+      const apiKey = this.getUserApiKey();
       if (!apiKey || apiKey === 'your_openai_api_key_here' || apiKey.length < 10) {
         return false;
       }
@@ -71,8 +101,19 @@ class PureAIFallbackSystem {
       });
 
       return response.choices[0]?.message?.content || 'Unable to generate response';
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI fallback generation failed:', error);
+      
+      // Check for specific error types and provide more informative error messages
+      if (error.message && (
+        error.message.includes('rate limit') || 
+        error.message.includes('429') ||
+        error.message.includes('quota') ||
+        error.message.includes('RateLimitError')
+      )) {
+        throw new Error('RATE_LIMIT_ERROR');
+      }
+      
       // Maintain pure AI approach - throw error instead of hardcoded responses
       throw new Error('AI_UNAVAILABLE');
     }
@@ -181,7 +222,23 @@ Generate a natural, helpful response that addresses their query while being tran
   // Force re-initialization (useful when API key is updated)
   reinitialize(): boolean {
     this.initialized = false;
+    this.openaiClient = null;
     return this.initializeOpenAI();
+  }
+
+  // Generic generateResponse method for backward compatibility
+  async generateResponse(
+    userMessage: string, 
+    context: 'academic' | 'general' = 'general',
+    userData?: any
+  ): Promise<string> {
+    const config: AIFallbackConfig = {
+      systemContext: context,
+      userContext: userData,
+      serviceStatus: 'limited'
+    };
+
+    return this.generateContextualResponse(userMessage, config);
   }
 }
 

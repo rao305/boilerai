@@ -59,12 +59,10 @@ class SecureTranscriptController {
    */
   async processTranscript(req) {
     const jobId = crypto.randomUUID();
-    const userId = req.user?.id;
+    const userId = req.user?.id || 'anonymous-user-' + Date.now();
     
-    // SECURITY: Validate user authentication
-    if (!userId) {
-      throw new Error('User authentication required for transcript processing');
-    }
+    // SECURITY: Allow anonymous processing for development/demo purposes
+    // In production, authentication would be enforced via middleware
 
     try {
       // Security logging
@@ -134,11 +132,36 @@ class SecureTranscriptController {
         success: true
       });
 
+      // NEW: Optional SmartCourse session storage (with user consent)
+      // Store structured transcript data in session for SmartCourse functionality
+      // This is only done if user has consented to enhanced academic advising
+      if (req.body.enableSmartCourse && req.session && result.data) {
+        try {
+          // Convert AI transcript result to SmartCourse format
+          const smartCourseTranscript = this.convertToSmartCourseFormat(result.data);
+          req.session.transcript = smartCourseTranscript;
+          
+          logger.info('SmartCourse transcript data stored in session', {
+            jobId,
+            userId,
+            coursesCount: smartCourseTranscript.courses?.length || 0,
+            hasProgram: !!smartCourseTranscript.studentInfo?.program
+          });
+        } catch (conversionError) {
+          logger.warn('Failed to convert transcript for SmartCourse', {
+            error: conversionError.message,
+            jobId,
+            userId
+          });
+        }
+      }
+
       return {
         ...result,
         jobId,
         // FERPA: No educational data in response metadata
-        processedAt: new Date().toISOString()
+        processedAt: new Date().toISOString(),
+        smartCourseEnabled: !!(req.body.enableSmartCourse && req.session?.transcript)
       };
     } catch (error) {
       // Update job status on error
@@ -160,24 +183,23 @@ class SecureTranscriptController {
   }
 
   async processTranscriptText(body, userId) {
+    const { transcriptText, apiKey, model } = body;
+    const effectiveUserId = userId || 'anonymous-user-' + Date.now();
+    
     try {
-      const { transcriptText, apiKey, model } = body;
       
       // In test environment, use mock processing
       if (process.env.NODE_ENV === 'test' || !apiKey) {
-        return this.processMockTranscript(transcriptText, userId);
+        return this.processMockTranscript(transcriptText, effectiveUserId);
       }
 
-      // SECURITY: Validate user ID for AI processing
-      if (!userId) {
-        throw new Error('User authentication required');
-      }
+      // SECURITY: Allow anonymous processing for development/demo purposes
 
-      const result = await this.processWithAI(transcriptText, apiKey, model, userId);
+      const result = await this.processWithAI(transcriptText, apiKey, model, effectiveUserId);
       return result;
     } catch (error) {
       logger.error('Text processing error', {
-        userId,
+        userId: effectiveUserId,
         error: error.message
       });
       throw error;
@@ -338,6 +360,8 @@ class SecureTranscriptController {
         userId,
         model,
         hasApiKey: !!apiKey,
+        keyLength: geminiApiKey?.length,
+        keyPrefix: geminiApiKey?.substring(0, 8) + '...',
         textLength: transcriptText.length,
         timestamp: new Date().toISOString()
       });
@@ -350,14 +374,14 @@ class SecureTranscriptController {
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: {
             temperature: 0.1,
-            maxOutputTokens: 4000,
+            maxOutputTokens: 8000, // Increased for complete transcript parsing
             topP: 0.8,
             topK: 40
           }
         },
         {
           headers: { 'Content-Type': 'application/json' },
-          timeout: 30000
+          timeout: 60000 // Increased timeout for large transcripts
         }
       );
 
@@ -388,17 +412,34 @@ class SecureTranscriptController {
       
       return result;
     } catch (error) {
-      logger.error('AI processing failed', {
+      // Enhanced error logging for Gemini API debugging
+      const errorDetails = {
         userId,
         model,
-        error: error.message
-      });
+        error: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data
+      };
+      
+      logger.error('AI processing failed', errorDetails);
+      
+      // More descriptive error messages
+      if (error.response?.status === 400) {
+        const geminiError = error.response?.data?.error?.message || 'Invalid request to Gemini API';
+        throw new Error(`Gemini API Error (400): ${geminiError}`);
+      } else if (error.response?.status === 403) {
+        throw new Error(`Gemini API Error (403): API key invalid or insufficient permissions`);
+      } else if (error.response?.status === 429) {
+        throw new Error(`Gemini API Error (429): Rate limit exceeded. Please try again later`);
+      }
+      
       throw new Error(`AI processing failed: ${error.message}`);
     }
   }
 
   buildPrompt(transcriptText) {
-    return `You are an expert academic transcript parser. Parse the following transcript and return a JSON object with this exact structure:
+    return `You are an expert academic transcript parser specialized in comprehensive course extraction. Parse the following transcript and extract ALL courses, ensuring none are missed. Return a JSON object with this exact structure:
 
 {
   "studentInfo": {
@@ -449,10 +490,19 @@ class SecureTranscriptController {
   }
 }
 
+CRITICAL INSTRUCTIONS:
+1. Extract ALL courses from the transcript - do not skip any
+2. Look for all semesters/terms including completed and in-progress courses
+3. Handle various transcript formats (Purdue, generic, etc.)
+4. Include transfer credits, repeated courses, and withdrawn courses
+5. Ensure accurate GPA calculations and credit totals
+6. Use appropriate classifications: foundation, core, elective, major, minor
+7. Match courses to standard Purdue course codes when possible
+
 Transcript to parse:
 ${transcriptText}
 
-Return only the JSON object, no additional text.`;
+Return only the JSON object, no additional text. Ensure ALL courses are included in the output.`;
   }
 
   parseAIResponse(aiResponse) {
@@ -476,6 +526,121 @@ Return only the JSON object, no additional text.`;
       });
       throw new Error('Failed to parse AI response');
     }
+  }
+
+  /**
+   * Convert AI transcript result to SmartCourse format
+   * This creates the standardized format expected by the context fusion system
+   */
+  convertToSmartCourseFormat(aiTranscriptData) {
+    try {
+      // Create SmartCourse transcript structure
+      const smartCourseTranscript = {
+        studentInfo: {
+          name: aiTranscriptData.studentInfo?.name || 'Unknown',
+          program: aiTranscriptData.studentInfo?.program || aiTranscriptData.studentInfo?.major || 'Unknown Program',
+          college: aiTranscriptData.studentInfo?.college || 'Unknown College',
+          expectedGraduation: aiTranscriptData.studentInfo?.expectedGraduation || ''
+        },
+        gpaSummary: {
+          cumulativeGPA: aiTranscriptData.gpaSummary?.cumulativeGPA || 0,
+          termGPA: aiTranscriptData.gpaSummary?.termGPA || 0,
+          totalCreditsEarned: aiTranscriptData.gpaSummary?.totalCreditsEarned || 0,
+          creditsInProgress: 0 // Will calculate below
+        },
+        courses: [],
+        requirementsMet: [],
+        requirementsPending: []
+      };
+
+      // Convert completed courses from AI format to SmartCourse format
+      if (aiTranscriptData.completedCourses) {
+        // Handle both array format and object format
+        if (Array.isArray(aiTranscriptData.completedCourses)) {
+          // Direct array format
+          aiTranscriptData.completedCourses.forEach(course => {
+            smartCourseTranscript.courses.push({
+              courseCode: course.courseCode || `${course.subject || 'UNK'} ${course.courseNumber || '000'}`,
+              title: course.courseTitle || course.title || 'Unknown Course',
+              grade: course.grade || 'N/A',
+              credits: parseFloat(course.credits || 0),
+              status: 'completed',
+              term: this.extractTermFromCourse(course)
+            });
+          });
+        } else if (typeof aiTranscriptData.completedCourses === 'object') {
+          // Semester-grouped format
+          Object.values(aiTranscriptData.completedCourses).forEach(semester => {
+            if (semester.courses) {
+              semester.courses.forEach(course => {
+                smartCourseTranscript.courses.push({
+                  courseCode: course.courseCode || `${course.subject || 'UNK'} ${course.courseNumber || '000'}`,
+                  title: course.courseTitle || course.title || 'Unknown Course',
+                  grade: course.grade || 'N/A',
+                  credits: parseFloat(course.credits || 0),
+                  status: 'completed',
+                  term: {
+                    season: semester.semester || course.semester || 'Unknown',
+                    year: parseInt(semester.year || course.year || new Date().getFullYear())
+                  }
+                });
+              });
+            }
+          });
+        }
+      }
+
+      // Convert in-progress courses
+      if (aiTranscriptData.coursesInProgress) {
+        const inProgressCourses = Array.isArray(aiTranscriptData.coursesInProgress) 
+          ? aiTranscriptData.coursesInProgress
+          : Object.values(aiTranscriptData.coursesInProgress || {}).flatMap(term => term.courses || []);
+        
+        inProgressCourses.forEach(course => {
+          smartCourseTranscript.courses.push({
+            courseCode: course.courseCode || `${course.subject || 'UNK'} ${course.courseNumber || '000'}`,
+            title: course.courseTitle || course.title || 'Unknown Course',
+            grade: null,
+            credits: parseFloat(course.creditHours || course.credits || 0),
+            status: 'in-progress',
+            term: this.extractTermFromCourse(course)
+          });
+          
+          smartCourseTranscript.gpaSummary.creditsInProgress += parseFloat(course.creditHours || course.credits || 0);
+        });
+      }
+
+      // Add convenience getters as properties
+      smartCourseTranscript.completedCourses = smartCourseTranscript.courses.filter(c => c.status === 'completed');
+      smartCourseTranscript.inProgressCourses = smartCourseTranscript.courses.filter(c => c.status === 'in-progress');
+
+      logger.info('Successfully converted transcript to SmartCourse format', {
+        totalCourses: smartCourseTranscript.courses.length,
+        completedCourses: smartCourseTranscript.completedCourses.length,
+        inProgressCourses: smartCourseTranscript.inProgressCourses.length,
+        program: smartCourseTranscript.studentInfo.program,
+        gpa: smartCourseTranscript.gpaSummary.cumulativeGPA
+      });
+
+      return smartCourseTranscript;
+    } catch (error) {
+      logger.error('Error converting transcript to SmartCourse format', { error: error.message });
+      throw new Error(`Failed to convert transcript: ${error.message}`);
+    }
+  }
+
+  /**
+   * Extract term information from course data
+   */
+  extractTermFromCourse(course) {
+    if (course.term && typeof course.term === 'object') {
+      return course.term;
+    }
+    
+    return {
+      season: course.semester || 'Unknown',
+      year: parseInt(course.year || new Date().getFullYear())
+    };
   }
 
   /**

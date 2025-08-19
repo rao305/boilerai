@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useMicrosoftAuth } from '@/contexts/MicrosoftAuthContext';
+import { isReturningUser } from '@/utils/onboardingState';
 
 /**
  * AUTOMATIC ONBOARDING HANDLER
@@ -22,30 +23,41 @@ export const OnboardingHandler: React.FC<OnboardingHandlerProps> = ({ children }
     if (!isLoading && isAuthenticated) {
       const currentPath = location.pathname;
       
+      // Check if user should be treated as returning user
+      const shouldTreatAsReturningUser = isReturningUser(isFirstTimeUser);
+      
+      console.log('🔍 OnboardingHandler routing check:', {
+        currentPath,
+        isFirstTimeUser,
+        shouldTreatAsReturningUser,
+        isAuthenticated,
+        isLoading
+      });
+      
       // Don't redirect if already on the correct page
-      if (isFirstTimeUser && currentPath === '/onboarding') {
+      if (!shouldTreatAsReturningUser && currentPath === '/onboarding') {
         console.log('✅ First-time user already on onboarding page');
         return;
       }
       
-      if (!isFirstTimeUser && currentPath === '/main') {
+      if (shouldTreatAsReturningUser && (currentPath === '/main' || currentPath === '/dashboard' || currentPath.startsWith('/main/'))) {
         console.log('✅ Returning user already on main app');
         return;
       }
       
       // Don't redirect if user is manually navigating onboarding
-      if (currentPath === '/onboarding' && !isFirstTimeUser) {
+      if (currentPath === '/onboarding' && shouldTreatAsReturningUser) {
         console.log('ℹ️ User manually accessing onboarding - allowing');
         return;
       }
       
       // Handle automatic redirects
-      if (isFirstTimeUser && currentPath !== '/onboarding') {
+      if (!shouldTreatAsReturningUser && currentPath !== '/onboarding') {
         console.log('🎯 First-time user detected, redirecting to onboarding');
         navigate('/onboarding', { replace: true });
-      } else if (!isFirstTimeUser && (currentPath === '/login' || currentPath === '/' || currentPath === '/onboarding')) {
-        console.log('🎯 Returning user, redirecting to main app');
-        navigate('/main', { replace: true });
+      } else if (shouldTreatAsReturningUser && (currentPath === '/login' || currentPath === '/' || currentPath === '/onboarding')) {
+        console.log('🎯 Returning user detected, redirecting to main app');
+        navigate('/dashboard', { replace: true });
       }
     }
   }, [isAuthenticated, isFirstTimeUser, isLoading, location.pathname, navigate]);

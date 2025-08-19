@@ -2,31 +2,36 @@ const express = require('express');
 const router = express.Router();
 const { logger } = require('../utils/logger');
 const { authenticateToken } = require('../middleware/auth');
+const unifiedAIService = require('../services/unifiedAIService');
 
-// Mock RAG (Retrieval-Augmented Generation) responses
-const mockRAGData = {
-  sources: [
-    {
-      id: "purdue-catalog-2024",
-      title: "Purdue University Course Catalog 2024",
-      excerpt: "CS 18000: Problem Solving and Object-Oriented Programming. Prerequisites: None. Credits: 4.0",
-      relevance: 0.92
-    },
-    {
-      id: "cs-degree-requirements",
-      title: "Computer Science Degree Requirements", 
-      excerpt: "Students must complete 128 credit hours including core CS courses and mathematics requirements",
-      relevance: 0.88
-    }
-  ],
-  answer: "Based on the course catalog, CS 18000 is an introductory course with no prerequisites, making it suitable for first-year students.",
-  confidence: 0.85
-};
+/**
+ * Generate AI-powered RAG response
+ */
+async function generateRAGResponse(query, context, filters, apiKey) {
+  try {
+    return await unifiedAIService.generateRAGResponse(query, context, filters, apiKey);
+  } catch (error) {
+    logger.error('RAG response generation failed', { error: error.message });
+    throw error;
+  }
+}
 
-// POST /api/rag/query - RAG-powered query processing
+/**
+ * Generate dynamic knowledge sources
+ */
+async function generateKnowledgeSources(apiKey) {
+  try {
+    return await unifiedAIService.generateKnowledgeSources(apiKey);
+  } catch (error) {
+    logger.error('Knowledge sources generation failed', { error: error.message });
+    return unifiedAIService.getStaticKnowledgeSources();
+  }
+}
+
+// POST /api/rag/query - AI-powered RAG query processing
 router.post('/query', authenticateToken, async (req, res) => {
   try {
-    const { query, context, filters } = req.body;
+    const { query, context, filters, apiKey } = req.body;
     
     if (!query) {
       return res.status(400).json({
@@ -42,13 +47,13 @@ router.post('/query', authenticateToken, async (req, res) => {
       hasFilters: !!filters
     });
 
-    // Simulate RAG processing
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Generate AI-powered RAG response
+    const ragResponse = await generateRAGResponse(query, context, filters, apiKey);
 
     res.json({
       success: true,
       data: {
-        ...mockRAGData,
+        ...ragResponse,
         query: query,
         processedAt: new Date().toISOString(),
         context: context || null,
@@ -65,41 +70,23 @@ router.post('/query', authenticateToken, async (req, res) => {
   }
 });
 
-// GET /api/rag/sources - Get available knowledge sources
+// GET /api/rag/sources - Get AI-generated knowledge sources
 router.get('/sources', authenticateToken, async (req, res) => {
   try {
+    const { apiKey } = req.query;
+    
     logger.info('RAG sources request', { userId: req.user.id });
 
-    const sources = [
-      {
-        id: "purdue-catalog-2024",
-        name: "Purdue Course Catalog 2024",
-        type: "official",
-        lastUpdated: "2024-08-01",
-        documentCount: 1247
-      },
-      {
-        id: "cs-handbook",
-        name: "Computer Science Student Handbook",
-        type: "department", 
-        lastUpdated: "2024-07-15",
-        documentCount: 156
-      },
-      {
-        id: "academic-policies",
-        name: "Academic Policies and Procedures",
-        type: "policy",
-        lastUpdated: "2024-06-30",
-        documentCount: 89
-      }
-    ];
+    // Generate dynamic knowledge sources
+    const sources = await generateKnowledgeSources(apiKey);
 
     res.json({
       success: true,
       data: {
         sources,
         totalSources: sources.length,
-        lastIndexed: new Date().toISOString()
+        lastIndexed: new Date().toISOString(),
+        generatedBy: apiKey ? 'AI-Enhanced' : 'Basic'
       }
     });
 

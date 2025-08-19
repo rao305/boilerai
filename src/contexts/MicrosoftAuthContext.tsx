@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { sessionManager, UserSession } from '@/utils/sessionManager';
+import { getOnboardingState, markOnboardingCompleted, isReturningUser } from '@/utils/onboardingState';
 
 // Microsoft auth configuration for Purdue
 const MICROSOFT_AUTH_CONFIG = {
@@ -26,6 +27,12 @@ interface User {
   email: string;
   photo?: string;
   sessionId?: string;
+  preferences?: {
+    onboardingCompleted?: boolean;
+    theme?: string;
+    notifications?: boolean;
+    [key: string]: any;
+  };
 }
 
 interface MicrosoftAuthContextType {
@@ -148,6 +155,12 @@ export function MicrosoftAuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('💾 Creating/updating user in Supabase...');
       
+      // Check if Supabase is available
+      if (!supabase) {
+        console.warn('⚠️ Supabase not configured, skipping user creation');
+        return;
+      }
+      
       // Check if user already exists
       const { data: existingUser, error: fetchError } = await supabase
         .from('users')
@@ -157,28 +170,63 @@ export function MicrosoftAuthProvider({ children }: { children: ReactNode }) {
       
       if (fetchError && fetchError.code !== 'PGRST116') {
         console.error('Error checking existing user:', fetchError);
+        // Continue without failing authentication
+        return;
       }
       
       if (existingUser) {
-        // Existing user - check if onboarding completed
-        const hasCompletedOnboarding = existingUser.preferences?.onboardingCompleted || false;
+        // Existing user - check if onboarding completed from multiple sources
+        const dbOnboardingCompleted = existingUser.preferences?.onboardingCompleted || false;
+        const hasCompletedOnboarding = isReturningUser(false, dbOnboardingCompleted);
         setIsFirstTimeUser(!hasCompletedOnboarding);
         
-        // Update existing user
-        const { error: updateError } = await supabase
-          .from('users')
-          .update({
-            name: msUser.name,
-            email_verified: true,
-            last_login: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', existingUser.id);
-          
-        if (updateError) {
-          console.error('Error updating user:', updateError);
+        console.log('🔍 Existing user onboarding check:', {
+          dbOnboardingCompleted,
+          hasCompletedOnboarding,
+          isFirstTimeUser: !hasCompletedOnboarding,
+          userId: existingUser.id
+        });
+        
+        // If localStorage indicates completion but DB doesn't, sync the DB
+        const localState = getOnboardingState();
+        if (localState.isCompleted && !dbOnboardingCompleted) {
+          console.log('🔄 Syncing localStorage onboarding state to database...');
+          const { error: syncError } = await supabase
+            .from('users')
+            .update({
+              name: msUser.name,
+              email_verified: true,
+              last_login: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              preferences: {
+                ...existingUser.preferences,
+                onboardingCompleted: true,
+              },
+            })
+            .eq('id', existingUser.id);
+            
+          if (syncError) {
+            console.error('Error syncing onboarding state:', syncError);
+          } else {
+            console.log('✅ Onboarding state synced to database');
+          }
         } else {
-          console.log('✅ Existing user updated in Supabase');
+          // Normal update for existing user
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({
+              name: msUser.name,
+              email_verified: true,
+              last_login: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', existingUser.id);
+            
+          if (updateError) {
+            console.error('Error updating user:', updateError);
+          } else {
+            console.log('✅ Existing user updated in Supabase');
+          }
         }
       } else {
         // First-time user - needs onboarding
@@ -244,7 +292,18 @@ export function MicrosoftAuthProvider({ children }: { children: ReactNode }) {
                 };
                 setUser(restoredUser);
                 setSessionId(currentSession.sessionId);
-                console.log('✅ Session restored successfully');
+                
+                // Check onboarding status for restored session
+                const localState = getOnboardingState();
+                const userIsReturning = isReturningUser(false, restoredUser.preferences?.onboardingCompleted);
+                setIsFirstTimeUser(!userIsReturning);
+                
+                console.log('✅ Session restored successfully', {
+                  user: restoredUser.email,
+                  onboardingCompleted: localState.isCompleted,
+                  isFirstTimeUser: !userIsReturning,
+                  localCompletedAt: localState.completedAt
+                });
               } else {
                 // Token expired, destroy session
                 sessionManager.clearCurrentSession();
@@ -345,29 +404,62 @@ export function MicrosoftAuthProvider({ children }: { children: ReactNode }) {
   };
 
   const completeOnboarding = async () => {
-    if (!user || !supabase) return;
+    if (!user) return;
     
     try {
-      // Update user preferences to mark onboarding as completed
-      const { error } = await supabase
-        .from('users')
-        .update({
-          preferences: {
-            ...user.preferences,
-            onboardingCompleted: true,
-          },
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', user.id);
+      console.log('🎯 Starting onboarding completion for user:', user.id);
       
-      if (error) {
-        console.error('Error completing onboarding:', error);
+      // IMMEDIATELY update local state to prevent routing loops
+      setIsFirstTimeUser(false);
+      markOnboardingCompleted();
+      
+      console.log('✅ Local onboarding state updated immediately');
+      
+      // Ensure user preferences object exists
+      const currentPreferences = user.preferences || {};
+      
+      // Update user preferences to mark onboarding as completed (if Supabase is available)
+      if (supabase) {
+        const { error } = await supabase
+          .from('users')
+          .update({
+            preferences: {
+              ...currentPreferences,
+              onboardingCompleted: true,
+            },
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', user.id);
+        
+        if (error) {
+          console.error('Error completing onboarding in database:', error);
+          // Even if database update fails, keep local state updated
+        } else {
+          console.log('✅ Onboarding completed successfully in database');
+        }
       } else {
-        setIsFirstTimeUser(false);
-        console.log('✅ Onboarding completed successfully');
+        console.log('⚠️ Supabase not available, onboarding completed locally only');
       }
+      
+      // Update user object to include completed onboarding
+      const updatedUser = {
+        ...user,
+        preferences: {
+          ...currentPreferences,
+          onboardingCompleted: true,
+        }
+      };
+      setUser(updatedUser);
+      
+      // Update session storage with updated user
+      sessionManager.setUserData('userProfile', updatedUser);
+      
+      console.log('🎉 Onboarding completion process finished successfully');
+      
     } catch (err) {
       console.error('Error completing onboarding:', err);
+      // Even if database update fails, keep local state updated
+      console.log('⚠️ Continuing with local state despite error');
     }
   };
 

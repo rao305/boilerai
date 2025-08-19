@@ -122,8 +122,8 @@ const CourseExplorer: React.FC = () => {
     <div className="h-full w-full p-8 overflow-auto">
       <div className="max-w-none space-y-8">
         <PageHeader 
-          title="Course Explorer" 
-          subtitle="Discover and explore Purdue University courses"
+          title="📚 Course Explorer" 
+          subtitle="Discover and explore Purdue University courses • Find your perfect classes"
         />
 
       {/* Search and Filters */}

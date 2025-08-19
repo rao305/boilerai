@@ -94,23 +94,28 @@ function Sidebar({ current, onSelect }: { current: string; onSelect: (key: strin
           <button
             key={key}
             onClick={() => onSelect(key)}
-            className={`flex items-center gap-4 rounded-2xl px-4 py-3 transition-colors ${
+            className={`flex items-center gap-4 rounded-2xl px-4 py-3 transition-all duration-200 ${
               active
                 ? theme === 'light'
-                  ? 'bg-neutral-100 ring-1 ring-neutral-200'
-                  : 'bg-neutral-900 ring-1 ring-neutral-800'
+                  ? 'bg-gradient-to-r from-yellow-100 to-amber-100 ring-2 ring-yellow-300 shadow-md'
+                  : 'bg-gradient-to-r from-neutral-900 to-neutral-800 ring-2 ring-yellow-600/50 shadow-md'
                 : theme === 'light'
-                  ? 'hover:bg-neutral-50'
-                  : 'hover:bg-neutral-900/60'
-            } ${primary ? "border border-[--gold]" : ""}`}
-            style={primary ? { ['--gold']: PURDUE_GOLD } : undefined}
+                  ? 'hover:bg-neutral-50 hover:shadow-sm'
+                  : 'hover:bg-neutral-900/60 hover:shadow-sm'
+            } ${primary ? "border-2 border-[--gold] shadow-lg" : ""}`}
+            style={primary ? { 
+              ['--gold']: PURDUE_GOLD,
+              boxShadow: active ? `0 4px 12px rgba(207, 185, 145, 0.3)` : undefined
+            } : {
+              boxShadow: active ? `0 2px 8px rgba(207, 185, 145, 0.2)` : undefined
+            }}
           >
             <Icon size={20} className={active 
-              ? theme === 'light' ? 'text-neutral-900' : 'text-neutral-100'
+              ? theme === 'light' ? 'text-amber-800' : 'text-yellow-300'
               : theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
             } />
             <span className={`text-base font-medium ${active 
-              ? theme === 'light' ? 'text-neutral-900' : 'text-neutral-100'
+              ? theme === 'light' ? 'text-amber-900' : 'text-yellow-200'
               : theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
             }`}>
               {label}
@@ -199,9 +204,14 @@ function Topbar({ onGlobalAsk, user, onNavigateToSettings }: TopbarProps) {
     }`}>
       <div className="flex items-center gap-2">
         <BoilerAILogo size="md" showText={true} variant="default" />
-        <span className={`ml-2 text-xs uppercase tracking-widest ${
-          theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
-        }`}>Purdue</span>
+        <div className="ml-2 flex flex-col">
+          <span className="text-sm font-bold" style={{ color: PURDUE_GOLD }}>
+            BOILER AI
+          </span>
+          <span className={`text-xs uppercase tracking-widest ${
+            theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'
+          }`}>Purdue University</span>
+        </div>
       </div>
 
       {/* Empty space for future features - no global AI input */}
@@ -378,6 +388,18 @@ const App = () => {
                         <Route path="/dev" element={
                           <ProtectedRoute>
                             <DevDashboard />
+                          </ProtectedRoute>
+                        } />
+
+                        {/* Protected main app routes */}
+                        <Route path="/main" element={
+                          <ProtectedRoute>
+                            <MainApp />
+                          </ProtectedRoute>
+                        } />
+                        <Route path="/dashboard" element={
+                          <ProtectedRoute>
+                            <MainApp />
                           </ProtectedRoute>
                         } />
 

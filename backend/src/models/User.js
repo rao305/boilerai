@@ -40,6 +40,32 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
+  
+  // Academic profile information (non-educational record metadata)
+  major: {
+    type: String,
+    enum: ['Computer Science', 'Data Science', 'Artificial Intelligence'],
+    default: null
+  },
+  currentYear: {
+    type: String,
+    enum: ['Freshman', 'Sophomore', 'Junior', 'Senior'],
+    default: null
+  },
+  expectedGraduationYear: {
+    type: Number,
+    min: 2024,
+    max: 2030,
+    default: null
+  },
+  interests: [{
+    type: String,
+    trim: true
+  }],
+  academicGoals: [{
+    type: String,
+    trim: true
+  }],
   preferences: {
     theme: {
       type: String,
@@ -83,6 +109,26 @@ const userSchema = new mongoose.Schema({
   apiKeyUpdatedAt: {
     type: Date,
     default: null
+  },
+  
+  // Session management for transcript upload prompts
+  transcriptUploadPrompted: {
+    type: Boolean,
+    default: false
+  },
+  lastTranscriptPromptSession: {
+    type: String,
+    default: null
+  },
+  
+  // Session tracking for personalized responses
+  lastActiveSession: {
+    type: String,
+    default: null
+  },
+  sessionCount: {
+    type: Number,
+    default: 0
   }
 }, {
   timestamps: true

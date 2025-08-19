@@ -468,6 +468,140 @@ router.get('/verification-status/:email', async (req, res) => {
   }
 });
 
+// Update user profile (academic information)
+router.put('/profile', verifyToken, [
+  body('major').optional().isIn(['Computer Science', 'Data Science', 'Artificial Intelligence']),
+  body('currentYear').optional().isIn(['Freshman', 'Sophomore', 'Junior', 'Senior']),
+  body('expectedGraduationYear').optional().isInt({ min: 2024, max: 2030 }),
+  body('interests').optional().isArray(),
+  body('academicGoals').optional().isArray()
+], async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation errors',
+        errors: errors.array()
+      });
+    }
+
+    const { major, currentYear, expectedGraduationYear, interests, academicGoals } = req.body;
+    
+    console.log('Profile update request - req.user:', req.user);
+    console.log('Profile update request - userId:', req.user.userId);
+    
+    // Find and update user
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update profile fields
+    if (major !== undefined) user.major = major;
+    if (currentYear !== undefined) user.currentYear = currentYear;
+    if (expectedGraduationYear !== undefined) user.expectedGraduationYear = expectedGraduationYear;
+    if (interests !== undefined) user.interests = interests;
+    if (academicGoals !== undefined) user.academicGoals = academicGoals;
+    
+    // Mark profile as completed if all required fields are present
+    if (user.major && user.currentYear && user.expectedGraduationYear) {
+      user.profileCompleted = true;
+    }
+
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully',
+      data: {
+        profileCompleted: user.profileCompleted,
+        major: user.major,
+        currentYear: user.currentYear,
+        expectedGraduationYear: user.expectedGraduationYear,
+        interests: user.interests,
+        academicGoals: user.academicGoals
+      }
+    });
+
+  } catch (error) {
+    console.error('Profile update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Get user profile
+router.get('/profile', verifyToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select(
+      'name email major currentYear expectedGraduationYear interests academicGoals profileCompleted sessionCount'
+    );
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: user
+    });
+
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+});
+
+// Update session tracking
+router.post('/session', verifyToken, async (req, res) => {
+  try {
+    const { sessionId } = req.body;
+    
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update session tracking
+    if (user.lastActiveSession !== sessionId) {
+      user.lastActiveSession = sessionId;
+      user.sessionCount += 1;
+      user.transcriptUploadPrompted = false; // Reset for new session
+      user.lastTranscriptPromptSession = null;
+      await user.save();
+    }
+
+    res.json({
+      success: true,
+      message: 'Session updated'
+    });
+
+  } catch (error) {
+    console.error('Session update error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update session'
+    });
+  }
+});
+
 // Export the verifyToken middleware for use in other routes
 router.verifyToken = verifyToken;
 

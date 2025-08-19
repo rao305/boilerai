@@ -248,7 +248,7 @@ export default function TranscriptManagement() {
         })}
 
         {/* In-Progress Courses */}
-        {transcriptData.coursesInProgress.length > 0 && (
+        {Array.isArray(transcriptData.coursesInProgress) && transcriptData.coursesInProgress.length > 0 && (
           <Card title={
             <div className="flex items-center space-x-3">
               <Calendar className="h-5 w-5 text-neutral-400" />
@@ -312,7 +312,7 @@ export default function TranscriptManagement() {
                 <div>
                   <div className="font-medium text-green-200">Transcript Processed Successfully!</div>
                   <div className="text-sm text-green-300/80">
-                    {Object.values(transcriptData.completedCourses).flatMap(sem => sem.courses).length + transcriptData.coursesInProgress.length} courses found and ready for verification
+                    {Object.values(transcriptData.completedCourses).flatMap(sem => sem.courses).length + (Array.isArray(transcriptData.coursesInProgress) ? transcriptData.coursesInProgress.length : 0)} courses found and ready for verification
                   </div>
                 </div>
               </div>
@@ -334,7 +334,15 @@ export default function TranscriptManagement() {
           <div className="flex flex-wrap gap-2">
             <PurdueButton 
               variant={activeTab === 'upload' ? 'primary' : 'secondary'}
-              onClick={() => setActiveTab('upload')}
+              onClick={() => {
+                setActiveTab('upload');
+                // Trigger file selection if no transcript data exists
+                if (!transcriptData) {
+                  setTimeout(() => {
+                    document.getElementById('transcript-upload')?.click();
+                  }, 100);
+                }
+              }}
               size="small"
               className="flex items-center space-x-2"
             >

@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { body, validationResult } = require('express-validator');
 const transcriptController = require('../controllers/secureTranscriptController');
+const { optionalAuth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -50,6 +51,7 @@ const upload = multer({
 
 // Upload and process transcript
 router.post('/upload', 
+  optionalAuth,
   upload.single('transcript'),
   [
     body('apiKey').optional().isString(),
@@ -80,6 +82,7 @@ router.post('/upload',
 
 // Process transcript text directly
 router.post('/process-text',
+  optionalAuth,
   [
     body('transcriptText').isString().notEmpty(),
     body('apiKey').optional().isString(),

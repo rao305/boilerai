@@ -28,7 +28,7 @@ try {
 }
 
 const app = express();
-const PORT = process.env.PORT || 5002;
+const PORT = process.env.PORT || 5001;
 
 // Initialize database connection
 connectDB();
@@ -296,6 +296,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/advisor', require('./routes/advisor'));
 app.use('/api/rag', require('./routes/rag'));
+app.use('/api/migration', require('./routes/migration'));
 
 // Admin routes for email configuration
 app.use('/api/admin', adminRoutes);

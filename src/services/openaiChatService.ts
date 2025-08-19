@@ -9,6 +9,7 @@ import { knowledgeBaseService } from './knowledgeBaseService';
 import { codoevaluationService } from './codoevaluationService';
 import { contextualMemoryService } from './contextualMemoryService';
 import { logger } from '@/utils/logger';
+import { smartCourseService, SmartCourseContext } from './smartCourseService';
 import type { 
   StudentProfile, 
   DataContainer, 
@@ -31,24 +32,72 @@ class OpenAIChatService {
   private openaiClient: OpenAI | null = null;
   private transcriptContext: string = '';
   private enhancedContext: EnhancedContext | null = null;
-  private reasoningMode: boolean = true; // Enable reasoning by default
-  private primaryModel: string = 'gpt-4o-mini'; // Primary model for most conversations
-  private complexModel: string = 'gpt-4o'; // For complex reasoning tasks
+  private reasoningMode: boolean = false; // Disable reasoning by default for performance and rate limit management
+  private primaryModel: string = 'gpt-3.5-turbo'; // Primary model for most conversations  
+  private complexModel: string = 'gpt-3.5-turbo'; // Use fast model for all tasks
 
   constructor() {
     this.initializeOpenAI();
   }
 
 
+  private getUserApiKey(): string {
+    console.log('🔍 [DEBUG] getUserApiKey called');
+    
+    // First check session storage (for non-remembered keys)
+    let apiKey = sessionStorage.getItem('current_session_openai_key') || '';
+    console.log('🔍 [DEBUG] Session storage key:', apiKey ? `Found (${apiKey.substring(0, 8)}...)` : 'Not found');
+    
+    // If not in session, check user-specific stored keys
+    if (!apiKey) {
+      // Try to get current user ID from either auth context
+      const userIds = Object.keys(localStorage).filter(key => key.startsWith('user_api_keys_'));
+      console.log('🔍 [DEBUG] User-specific keys found:', userIds);
+      
+      if (userIds.length > 0) {
+        // Get the most recent user's API key
+        const latestUserKey = userIds[userIds.length - 1];
+        const userKeyData = localStorage.getItem(latestUserKey);
+        console.log('🔍 [DEBUG] Latest user key data:', userKeyData ? 'Found' : 'Not found');
+        
+        if (userKeyData) {
+          try {
+            const parsed = JSON.parse(userKeyData);
+            apiKey = parsed.openai || '';
+            console.log('🔍 [DEBUG] Parsed API key:', apiKey ? `Found (${apiKey.substring(0, 8)}...)` : 'Not found');
+          } catch (e) {
+            console.log('🔍 [DEBUG] Parse error:', e);
+          }
+        }
+      }
+    }
+    
+    // Fallback to legacy storage and env
+    if (!apiKey) {
+      const legacyKey = localStorage.getItem('openai_api_key');
+      const envKey = import.meta.env.VITE_OPENAI_API_KEY;
+      console.log('🔍 [DEBUG] Legacy key:', legacyKey ? `Found (${legacyKey.substring(0, 8)}...)` : 'Not found');
+      console.log('🔍 [DEBUG] Env key:', envKey ? `Found (${envKey.substring(0, 8)}...)` : 'Not found');
+      apiKey = legacyKey || envKey || '';
+    }
+    
+    console.log('🔍 [DEBUG] Final API key result:', apiKey ? `Found (${apiKey.substring(0, 8)}...)` : 'Not found');
+    return apiKey;
+  }
+
   private initializeOpenAI(): boolean {
     try {
-      // Get API key from localStorage first, then fallback to env
-      const apiKey = localStorage.getItem('openai_api_key') || import.meta.env.VITE_OPENAI_API_KEY;
+      console.log('🚀 [DEBUG] initializeOpenAI called');
+      // Get API key using centralized logic
+      const apiKey = this.getUserApiKey();
       
       if (!apiKey || apiKey === 'your_openai_api_key_here' || apiKey.length < 10) {
+        console.log('❌ [DEBUG] No valid API key found:', { hasKey: !!apiKey, length: apiKey?.length });
         logger.warn('No valid OpenAI API key found', 'OPENAI');
         return false;
       }
+      
+      console.log('✅ [DEBUG] Valid API key found, initializing OpenAI client');
 
       // Ensure we have the global fetch properly bound
       const globalFetch = window.fetch.bind(window);
@@ -108,6 +157,31 @@ class OpenAIChatService {
   }
 
   async sendMessage(message: string, userId: string, sessionId?: string): Promise<string> {
+    // Check if this is a course recommendation query that would benefit from SmartCourse enhancement
+    if (this.isSmartCourseQuery(message) && this.enhancedContext?.transcriptData) {
+      try {
+        const smartCourseContext = await smartCourseService.createSmartCourseContext(
+          this.enhancedContext.transcriptData,
+          'full_context'
+        );
+        
+        const smartResponse = await smartCourseService.getSmartCourseAdvice(
+          message,
+          userId,
+          smartCourseContext,
+          sessionId
+        );
+        
+        // Log SmartCourse metrics for quality monitoring
+        logger.info(`SmartCourse metrics - PlanScore: ${smartResponse.metrics.planScore}, PersonalScore: ${smartResponse.metrics.personalScore}, Lift: ${smartResponse.metrics.lift}, Recall: ${smartResponse.metrics.recall}`, 'SMARTCOURSE');
+        
+        return smartResponse.explanation;
+      } catch (error) {
+        logger.warn('SmartCourse enhancement failed, falling back to standard chat:', 'OPENAI', error);
+        // Fall through to standard processing
+      }
+    }
+
     if (this.reasoningMode) {
       const reasoningResponse = await this.sendMessageWithReasoning(message, userId, sessionId);
       return reasoningResponse.final_response;
@@ -119,24 +193,25 @@ class OpenAIChatService {
   async sendMessageWithReasoning(message: string, userId: string, sessionId?: string): Promise<AIReasoningResponse> {
     const currentSessionId = sessionId || 'default';
     
-    if (!this.openaiClient) {
-      const initialized = this.initializeOpenAI();
-      if (!initialized) {
-        // Use AI to generate error response
-        const aiErrorResponse = await pureAIFallback.generateErrorResponse(message, 'api_key');
-        return {
-          thinking_steps: [{
-            id: 'api-key-error',
-            title: 'analyze',
-            content: 'API key configuration needed for full functionality',
-            status: 'completed',
-            timestamp: new Date()
-          }],
-          final_response: aiErrorResponse,
-          reasoning_time: 100,
-          model_used: 'fallback-ai'
-        };
-      }
+    // Check if client is already initialized
+    const initialized = this.openaiClient ? true : this.initializeOpenAI();
+    
+    if (!initialized || !this.openaiClient) {
+      console.log('❌ [DEBUG] OpenAI client initialization failed');
+      // Use AI to generate error response
+      const aiErrorResponse = await pureAIFallback.generateErrorResponse(message, 'api_key');
+      return {
+        thinking_steps: [{
+          id: 'api-key-error',
+          title: 'analyze',
+          content: 'API key configuration needed for full functionality',
+          status: 'completed',
+          timestamp: new Date()
+        }],
+        final_response: aiErrorResponse,
+        reasoning_time: 100,
+        model_used: 'fallback-ai'
+      };
     }
 
     const startTime = Date.now();
@@ -144,7 +219,21 @@ class OpenAIChatService {
     try {
       // Get RLHF-optimized prompt or fall back to default
       const optimizedPrompt = rlhfService.getOptimizedPrompt('reasoning');
-      const reasoningPrompt = optimizedPrompt || `You are a personable academic advisor for Purdue University students. For every query, you MUST follow this exact structured reasoning process:
+      const reasoningPrompt = optimizedPrompt || `You are BoilerAI, a knowledgeable and personable academic advisor for Purdue University students.
+
+CORE KNOWLEDGE BASE (STRICTLY ENFORCED):
+- Computer Science major with 2 tracks: Machine Intelligence Track, Software Engineering Track
+- Data Science major (standalone - no tracks available)
+- Artificial Intelligence major (standalone - no tracks available)
+- Minors available for all three majors
+- CODO requirements, degree requirements, course progression guides
+
+INTELLIGENT BEHAVIOR:
+- NEVER ask redundant questions when student context is already available
+- Stay STRICTLY within your knowledge base - redirect unsupported areas to supported options
+- Use degree progression data instead of asking what courses they've taken
+
+For every query, you MUST follow this exact structured reasoning process:
 
 1. ANALYZE: Break down the user's query into key components and identify what they're really asking for.
 2. REASON: Think step-by-step through the problem, considering all relevant factors, constraints, and context.
@@ -208,14 +297,47 @@ User Query: ${message}`;
       const selectedModel = this.selectOptimalModel(message, this.enhancedContext);
       console.log(`🧠 Using ${selectedModel} for query complexity analysis`);
       
-      const response = await this.openaiClient.chat.completions.create({
-        model: selectedModel,
-        messages: messages,
-        max_tokens: 600,
-        temperature: 0.7
+      // Use backend proxy instead of direct OpenAI calls to avoid browser CORS issues
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+      const apiKey = this.getUserApiKey();
+      
+      console.log('🌐 [DEBUG] Using backend proxy for OpenAI call');
+      const response = await fetch(`${backendUrl}/api/advisor/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: fullPrompt,
+          context: this.transcriptContext || '',
+          apiKey: apiKey
+        })
       });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        const error = new Error(errorData.error || `HTTP ${response.status}`);
+        (error as any).status = response.status;
+        (error as any).response = { status: response.status };
+        throw error;
+      }
+      
+      const backendResult = await response.json();
+      
+      if (!backendResult.success) {
+        throw new Error(backendResult.error || 'Backend request failed');
+      }
+      
+      // Simulate OpenAI response structure for compatibility
+      const simulatedResponse = {
+        choices: [{
+          message: {
+            content: backendResult.data.response
+          }
+        }]
+      };
 
-      const reply = response.choices[0]?.message?.content;
+      const reply = simulatedResponse.choices[0]?.message?.content;
       if (!reply) {
         throw new Error('No response received from AI');
       }
@@ -241,13 +363,13 @@ User Query: ${message}`;
       let errorMessage = '';
       let errorType = 'technical';
       
-      if (error.status === 429) {
+      if (error.status === 429 || error.message?.includes('Rate limit exceeded')) {
         if (error.message?.includes('quota')) {
           errorType = 'quota';
           errorMessage = `Your OpenAI API key has insufficient credits or has exceeded the quota limit. Please check your OpenAI billing and usage at https://platform.openai.com/usage`;
         } else {
           errorType = 'rate_limit';
-          errorMessage = `You're sending requests too quickly. Please wait a moment and try again.`;
+          errorMessage = `You're sending requests too quickly. Please wait a moment (about 60 seconds) and try again. Try refreshing the page if the issue persists.`;
         }
       } else if (error.status === 401) {
         errorType = 'auth';
@@ -631,8 +753,9 @@ Consider these related majors: ${evaluation.alternativeOptions.join(', ')}`;
   }
 
   isAvailable(): boolean {
-    // Check if we have a validated API key and client
-    const hasApiKey = !!(localStorage.getItem('openai_api_key') || import.meta.env.VITE_OPENAI_API_KEY);
+    // Check if we have a validated API key and client using centralized logic
+    const apiKey = this.getUserApiKey();
+    const hasApiKey = !!(apiKey && apiKey !== 'your_openai_api_key_here' && apiKey.length >= 10);
     const hasClient = !!this.openaiClient;
     
     // Check if API key is validated (this is set by ApiKeyContext)
@@ -655,19 +778,58 @@ Consider these related majors: ${evaluation.alternativeOptions.join(', ')}`;
     return this.reasoningMode;
   }
 
+  // Detect if query would benefit from SmartCourse enhancement
+  private isSmartCourseQuery(message: string): boolean {
+    const smartCourseIndicators = [
+      // Course recommendation keywords
+      /course.*recommend|recommend.*course|what.*course.*take|should.*take.*course/i,
+      /next.*semester|course.*planning|schedule.*course|course.*schedule/i,
+      /electives?|prerequisite|requirement|degree.*plan/i,
+      
+      // Academic planning keywords
+      /graduation.*plan|academic.*plan|plan.*graduation|semester.*plan/i,
+      /course.*sequence|course.*progression|major.*requirement/i,
+      /track.*requirement|concentration.*requirement|minor.*requirement/i,
+      
+      // CODO and major-specific planning
+      /codo|change.*major|switch.*major|major.*switch/i,
+      /computer.*science.*course|cs.*course|data.*science.*course/i,
+      /artificial.*intelligence.*course|ai.*course|machine.*learning.*course/i,
+      
+      // Specific course inquiries
+      /cs\s+\d{5}|ma\s+\d{5}|stat\s+\d{5}|ece\s+\d{5}/i,
+      /foundation.*course|core.*course|math.*requirement|science.*requirement/i
+    ];
+
+    return smartCourseIndicators.some(pattern => pattern.test(message));
+  }
 
   private async buildDynamicSystemPrompt(userMessage: string, userId: string, sessionId?: string): Promise<string> {
     const currentSessionId = sessionId || 'default';
     // Base system prompt that defines the AI's role and capabilities
-    let systemPrompt = `You are BoilerAI, a personable academic advisor for Purdue University students. You have comprehensive knowledge of academic programs, policies, and student success strategies.
+    let systemPrompt = `You are BoilerAI, a knowledgeable and personable academic advisor for Purdue University students.
 
-CORE EXPERTISE:
-- Purdue University academic programs, requirements, and policies
-- Course sequencing, prerequisites, and degree planning
-- Academic timeline optimization and graduation planning
-- Personalized guidance based on individual student circumstances
-- Career preparation and professional development
-- Academic recovery and success strategies
+CORE KNOWLEDGE BASE (STRICTLY ENFORCED):
+- Computer Science major with 2 tracks: Machine Intelligence Track, Software Engineering Track
+- Data Science major (standalone - no tracks available)
+- Artificial Intelligence major (standalone - no tracks available)
+- Minors available for all three majors
+- CODO (Change of Degree Objective) requirements for each major
+- Degree requirements, School of Science requirements, course progression guides
+
+COMMUNICATION GUIDELINES:
+- Use natural, conversational language like talking to a student in person
+- Be personable and supportive while maintaining professionalism
+- NEVER ask redundant questions when student context is already available
+- Focus on actionable guidance based on the student's specific academic situation
+- Avoid robotic or template-like responses
+
+INTELLIGENT CONTEXT AWARENESS:
+- Leverage available student data (major, year, completed courses) for personalized advice
+- When student asks about course planning, reference their specific degree requirements
+- Stay STRICTLY within your knowledge base - never suggest unsupported majors, tracks, or concentrations
+- If asked about areas outside your knowledge base (like cybersecurity, databases), redirect to supported options
+- Use degree progression data instead of asking what courses they've taken
 
 COMMUNICATION STYLE:
 - Use natural, conversational language like you're speaking with a real student
@@ -689,7 +851,9 @@ You must analyze each query through a structured reasoning process:
     // Add contextual memory and conversation awareness
     const contextualPrompt = contextualMemoryService.generateContextualPrompt(userId, currentSessionId, userMessage);
     
-    // Add student context if available - prioritize enhanced context
+    // Add student context from multiple sources
+    let studentContextAdded = false;
+    
     if (this.enhancedContext) {
       systemPrompt += `ENHANCED STUDENT CONTEXT:\n${this.enhancedContext.contextPrompt}\n\nCONTEXTUAL INTELLIGENCE:
 - Leverage detailed academic profile for personalized guidance
@@ -702,11 +866,40 @@ You must analyze each query through a structured reasoning process:
 ${contextualPrompt}
 
 `;
+      studentContextAdded = true;
     } else if (this.transcriptContext) {
       systemPrompt += `CURRENT STUDENT CONTEXT:\n${this.transcriptContext}\n\n${contextualPrompt}
 
 `;
-    } else {
+      studentContextAdded = true;
+    }
+    
+    // Add onboarding context if available
+    try {
+      const onboardingContext = localStorage.getItem('student_onboarding_context');
+      if (onboardingContext && !studentContextAdded) {
+        const contextData = JSON.parse(onboardingContext);
+        systemPrompt += `STUDENT PROFILE (From Onboarding):
+- Name: ${contextData.firstName || 'Student'}
+- Major: ${contextData.major}
+- Current Year: ${contextData.currentYear}
+- Expected Graduation: ${contextData.expectedGraduation}
+- Academic Interests: ${contextData.academicInterests?.join(', ') || 'Not specified'}
+- Academic Goals: ${contextData.academicGoals?.join(', ') || 'Not specified'}
+- Has Transcript: ${contextData.hasUploadedTranscript ? 'Yes' : 'No'}
+
+Use this information to provide personalized academic guidance without asking redundant questions about their major, year, or goals.
+
+${contextualPrompt}
+
+`;
+        studentContextAdded = true;
+      }
+    } catch (error) {
+      console.log('Could not load onboarding context:', error);
+    }
+    
+    if (!studentContextAdded) {
       systemPrompt += `${contextualPrompt}
 
 `;
@@ -737,4 +930,68 @@ Generate your response through careful reasoning, drawing on your knowledge base
 }
 
 export const openaiChatService = new OpenAIChatService();
+
+// Debug function for troubleshooting - accessible from browser console
+if (typeof window !== 'undefined') {
+  (window as any).debugOpenAI = {
+    checkApiKey: () => {
+      console.log('=== OpenAI API Key Debug ===');
+      const service = openaiChatService as any;
+      
+      // Check session storage
+      const sessionKey = sessionStorage.getItem('current_session_openai_key');
+      console.log('Session storage:', sessionKey ? `Found (${sessionKey.substring(0, 8)}...)` : 'Not found');
+      
+      // Check user-specific keys
+      const userKeys = Object.keys(localStorage).filter(key => key.startsWith('user_api_keys_'));
+      console.log('User-specific keys:', userKeys);
+      
+      userKeys.forEach(key => {
+        const data = localStorage.getItem(key);
+        if (data) {
+          try {
+            const parsed = JSON.parse(data);
+            console.log(`${key}:`, parsed.openai ? `Found (${parsed.openai.substring(0, 8)}...)` : 'No API key');
+          } catch (e) {
+            console.log(`${key}: Parse error`, e);
+          }
+        }
+      });
+      
+      // Check legacy storage
+      const legacyKey = localStorage.getItem('openai_api_key');
+      console.log('Legacy storage:', legacyKey ? `Found (${legacyKey.substring(0, 8)}...)` : 'Not found');
+      
+      // Check validation status
+      const validation = localStorage.getItem('api_key_validation_status');
+      console.log('Validation status:', validation);
+      
+      // Check what the service sees
+      const serviceKey = service.getUserApiKey();
+      console.log('Service sees:', serviceKey ? `Found (${serviceKey.substring(0, 8)}...)` : 'Not found');
+      
+      // Check if client is initialized
+      console.log('Client initialized:', !!service.openaiClient);
+      console.log('Service available:', service.isAvailable());
+      
+      return {
+        sessionKey: !!sessionKey,
+        userKeys: userKeys.length,
+        legacyKey: !!legacyKey,
+        serviceKey: !!serviceKey,
+        clientInitialized: !!service.openaiClient,
+        serviceAvailable: service.isAvailable()
+      };
+    },
+    reinitialize: () => {
+      console.log('🔄 Forcing OpenAI service reinitialization...');
+      const service = openaiChatService as any;
+      service.openaiClient = null;
+      const result = service.initializeOpenAI();
+      console.log('Reinitialization result:', result);
+      return result;
+    }
+  };
+}
+
 export default openaiChatService;

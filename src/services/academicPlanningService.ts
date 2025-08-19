@@ -1,4 +1,5 @@
 import { comprehensiveDegreeRequirements } from '@/data/comprehensive_degree_requirements';
+import { smartCourseService, SmartCourseContext } from './smartCourseService';
 
 export interface TranscriptData {
   student_info: {
@@ -357,6 +358,107 @@ export class AcademicPlanningService {
     }
     
     return suggestions;
+  }
+
+  /**
+   * Create SmartCourse-enhanced recommendations using contextual AI
+   */
+  async getSmartCourseRecommendations(
+    transcriptData: TranscriptData, 
+    query: string,
+    userId: string,
+    sessionId?: string
+  ): Promise<{
+    recommendations: any[];
+    explanation: string;
+    metrics: any;
+    quality: string;
+  }> {
+    try {
+      // Create SmartCourse context with full transcript and degree plan
+      const smartCourseContext = await smartCourseService.createSmartCourseContext(
+        transcriptData,
+        'full_context'
+      );
+
+      // Get SmartCourse enhanced recommendations
+      const response = await smartCourseService.getSmartCourseAdvice(
+        query,
+        userId,
+        smartCourseContext,
+        sessionId
+      );
+
+      // Determine recommendation quality
+      let quality = 'Poor';
+      if (response.metrics.personalScore >= 0.8 && response.metrics.lift >= 0.2) {
+        quality = 'Excellent';
+      } else if (response.metrics.personalScore >= 0.6) {
+        quality = 'Good';
+      } else if (response.metrics.personalScore >= 0.4) {
+        quality = 'Fair';
+      }
+
+      return {
+        recommendations: response.recommendations,
+        explanation: response.explanation,
+        metrics: response.metrics,
+        quality
+      };
+    } catch (error) {
+      console.error('SmartCourse recommendations failed:', error);
+      
+      // Fallback to traditional recommendations
+      const degreeProgress = this.calculateDegreeProgress(transcriptData);
+      const traditionalRecs = this.generateAIRecommendations(transcriptData, degreeProgress);
+      
+      return {
+        recommendations: traditionalRecs,
+        explanation: 'Generated using traditional academic planning algorithms.',
+        metrics: { planScore: 0, personalScore: 0, lift: 0, recall: 0, latency: 0 },
+        quality: 'Fallback'
+      };
+    }
+  }
+
+  /**
+   * Enhanced course planning with SmartCourse contextual analysis
+   */
+  async createSmartCoursePlan(
+    transcriptData: TranscriptData,
+    targetSemester: string,
+    maxCredits: number = 15,
+    userId: string
+  ): Promise<{
+    courses: any[];
+    explanation: string;
+    reasoning: string;
+    metrics: any;
+  }> {
+    const query = `Create a course plan for ${targetSemester} with up to ${maxCredits} credits. Consider my completed coursework, degree requirements, and optimal course sequencing for graduation.`;
+    
+    const result = await this.getSmartCourseRecommendations(
+      transcriptData,
+      query,
+      userId
+    );
+
+    // Filter recommendations to fit within credit limit
+    let totalCredits = 0;
+    const selectedCourses = result.recommendations.filter(rec => {
+      if (totalCredits + rec.credits <= maxCredits) {
+        totalCredits += rec.credits;
+        return true;
+      }
+      return false;
+    });
+
+    return {
+      courses: selectedCourses,
+      explanation: result.explanation,
+      reasoning: `Selected ${selectedCourses.length} courses totaling ${totalCredits} credits based on SmartCourse contextual analysis.`,
+      metrics: result.metrics
+    };
   }
 }
 

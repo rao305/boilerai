@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface PlannedCourse {
   id: string;
@@ -83,7 +83,7 @@ interface AcademicPlanContextType {
   updateParsedCourse: (courseId: string, updates: Partial<ParsedCourse>) => void;
   verifyCourse: (courseId: string, verified: boolean) => void;
   calculateGPA: (courses: ParsedCourse[]) => number;
-  transferCoursesToPlanner: (selectedCourses: ParsedCourse[]) => void;
+  transferCoursesToPlanner: (selectedCourses: ParsedCourse[], shouldOverride?: boolean) => void;
   getAllTranscriptCourses: () => ParsedCourse[];
 }
 
@@ -136,6 +136,7 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
       const saved = localStorage.getItem('academicPlan');
       if (saved) {
         const parsed = JSON.parse(saved);
+        console.log('📚 Loaded planned courses from localStorage:', Object.keys(parsed).length, 'semesters');
         return parsed;
       }
       return {};
@@ -145,7 +146,21 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     }
   });
 
-  const [transcriptData, setTranscriptData] = useState<TranscriptData | null>(null);
+  const [transcriptData, setTranscriptData] = useState<TranscriptData | null>(() => {
+    try {
+      // Load transcript data from localStorage on initialization
+      const savedTranscriptData = localStorage.getItem('transcriptData');
+      if (savedTranscriptData) {
+        const parsed = JSON.parse(savedTranscriptData);
+        console.log('📄 Loaded transcript data from localStorage for:', parsed.studentInfo?.name);
+        return parsed;
+      }
+      return null;
+    } catch (error) {
+      console.error('❌ Error loading transcript data from localStorage:', error);
+      return null;
+    }
+  });
 
   const currentSemesterId = semesters.find(sem => sem.current)?.id || "fall2024";
 
@@ -159,17 +174,39 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
   };
 
   const addCourseToCurrentSemester = (course: PlannedCourse) => {
-    setPlannedCourses(prev => ({
-      ...prev,
-      [currentSemesterId]: [...(prev[currentSemesterId] || []), { ...course, semester: currentSemesterId }]
-    }));
+    setPlannedCourses(prev => {
+      const updated = {
+        ...prev,
+        [currentSemesterId]: [...(prev[currentSemesterId] || []), { ...course, semester: currentSemesterId }]
+      };
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem('academicPlan', JSON.stringify(updated));
+      } catch (error) {
+        console.error('❌ Error saving academic plan:', error);
+      }
+      
+      return updated;
+    });
   };
 
   const removeCourseFromCurrentSemester = (courseId: string) => {
-    setPlannedCourses(prev => ({
-      ...prev,
-      [currentSemesterId]: prev[currentSemesterId]?.filter(course => course.id !== courseId) || []
-    }));
+    setPlannedCourses(prev => {
+      const updated = {
+        ...prev,
+        [currentSemesterId]: prev[currentSemesterId]?.filter(course => course.id !== courseId) || []
+      };
+      
+      // Save to localStorage
+      try {
+        localStorage.setItem('academicPlan', JSON.stringify(updated));
+      } catch (error) {
+        console.error('❌ Error saving academic plan:', error);
+      }
+      
+      return updated;
+    });
   };
 
   const getCurrentSemesterCourses = () => {
@@ -200,7 +237,10 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     }
 
     // Check in-progress courses if not found in completed
-    const updatedInProgressCourses = [...transcriptData.coursesInProgress];
+    const inProgressCoursesArray = Array.isArray(transcriptData.coursesInProgress) 
+      ? transcriptData.coursesInProgress 
+      : [];
+    const updatedInProgressCourses = [...inProgressCoursesArray];
     if (!courseFound) {
       const progressIndex = updatedInProgressCourses.findIndex(course => course.id === courseId);
       if (progressIndex !== -1) {
@@ -242,7 +282,13 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     if (!transcriptData) return [];
     
     const completedCourses = Object.values(transcriptData.completedCourses).flatMap(sem => sem.courses);
-    const allCourses = [...completedCourses, ...transcriptData.coursesInProgress];
+    
+    // Ensure coursesInProgress is always an array
+    const inProgressCourses = Array.isArray(transcriptData.coursesInProgress) 
+      ? transcriptData.coursesInProgress 
+      : [];
+    
+    const allCourses = [...completedCourses, ...inProgressCourses];
     
     // Filter out invalid "in progression" entries that aren't real courses
     return allCourses.filter(course => {
@@ -267,9 +313,9 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     });
   };
 
-  const transferCoursesToPlanner = (selectedCourses: ParsedCourse[]) => {
+  const transferCoursesToPlanner = (selectedCourses: ParsedCourse[], shouldOverride: boolean = true) => {
     try {
-      console.log('🔄 Starting transfer of', selectedCourses?.length || 0, 'courses to planner...');
+      console.log('🔄 Starting transfer of', selectedCourses?.length || 0, 'courses to planner...', shouldOverride ? '(Override mode)' : '(Merge mode)');
       
       if (!selectedCourses || !Array.isArray(selectedCourses) || selectedCourses.length === 0) {
         console.warn('⚠️ No valid courses provided for transfer');
@@ -278,6 +324,21 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
 
       const coursesToAdd: { [semesterId: string]: PlannedCourse[] } = {};
       const newSemesters: Semester[] = [];
+      
+      // If override mode, clear existing transcript-sourced courses first
+      if (shouldOverride) {
+        console.log('🔄 Override mode: Clearing existing transcript courses...');
+        setPlannedCourses(prev => {
+          const updated = { ...prev };
+          for (const semesterId in updated) {
+            // Remove courses that were transferred from transcript (have 'transferred_' prefix)
+            updated[semesterId] = updated[semesterId].filter(course => 
+              !course.id.startsWith('transferred_')
+            );
+          }
+          return updated;
+        });
+      }
 
       // Filter out withdrawn courses (W grade) and any other courses we shouldn't include
       const validCourses = selectedCourses.filter((course, index) => {
@@ -389,14 +450,25 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     setPlannedCourses(prev => {
       const updated = { ...prev };
       for (const semesterId in coursesToAdd) {
-        // Don't duplicate courses that are already in the planner
+        // Don't duplicate courses that are already in the planner (unless override mode cleared them)
         const existingCourses = updated[semesterId] || [];
-        const newCourses = coursesToAdd[semesterId].filter(newCourse => 
-          !existingCourses.some(existing => existing.code === newCourse.code)
-        );
+        const newCourses = shouldOverride ? 
+          coursesToAdd[semesterId] : // In override mode, add all courses since we cleared transcript ones
+          coursesToAdd[semesterId].filter(newCourse => 
+            !existingCourses.some(existing => existing.code === newCourse.code)
+          );
         updated[semesterId] = [...existingCourses, ...newCourses];
-        console.log(`📚 Added ${newCourses.length} new courses to ${semesterId} (${newCourses.length} duplicates skipped)`);
+        console.log(`📚 Added ${newCourses.length} new courses to ${semesterId} (${shouldOverride ? 'override mode' : 'duplicates skipped'})`);
       }
+      
+      // Save to localStorage immediately
+      try {
+        localStorage.setItem('academicPlan', JSON.stringify(updated));
+        console.log('💾 Saved updated academic plan to localStorage');
+      } catch (error) {
+        console.error('❌ Error saving academic plan:', error);
+      }
+      
       return updated;
     });
       
@@ -408,6 +480,34 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     }
   };
 
+  // Custom setTranscriptData that also saves to localStorage
+  const setTranscriptDataWithPersistence = (data: TranscriptData | null) => {
+    setTranscriptData(data);
+    
+    try {
+      if (data) {
+        localStorage.setItem('transcriptData', JSON.stringify(data));
+        console.log('💾 Saved transcript data to localStorage for:', data.studentInfo?.name);
+      } else {
+        localStorage.removeItem('transcriptData');
+        console.log('🗑️ Removed transcript data from localStorage');
+      }
+    } catch (error) {
+      console.error('❌ Error saving transcript data to localStorage:', error);
+    }
+  };
+
+  // Auto-transfer transcript courses when transcript data is available
+  useEffect(() => {
+    if (transcriptData) {
+      const allTranscriptCourses = getAllTranscriptCourses();
+      if (allTranscriptCourses.length > 0) {
+        console.log('🔄 Auto-transferring', allTranscriptCourses.length, 'courses from loaded transcript...');
+        transferCoursesToPlanner(allTranscriptCourses, false); // Don't override on initial load
+      }
+    }
+  }, [transcriptData]); // Only run when transcriptData changes
+
   const value: AcademicPlanContextType = {
     plannedCourses,
     semesters,
@@ -415,7 +515,7 @@ export const AcademicPlanProvider: React.FC<AcademicPlanProviderProps> = ({ chil
     transcriptData,
     setPlannedCourses,
     setSemesters,
-    setTranscriptData,
+    setTranscriptData: setTranscriptDataWithPersistence,
     addCourseToCurrentSemester,
     removeCourseFromCurrentSemester,
     getCurrentSemesterCourses,

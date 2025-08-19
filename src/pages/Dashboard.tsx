@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMicrosoftAuth } from "@/contexts/MicrosoftAuthContext";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import {
@@ -72,22 +73,42 @@ function Card({ title, right, children }: { title: string; right?: React.ReactNo
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { user: microsoftUser } = useMicrosoftAuth();
   const { getCurrentSemesterCourses, getCurrentSemesterCredits, transcriptData } = useAcademicPlan();
   const { theme, toggleTheme } = useTheme();
-  const [userName, setUserName] = useState("Alex");
+  const [userName, setUserName] = useState("User");
   
   // Check if user is developer (for settings shortcut)
   const isDeveloper = user?.email?.includes('dev') || user?.email?.includes('admin');
 
   useEffect(() => {
-    if (user?.name) {
+    console.log('🐛 Dashboard user data:', { 
+      microsoftUser: microsoftUser?.name, 
+      user: user?.name, 
+      transcript: transcriptData?.studentInfo?.name 
+    });
+    
+    // Check Microsoft user first (most common case)
+    if (microsoftUser?.name) {
+      const firstName = microsoftUser.name.split(' ')[0];
+      console.log('✅ Using Microsoft user:', firstName);
+      setUserName(firstName);
+    } 
+    // Then check regular auth user
+    else if (user?.name) {
       const firstName = user.name.split(' ')[0];
+      console.log('✅ Using regular user:', firstName);
       setUserName(firstName);
-    } else if (transcriptData?.studentInfo?.name) {
+    } 
+    // Finally check transcript data
+    else if (transcriptData?.studentInfo?.name) {
       const firstName = transcriptData.studentInfo.name.split(' ')[0];
+      console.log('✅ Using transcript user:', firstName);
       setUserName(firstName);
+    } else {
+      console.log('❌ No user name found, using default');
     }
-  }, [user, transcriptData]);
+  }, [microsoftUser, user, transcriptData]);
 
   const currentCourses = getCurrentSemesterCourses();
   const currentCredits = getCurrentSemesterCredits();
@@ -102,19 +123,27 @@ export default function Dashboard() {
       theme === 'light' ? 'bg-neutral-50' : 'bg-neutral-950'
     }`}>
       <div className="max-w-none">
+
         {/* Enhanced Header with Controls */}
         <div className="mb-8">
-          <div className={`rounded-2xl shadow-lg p-8 ring-1 ${
+          <div className={`rounded-2xl shadow-lg p-8 ring-2 ${
             theme === 'light' 
-              ? 'bg-gradient-to-r from-white to-neutral-50 ring-neutral-200'
-              : 'bg-gradient-to-r from-neutral-900/70 to-neutral-800/70 ring-neutral-800'
-          }`}>
+              ? 'bg-gradient-to-r from-amber-50 to-yellow-50 ring-yellow-200'
+              : 'bg-gradient-to-r from-neutral-900/70 to-neutral-800/70 ring-yellow-600/30'
+          }`} style={{ 
+            background: theme === 'light' 
+              ? 'linear-gradient(135deg, #fef3c7 0%, #fbbf24 100%)'
+              : undefined 
+          }}>
             <div className="flex items-start justify-between mb-4">
               <div>
                 <h1 className={`text-3xl font-bold mb-4 ${
                   theme === 'light' ? 'text-neutral-900' : 'text-neutral-100'
-                }`}>
-                  Hello, {userName}! Welcome back to BoilerFN 👋
+                }`} style={{ 
+                  color: theme === 'light' ? '#000000' : undefined,
+                  textShadow: theme === 'light' ? '0 1px 2px rgba(0,0,0,0.1)' : undefined 
+                }}>
+                  Hello, {userName}! Welcome back to <span style={{ color: '#CFB991' }}>Boiler AI</span> 👋
                 </h1>
                 <div className={`flex flex-wrap gap-6 text-base ${
                   theme === 'light' ? 'text-neutral-600' : 'text-neutral-300'
@@ -133,7 +162,7 @@ export default function Dashboard() {
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 xl:grid-cols-4">
 
       {/* GPA Progress Chart */}
-      <Card title="Academic Progress" right={<Badge>{transcriptData ? Math.round(((transcriptData.gpaSummary?.totalCreditsEarned || 0) / 128) * 100) : '72'}% complete</Badge>}>
+      <Card title="🎯 Academic Progress" right={<Badge>{transcriptData ? Math.round(((transcriptData.gpaSummary?.totalCreditsEarned || 0) / 128) * 100) : '72'}% complete</Badge>}>
         <div className="space-y-4">
           {/* GPA Trend Visualization */}
           <div className="h-32">
@@ -204,7 +233,7 @@ export default function Dashboard() {
 
 
       {/* Current Semester Overview */}
-      <Card title={`Current Semester (${currentCredits} credits)`} right={<Badge>In Progress</Badge>}>
+      <Card title={`📅 Current Semester (${currentCredits} credits)`} right={<Badge>In Progress</Badge>}>
         <div className="space-y-2">
           {currentCourses.length > 0 ? (
             currentCourses.map((course, index) => (
@@ -238,7 +267,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Academic Stats */}
-      <Card title="Academic Stats">
+      <Card title="📊 Academic Stats">
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
           <div className={`rounded-xl p-3 ring-1 ${
             theme === 'light'
@@ -292,7 +321,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Degree Audit Progress - Dynamic based on actual data */}
-      <Card title="Degree Requirements" right={transcriptData?.studentInfo?.program ? <Badge>{transcriptData.studentInfo.program}</Badge> : <Badge>No Program Data</Badge>}>
+      <Card title="🎓 Degree Requirements" right={transcriptData?.studentInfo?.program ? <Badge>{transcriptData.studentInfo.program}</Badge> : <Badge>No Program Data</Badge>}>
         <div className="space-y-3">
           {transcriptData ? (
             <>
@@ -361,7 +390,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Quick Actions */}
-      <Card title="Quick Actions">
+      <Card title="⚡ Quick Actions">
         <div className="grid grid-cols-2 gap-2 text-sm">
           {[
             { icon: FileUp, label: "Upload Transcript", action: "transcript" },

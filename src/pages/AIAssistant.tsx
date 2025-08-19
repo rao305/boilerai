@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { openaiChatService } from "@/services/openaiChatService";
+import { unifiedChatService } from "@/services/unifiedChatService";
 import { cladoService } from "@/services/cladoService";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 import { useAuth } from "@/contexts/AuthContext";
@@ -20,10 +20,53 @@ const PURDUE_GOLD = "#CFB991";
 // Generate unique IDs
 const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
+// Extract first name from user email or full name
+const getFirstName = (user: any): string => {
+  if (!user) return '';
+  
+  // Try to get from display name first
+  if (user.name) {
+    const firstName = user.name.split(' ')[0];
+    if (firstName && firstName.length > 0) {
+      return firstName;
+    }
+  }
+  
+  // Fallback to email prefix if name not available
+  if (user.email && user.email.includes('@purdue.edu')) {
+    const emailPrefix = user.email.split('@')[0];
+    // Handle common patterns like firstname.lastname or firstlast
+    if (emailPrefix.includes('.')) {
+      return emailPrefix.split('.')[0];
+    }
+    // Return email prefix as fallback
+    return emailPrefix;
+  }
+  
+  return '';
+};
+
 export default function AIAssistant() {
   const { transcriptData } = useAcademicPlan();
   const { user } = useAuth();
   const { isApiKeyValid, setApiKeyValid } = useApiKey();
+  
+  // Debug logging for API key state changes
+  useEffect(() => {
+    console.log('🔍 [AIAssistant] isApiKeyValid state changed to:', isApiKeyValid);
+  }, [isApiKeyValid]);
+
+  // Listen for API key updates and force state refresh
+  useEffect(() => {
+    const handleApiKeyUpdate = () => {
+      console.log('🔄 [AIAssistant] Received apiKeyUpdated event, forcing state refresh');
+      // Force component re-render by triggering a state update
+      setInput(prev => prev); // This will cause a re-render without changing the input
+    };
+
+    window.addEventListener('apiKeyUpdated', handleApiKeyUpdate);
+    return () => window.removeEventListener('apiKeyUpdated', handleApiKeyUpdate);
+  }, []);
   const [input, setInput] = useState("");
   const [focus, setFocus] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
@@ -33,7 +76,7 @@ export default function AIAssistant() {
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
   const [messages, setMessages] = useState<EnhancedMessage[]>([]);
   const [aiService, setAiService] = useState<'clado' | 'openai'>('openai'); // Toggle between Clado and OpenAI
-  const [reasoningMode, setReasoningMode] = useState(true); // Enable reasoning by default
+  const [reasoningMode, setReasoningMode] = useState(false); // Disable reasoning by default for better performance
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [transcriptIntegrated, setTranscriptIntegrated] = useState(false);
@@ -85,9 +128,9 @@ export default function AIAssistant() {
     }
   }, [aiService]);
 
-  // Update OpenAI reasoning mode when changed
+  // Update unified chat service reasoning mode when changed
   useEffect(() => {
-    openaiChatService.setReasoningMode(reasoningMode);
+    unifiedChatService.setReasoningMode(reasoningMode);
   }, [reasoningMode]);
 
   // Initialize chats - always start with new chat, load history in sidebar
@@ -258,8 +301,8 @@ export default function AIAssistant() {
       throw new Error('All AI backend services unavailable');
     } catch (error) {
       console.error('AI Backend connection failed:', error);
-      // Final fallback to OpenAI service
-      return await openaiChatService.sendMessage(message, userId);
+      // Final fallback to unified AI service
+      return await unifiedChatService.sendMessage(message, userId);
     }
   };
 
@@ -390,41 +433,40 @@ export default function AIAssistant() {
             aiResponseText = `LinkedIn search error: ${error instanceof Error ? error.message : 'Unknown error'}. Try rephrasing your search or check if Clado is enabled.`;
           }
         } else {
-          // For non-LinkedIn queries, fall back to OpenAI directly
-          try {
-            if (reasoningMode) {
-              const reasoningResponse: AIReasoningResponse = await openaiChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
-              aiResponseText = reasoningResponse.final_response;
-            } else {
-              aiResponseText = await openaiChatService.sendMessage(trimmedInput, userId);
-            }
-          } catch (error) {
-            console.error('OpenAI fallback failed:', error);
-            // Check if it's a rate limit error
-            const isRateLimit = error instanceof Error && (
-              error.message.includes('rate limit') || 
-              error.message.includes('429') ||
-              error.message.includes('quota')
+          // For non-LinkedIn queries, check if AI service is available before using it
+          if (!isApiKeyValid || !unifiedChatService.isAvailable()) {
+            console.log('⚠️ AI service not available in Clado mode - using fallback');
+            aiResponseText = await pureAIFallback.generateResponse(
+              trimmedInput,
+              transcriptData ? 'academic' : 'general',
+              transcriptData || undefined
             );
-            
-            if (isRateLimit) {
-              aiResponseText = `⚠️ **Rate Limit Reached**
-
-I'm currently experiencing high usage and have reached the API rate limit. This is a temporary issue.
-
-**What you can do:**
-- **Wait 1-2 minutes** and try your question again
-- Switch to **LinkedIn search mode** by typing \`/clado\` first, then your networking question
-- For immediate academic help, visit the [Purdue Course Catalog](https://catalog.purdue.edu)
-
-**Alternative Resources:**
-- Academic Planning: [myPurdue Portal](https://mypurdue.purdue.edu)
-- Course Scheduling: [Purdue Time Table](https://timetable.mypurdue.purdue.edu)
-- Academic Policies: [Academic Regulations](https://catalog.purdue.edu/content.php?catoid=15&navoid=17654)
-
-I'll be back to full capacity shortly! 🚀`;
-            } else {
-              aiResponseText = `I'm having trouble connecting to the AI service right now. This might be due to high usage or rate limits. 
+          } else {
+            // Use unified AI service for non-LinkedIn queries when available
+            try {
+              if (reasoningMode) {
+                const reasoningResponse: AIReasoningResponse = await unifiedChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
+                aiResponseText = reasoningResponse.final_response;
+              } else {
+                aiResponseText = await unifiedChatService.sendMessage(trimmedInput, userId);
+              }
+            } catch (error) {
+              console.error('OpenAI fallback failed:', error);
+              // Check if it's a rate limit error
+              const isRateLimit = error instanceof Error && (
+                error.message.includes('rate limit') || 
+                error.message.includes('429') ||
+                error.message.includes('quota')
+              );
+              
+              if (isRateLimit) {
+                aiResponseText = await pureAIFallback.generateResponse(
+                  trimmedInput,
+                  transcriptData ? 'academic' : 'general',
+                  transcriptData || undefined
+                );
+              } else {
+                aiResponseText = `I'm having trouble connecting to the AI service right now. This might be due to high usage or rate limits. 
 
 Here's what I can suggest in the meantime:
 - If you're asking about course planning, check the Purdue Course Catalog online
@@ -433,6 +475,7 @@ Here's what I can suggest in the meantime:
 - Try asking your question again in a few minutes
 
 I apologize for the inconvenience and appreciate your patience!`;
+              }
             }
           }
         }
@@ -449,8 +492,67 @@ I apologize for the inconvenience and appreciate your patience!`;
           }
         };
       } else {
-        // Use OpenAI service
-        console.log('🤖 Using OpenAI service:', trimmedInput);
+        // Check if unified AI service is properly configured and validated
+        const serviceAvailable = unifiedChatService.isAvailable();
+        const hasValidationStatus = localStorage.getItem('api_key_validation_status');
+        const validationData = hasValidationStatus ? JSON.parse(hasValidationStatus) : null;
+        const hasAnyValidProvider = validationData?.openai === true || validationData?.gemini === true;
+        
+        console.log('🔍 [DEBUG] Checking AI service availability:', {
+          isApiKeyValid,
+          serviceAvailable,
+          hasAnyValidProvider,
+          apiKeyStatus: hasValidationStatus,
+          currentProvider: unifiedChatService.getCurrentProvider(),
+          availableProviders: unifiedChatService.getAvailableProviders(),
+          validationTimestamp: validationData?.timestamp
+        });
+        
+        // More robust availability check - if the service is available OR we have any valid provider, try to use it
+        const shouldUseMainService = (isApiKeyValid || hasAnyValidProvider) && serviceAvailable;
+        
+        if (!shouldUseMainService) {
+          console.log('⚠️ AI service not available or API key not validated - using fallback');
+          try {
+            // Use pure AI fallback when OpenAI is not available
+            const fallbackResponse = await pureAIFallback.generateResponse(
+              trimmedInput,
+              transcriptData ? 'academic' : 'general',
+              transcriptData || undefined
+            );
+            
+            const fallbackMessage: EnhancedMessage = { 
+              id: generateId(),
+              role: "assistant", 
+              content: fallbackResponse,
+              timestamp: new Date(),
+              thinkingSummary: `Basic AI processing: analyzed query → applied available knowledge → generated response`,
+              metadata: { 
+                service: 'fallback',
+                confidence_score: 0.6,
+                model_used: 'pure-ai-fallback'
+              }
+            };
+            
+            setMessages(prev => [...prev, fallbackMessage]);
+            setIsLoading(false);
+            return;
+          } catch (fallbackError: any) {
+            console.error('Fallback AI also failed:', fallbackError);
+            
+            // Check if fallback also hit rate limits
+            if (fallbackError.message === 'RATE_LIMIT_ERROR') {
+              // Same rate limit message as main service
+              throw fallbackError;
+            }
+            
+            // If fallback fails completely, throw to be handled by main error handler
+            throw new Error('AI_COMPLETELY_UNAVAILABLE');
+          }
+        }
+        
+        // Use unified AI service when properly validated
+        console.log('🤖 Using unified AI service (validated):', trimmedInput, 'Provider:', unifiedChatService.getCurrentProvider());
         
         let aiResponseText: string;
         let metadata: any = {};
@@ -458,18 +560,20 @@ I apologize for the inconvenience and appreciate your patience!`;
         try {
           if (reasoningMode) {
             // Get reasoning response
-            const reasoningResponse: AIReasoningResponse = await openaiChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
+            const reasoningResponse: AIReasoningResponse = await unifiedChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
             aiResponseText = reasoningResponse.final_response;
             metadata = {
               confidence_score: reasoningResponse.confidence_score,
               reasoning_time: reasoningResponse.reasoning_time,
               model_used: reasoningResponse.model_used,
+              provider: unifiedChatService.getCurrentProvider(),
               thinkingSummary: reasoningResponse.thinkingSummary || `Applied structured reasoning: analyzed query → retrieved knowledge → validated against Purdue policies → synthesized personalized guidance`
             };
           } else {
             // Direct response
-            aiResponseText = await openaiChatService.sendMessage(trimmedInput, userId, currentChatId || undefined);
+            aiResponseText = await unifiedChatService.sendMessage(trimmedInput, userId, currentChatId || undefined);
             metadata = {
+              provider: unifiedChatService.getCurrentProvider(),
               thinkingSummary: `Generated response: analyzed query → applied ${transcriptData ? 'your academic profile and' : ''} Purdue knowledge → formulated guidance → reviewed for accuracy`
             };
           }
@@ -515,28 +619,50 @@ I apologize for the inconvenience and appreciate your patience!`;
         return;
       }
       
-      try {
-        // Try to use AI to generate contextual error response
-        const aiErrorResponse = await pureAIFallback.generateErrorResponse(
-          trimmedInput, 
-          'general', 
-          'AI service connection issue'
-        );
-        
-        const errorMessage: EnhancedMessage = { 
+      // Check if it's a rate limit error
+      const isRateLimit = error.message && (
+        error.message.includes('rate limit') || 
+        error.message.includes('429') ||
+        error.message.includes('quota') ||
+        error.message.includes('RateLimitError') ||
+        error.message === 'RATE_LIMIT_ERROR'
+      );
+      
+      if (isRateLimit) {
+        // Show rate limit specific message
+        const rateLimitMessage: EnhancedMessage = { 
           id: generateId(),
           role: "assistant", 
-          content: aiErrorResponse,
+          content: `⚠️ **API Rate Limit Reached**
+
+I'm temporarily unable to respond because your OpenAI API key has reached its usage quota or rate limit.
+
+**What this means:**
+- Your API key is valid but has exceeded the current usage limit
+- This is typically due to reaching your monthly spending limit or requests per minute
+
+**What you can do:**
+1. **Check your OpenAI usage**: Visit [OpenAI Usage Dashboard](https://platform.openai.com/usage) to see your current usage
+2. **Upgrade your plan**: If you've hit your monthly limit, consider upgrading your OpenAI plan
+3. **Wait and retry**: Rate limits reset periodically, so you can try again in a few minutes
+4. **Check billing**: Ensure your payment method is up to date on your OpenAI account
+
+**For immediate help:**
+- Review course planning with the Purdue Course Catalog online
+- Contact your academic advisor directly for urgent academic matters
+- Use the transcript parsing features which don't require AI responses
+
+I'll be ready to help once the rate limit resets!`,
           timestamp: new Date(),
           metadata: {
-            thinkingSummary: `Generated error response: detected service issue → applied fallback AI → formulated helpful guidance despite limitations`
+            thinkingSummary: `Detected rate limit error → provided helpful guidance about OpenAI quota limits → suggested alternative resources`
           }
         };
         
-        const errorMessages = [...newMessages, errorMessage];
+        const errorMessages = [...newMessages, rateLimitMessage];
         setMessages(errorMessages);
         
-        // Update chat session with error message
+        // Update chat session with rate limit message
         if (currentChatId) {
           setChatSessions(prev => prev.map(chat => 
             chat.id === currentChatId 
@@ -544,10 +670,41 @@ I apologize for the inconvenience and appreciate your patience!`;
               : chat
           ));
         }
-      } catch (fallbackError) {
-        // Even fallback AI failed - just remove thinking indicator
-        setMessages(newMessages);
-        console.log('🚨 All AI services unavailable. Please check your configuration.');
+      } else {
+        try {
+          // Try to use AI to generate contextual error response for non-rate-limit errors
+          const aiErrorResponse = await pureAIFallback.generateErrorResponse(
+            trimmedInput, 
+            'general', 
+            'AI service connection issue'
+          );
+          
+          const errorMessage: EnhancedMessage = { 
+            id: generateId(),
+            role: "assistant", 
+            content: aiErrorResponse,
+            timestamp: new Date(),
+            metadata: {
+              thinkingSummary: `Generated error response: detected service issue → applied fallback AI → formulated helpful guidance despite limitations`
+            }
+          };
+          
+          const errorMessages = [...newMessages, errorMessage];
+          setMessages(errorMessages);
+          
+          // Update chat session with error message
+          if (currentChatId) {
+            setChatSessions(prev => prev.map(chat => 
+              chat.id === currentChatId 
+                ? { ...chat, messages: errorMessages, lastMessageAt: new Date() }
+                : chat
+            ));
+          }
+        } catch (fallbackError) {
+          // Even fallback AI failed - just remove thinking indicator
+          setMessages(newMessages);
+          console.log('🚨 All AI services unavailable. Please check your configuration.');
+        }
       }
     } finally {
       setIsLoading(false);
@@ -589,7 +746,13 @@ Requirements:
 
 Generate a greeting that feels authentic and caring, like you're meeting with a student during office hours.`;
 
-      const response = await openaiChatService.sendMessage(greetingPrompt, user?.id || 'anonymous');
+      // Check if unified AI service is available
+      if (!isApiKeyValid || !unifiedChatService.isAvailable()) {
+        console.log('⚠️ AI service not available for greeting - using fallback');
+        return "Hi there! How can I help you with your academic journey at Purdue today?";
+      }
+      
+      const response = await unifiedChatService.sendMessage(greetingPrompt, user?.id || 'anonymous');
       
       // Clean up the response and ensure it's natural
       return response.replace(/^["']|["']$/g, '').trim();
@@ -601,7 +764,7 @@ Generate a greeting that feels authentic and caring, like you're meeting with a 
 
   // Generate AI-powered contextual suggestions - no hardcoded templates
   const generateContextualSuggestions = async (): Promise<string[]> => {
-    if (!isApiKeyValid) return [];
+    if (!isApiKeyValid || !unifiedChatService.isAvailable()) return [];
     
     try {
       // Build context for AI suggestion generation
@@ -637,7 +800,7 @@ Requirements:
 
 Example format: ["suggestion 1", "suggestion 2", "suggestion 3", "suggestion 4"]`;
 
-      const response = await openaiChatService.sendMessage(suggestionPrompt, user?.id || 'anonymous');
+      const response = await unifiedChatService.sendMessage(suggestionPrompt, user?.id || 'anonymous');
       
       try {
         const suggestions = JSON.parse(response);
@@ -656,7 +819,7 @@ Example format: ["suggestion 1", "suggestion 2", "suggestion 3", "suggestion 4"]
   // Load AI-generated suggestions when context changes
   useEffect(() => {
     const loadSuggestions = async () => {
-      if (isApiKeyValid && !loadingSuggestions) {
+      if (isApiKeyValid && unifiedChatService.isAvailable() && !loadingSuggestions) {
         setLoadingSuggestions(true);
         try {
           const aiSuggestions = await generateContextualSuggestions();
@@ -678,7 +841,7 @@ Example format: ["suggestion 1", "suggestion 2", "suggestion 3", "suggestion 4"]
     if (transcriptData && transcriptData.studentInfo?.name) {
       console.log('📝 Setting transcript context for AI...');
       // Convert transcriptData to compatible format by casting
-      openaiChatService.setTranscriptContext(transcriptData as any);
+      unifiedChatService.setTranscriptContext(transcriptData as any);
       console.log('✅ Transcript context set for AI assistant');
     }
   }, [transcriptData, user?.id]);
@@ -710,15 +873,15 @@ Example format: ["suggestion 1", "suggestion 2", "suggestion 3", "suggestion 4"]
       // Generate AI context with student profile
       const contextData = await transcriptContextService.generateAIContext(courses, 'comprehensive');
       
-      // Update OpenAI service with enhanced context
-      openaiChatService.setEnhancedContext({
+      // Update unified AI service with enhanced context
+      unifiedChatService.setEnhancedContext({
         studentProfile: contextData.studentProfile,
         contextPrompt: contextData.contextPrompt,
         transcriptData: transcriptData
       });
 
       // Initialize contextual memory for this session
-      openaiChatService.setContextualMemory(user?.id || 'anonymous', currentChatId || 'default');
+      unifiedChatService.setContextualMemory(user?.id || 'anonymous', currentChatId || 'default');
 
       // Add system message to current chat explaining the integration
       const systemMessage: EnhancedMessage = {
@@ -912,7 +1075,13 @@ Ask me anything about your academic progress, course planning, or major requirem
               </button>
               <div className="flex items-center gap-3">
                 <div className="text-lg font-medium text-neutral-200">
-                  {currentChat?.name || "New Chat"}
+                  {(() => {
+                    const firstName = getFirstName(user);
+                    if (firstName && (currentChat?.name === "New Chat" || !currentChat?.name)) {
+                      return `Welcome ${firstName}!`;
+                    }
+                    return currentChat?.name || "New Chat";
+                  })()}
                 </div>
                 
                 {/* AI Service Toggle */}
@@ -1075,7 +1244,7 @@ Ask me anything about your academic progress, course planning, or major requirem
                                       messageTimestamp: m.timestamp,
                                       conversationLength: messages.length,
                                       transcriptIntegrated: transcriptIntegrated,
-                                      enhancedContext: openaiChatService.getEnhancedContext() !== null
+                                      enhancedContext: unifiedChatService.getEnhancedContext() !== null
                                     }}
                                     userId={user?.id || 'anonymous'}
                                     onRatingSubmitted={(rating) => {
@@ -1114,16 +1283,11 @@ Ask me anything about your academic progress, course planning, or major requirem
           
           {/* Fixed Input Area */}
           <div className="border-t border-neutral-800 p-4 flex-shrink-0 bg-neutral-900/80 backdrop-blur-sm">
-            {!isApiKeyValid && (
-              <div className="mb-3 p-2 rounded-lg bg-amber-900/20 border border-amber-800/50 text-center">
-                <p className="text-xs text-amber-300">Using basic AI processing. Configure OpenAI API in Settings for enhanced features.</p>
-              </div>
-            )}
             <div className="flex items-center gap-3 mb-3">
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isApiKeyValid ? "Ask about courses, professors, or plans…" : "Ask questions (using basic AI processing)…"}
+                placeholder="Ask about courses, professors, or plans…"
                 className="flex-1 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-200 outline-none placeholder:text-neutral-500 focus:border-neutral-600 transition-colors disabled:opacity-50"
                 onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSendMessage()}
                 disabled={isLoading}

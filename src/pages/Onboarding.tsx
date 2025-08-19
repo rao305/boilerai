@@ -446,10 +446,30 @@ export default function Onboarding() {
         onboardingCompleted: true
       };
       
+      // Store onboarding data for AI context (accessible by AI assistant)
+      try {
+        const aiContextData = {
+          major: data.major,
+          currentYear: data.year,
+          expectedGraduation: data.graduationYear,
+          academicInterests: data.interests,
+          academicGoals: data.goals,
+          hasUploadedTranscript: data.hasTranscript,
+          onboardingDate: new Date().toISOString(),
+          firstName: user?.name?.split(' ')[0] || ''
+        };
+        
+        localStorage.setItem('student_onboarding_context', JSON.stringify(aiContextData));
+        console.log('✅ AI context data saved:', aiContextData);
+      } catch (error) {
+        console.error('Failed to save AI context data:', error);
+      }
+      
       console.log('📝 Onboarding data collected:', onboardingData);
       
-      // Try to update user profile if available
-      if (updateProfile) {
+      // Try to update user profile if legacy auth is available and user is authenticated there
+      // Skip legacy profile update when using Microsoft auth to avoid conflicts
+      if (updateProfile && user?.id) {
         try {
           await updateProfile({
             preferences: {
@@ -458,8 +478,10 @@ export default function Onboarding() {
           });
           console.log('✅ User profile updated in legacy auth system');
         } catch (err) {
-          console.warn('⚠️ Could not update legacy auth profile:', err);
+          console.log('ℹ️ Legacy auth profile update skipped (using Microsoft auth):', err.message);
         }
+      } else {
+        console.log('ℹ️ Using Microsoft authentication - skipping legacy profile update');
       }
       
       // Mark onboarding as completed in Microsoft auth context
@@ -467,10 +489,8 @@ export default function Onboarding() {
       
       console.log('🎉 Onboarding completed successfully!');
       
-      // Navigate to main app
-      setTimeout(() => {
-        navigate('/main', { replace: true });
-      }, 500);
+      // Navigate to dashboard immediately 
+      navigate('/dashboard', { replace: true });
       
     } catch (error) {
       console.error('❌ Failed to complete onboarding:', error);

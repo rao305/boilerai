@@ -53,7 +53,10 @@ export const CourseVerificationTable: React.FC<CourseVerificationTableProps> = (
   });
   
   const completedCourses = Object.values(transcriptData.completedCourses).flatMap(sem => sem.courses);
-  const inProgressCourses = transcriptData.coursesInProgress.filter(course => {
+  const inProgressCoursesArray = Array.isArray(transcriptData.coursesInProgress) 
+    ? transcriptData.coursesInProgress 
+    : [];
+  const inProgressCourses = inProgressCoursesArray.filter(course => {
     // Apply same filtering to in-progress courses
     const isInvalidEntry = 
       !course.courseCode || 

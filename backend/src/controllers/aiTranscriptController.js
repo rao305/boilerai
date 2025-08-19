@@ -2,6 +2,148 @@ const { OpenAI } = require('openai');
 const pdf = require('pdf-parse');
 const HighPerformanceTranscriptParser = require('./highPerformanceTranscriptParser');
 
+/**
+ * NEW: Standardized transcript structure that AI can understand
+ * NOTE: This class works with ANY university's transcript format
+ * - Does NOT hardcode Purdue-specific course codes here
+ * - Parser extracts courses generically, regardless of naming convention
+ */
+class TranscriptStructure {
+  constructor() {
+    this.studentInfo = {
+      name: '',
+      program: '',
+      college: '',
+      // DO NOT hardcode "Computer Science" - get program name from transcript
+      expectedGraduation: ''
+    };
+    this.gpaSummary = {
+      cumulativeGPA: 0,
+      termGPA: 0,
+      totalCreditsEarned: 0,
+      creditsInProgress: 0
+    };
+    this.courses = [];
+    this.requirementsMet = [];
+    this.requirementsPending = [];
+  }
+
+  /**
+   * Convert raw transcript text to structured format
+   * NOTE: 
+   * - This regex matches ANY course code format (CS 180, MA 16500, STAT 511, etc.)
+   * - Purdue uses 4-5 digit course numbers, but keeps flexible for other formats
+   */
+  static parseFromText(transcriptText) {
+    const transcript = new TranscriptStructure();
+    
+    // 1. Extract student info generically
+    const nameMatch = transcriptText.match(/Name:\s*([^\n]+)/);
+    if (nameMatch) transcript.studentInfo.name = nameMatch[1].trim();
+    
+    const programMatch = transcriptText.match(/Program:\s*([^\n]+)/);
+    if (programMatch) transcript.studentInfo.program = programMatch[1].trim();
+    
+    const collegeMatch = transcriptText.match(/College:\s*([^\n]+)/);
+    if (collegeMatch) transcript.studentInfo.college = collegeMatch[1].trim();
+    
+    // 2. Extract GPA and credits generically
+    const gpaMatch = transcriptText.match(/Cumulative GPA:\s*([\d.]+)/);
+    if (gpaMatch) transcript.gpaSummary.cumulativeGPA = parseFloat(gpaMatch[1]);
+    
+    const creditsMatch = transcriptText.match(/Total Credits Earned:\s*([\d.]+)/);
+    if (creditsMatch) transcript.gpaSummary.totalCreditsEarned = parseInt(creditsMatch[1]);
+    
+    // 3. Extract courses using flexible regex that works with ANY course code format
+    // NOTE: 
+    // - Purdue format is typically "DEPT ###" or "DEPT ####" (e.g., "CS 180" or "MA 16500")
+    // - But keep this flexible for other formats that might appear in transcripts
+    const courseRegex = /([A-Z]{2,4})\s*(\d{3,5})\s+([^(]+?)\s+([A-F][\+-]?)\s+(\d+(\.\d+)?)/g;
+    let courseMatch;
+    while ((courseMatch = courseRegex.exec(transcriptText)) !== null) {
+      const [, dept, number, title, grade, credits] = courseMatch;
+      const courseCode = `${dept} ${number}`;
+      
+      transcript.courses.push({
+        courseCode,
+        title: title.trim(),
+        grade,
+        credits: parseFloat(credits),
+        status: 'completed',
+        term: this.extractTermFromContext(transcriptText, courseMatch.index)
+      });
+    }
+    
+    // 4. Extract in-progress courses generically
+    const inProgressRegex = /COURSE\(S\) IN PROGRESS[\s\S]*?Period:\s*([^\n]+)\n([\s\S]*?)(?=\n\n|\n[A-Z])/g;
+    let inProgressMatch;
+    while ((inProgressMatch = inProgressRegex.exec(transcriptText)) !== null) {
+      const [, term, coursesText] = inProgressMatch;
+      // NOTE: Use the SAME flexible course regex as above
+      const inProgressCourseRegex = /([A-Z]{2,4})\s*(\d{3,5})\s+([^(]+?)\s+(\d+(\.\d+)?)/g;
+      let ipCourseMatch;
+      while ((ipCourseMatch = inProgressCourseRegex.exec(coursesText)) !== null) {
+        const [, dept, number, title, credits] = ipCourseMatch;
+        const courseCode = `${dept} ${number}`;
+        
+        transcript.courses.push({
+          courseCode,
+          title: title.trim(),
+          grade: null,
+          credits: parseFloat(credits),
+          status: 'in-progress',
+          term: this.parseTerm(term)
+        });
+      }
+    }
+    
+    return transcript;
+  }
+
+  static extractTermFromContext(text, position) {
+    // Look backwards from position to find term information
+    const beforeText = text.substring(Math.max(0, position - 500), position);
+    const termMatch = beforeText.match(/Period:\s*(Fall|Spring|Summer)\s+(\d{4})/i);
+    
+    if (termMatch) {
+      return {
+        season: termMatch[1],
+        year: parseInt(termMatch[2])
+      };
+    }
+    
+    return { season: 'Unknown', year: new Date().getFullYear() };
+  }
+
+  static parseTerm(termString) {
+    const match = termString.match(/(Fall|Spring|Summer)\s+(\d{4})/i);
+    if (match) {
+      return {
+        season: match[1],
+        year: parseInt(match[2])
+      };
+    }
+    return { season: 'Unknown', year: new Date().getFullYear() };
+  }
+
+  // Get all completed courses as a flat array
+  get completedCourses() {
+    return this.courses.filter(c => c.status === 'completed');
+  }
+
+  // Get all in-progress courses as a flat array
+  get inProgressCourses() {
+    return this.courses.filter(c => c.status === 'in-progress');
+  }
+
+  // Get courses by term
+  getCoursesByTerm(season, year) {
+    return this.courses.filter(c => 
+      c.term && c.term.season.toLowerCase() === season.toLowerCase() && c.term.year === year
+    );
+  }
+}
+
 class AITranscriptController {
   constructor() {
     this.processingJobs = new Map();

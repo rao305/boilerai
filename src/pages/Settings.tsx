@@ -9,7 +9,10 @@ import {
   StatsGrid
 } from "@/components/PurdueUI";
 import { useAuth } from "@/contexts/AuthContext";
+import { useMicrosoftAuth } from "@/contexts/MicrosoftAuthContext";
 import { useApiKey } from "@/contexts/ApiKeyContext";
+import { pureAIFallback } from "@/services/pureAIFallback";
+import { unifiedChatService } from "@/services/unifiedChatService";
 import { 
   User, 
   Key, 
@@ -25,19 +28,136 @@ import {
   AlertCircle,
   Settings as SettingsIcon,
   Lock,
-  Globe
+  Globe,
+  Bot,
+  Star
 } from "lucide-react";
 
+type ApiProvider = 'openai' | 'gemini';
+
+// Enhanced user-specific API key storage functions for multiple providers
+function getUserApiKeys(userId?: string): {openai: string, gemini: string} {
+  if (!userId) return {openai: '', gemini: ''};
+  
+  // Check if user wants to remember API key
+  const rememberKey = localStorage.getItem('remember_api_key') === 'true';
+  if (!rememberKey) return {openai: '', gemini: ''};
+  
+  // Get user-specific API keys
+  const userKeyData = localStorage.getItem(`user_api_keys_${userId}`);
+  if (!userKeyData) return {openai: '', gemini: ''};
+  
+  try {
+    const parsed = JSON.parse(userKeyData);
+    return {
+      openai: parsed.openai || '',
+      gemini: parsed.gemini || ''
+    };
+  } catch {
+    return {openai: '', gemini: ''};
+  }
+}
+
+function setUserApiKey(userId: string, provider: ApiProvider, apiKey: string, remember: boolean): void {
+  if (!remember) {
+    // If not remembering, clear any stored keys and use session storage
+    localStorage.removeItem(`user_api_keys_${userId}`);
+    localStorage.setItem('remember_api_key', 'false');
+    // Store in session for current session only
+    sessionStorage.setItem(`current_session_${provider}_key`, apiKey);
+    return;
+  }
+  
+  // Get existing data or create new
+  const existingData = getUserApiKeys(userId);
+  const userKeyData = {
+    openai: provider === 'openai' ? apiKey : existingData.openai,
+    gemini: provider === 'gemini' ? apiKey : existingData.gemini,
+    timestamp: Date.now(),
+    userId: userId
+  };
+  
+  localStorage.setItem(`user_api_keys_${userId}`, JSON.stringify(userKeyData));
+  localStorage.setItem('remember_api_key', 'true');
+  // Also clear session storage
+  sessionStorage.removeItem(`current_session_${provider}_key`);
+}
+
+function clearUserApiKey(userId: string, provider?: ApiProvider): void {
+  if (!provider) {
+    // Clear all
+    localStorage.removeItem(`user_api_keys_${userId}`);
+    localStorage.removeItem('remember_api_key');
+    sessionStorage.removeItem('current_session_openai_key');
+    sessionStorage.removeItem('current_session_gemini_key');
+  } else {
+    // Clear specific provider
+    const existingData = getUserApiKeys(userId);
+    const userKeyData = {
+      openai: provider === 'openai' ? '' : existingData.openai,
+      gemini: provider === 'gemini' ? '' : existingData.gemini,
+      timestamp: Date.now(),
+      userId: userId
+    };
+    localStorage.setItem(`user_api_keys_${userId}`, JSON.stringify(userKeyData));
+    sessionStorage.removeItem(`current_session_${provider}_key`);
+  }
+}
+
+function getCurrentApiKeys(userId?: string): {openai: string, gemini: string} {
+  if (!userId) return {openai: '', gemini: ''};
+  
+  // First check session storage (for non-remembered keys)
+  const sessionOpenAI = sessionStorage.getItem('current_session_openai_key') || '';
+  const sessionGemini = sessionStorage.getItem('current_session_gemini_key') || '';
+  
+  // Then check user-specific stored keys
+  const storedKeys = getUserApiKeys(userId);
+  
+  return {
+    openai: sessionOpenAI || storedKeys.openai,
+    gemini: sessionGemini || storedKeys.gemini
+  };
+}
+
+// Auto-detect API key provider based on format
+function detectApiKeyProvider(apiKey: string): ApiProvider | null {
+  if (!apiKey || apiKey.length < 10) return null;
+  
+  // OpenAI keys start with 'sk-' and are typically 40+ characters
+  if (apiKey.startsWith('sk-') && apiKey.length >= 20) {
+    return 'openai';
+  }
+  
+  // Gemini keys start with 'AIzaSy' and are typically 30+ characters
+  if (apiKey.startsWith('AIzaSy') && apiKey.length >= 30) {
+    return 'gemini';
+  }
+  
+  return null;
+}
+
 export default function Settings() {
-  const { user } = useAuth();
-  const { isApiKeyValid, checkApiKey } = useApiKey();
+  const { user: legacyUser } = useAuth();
+  const { user: msUser } = useMicrosoftAuth();
+  const { isApiKeyValid, checkApiKey, setApiKeyValid } = useApiKey();
+  
+  // Use Microsoft auth user if available, fallback to legacy
+  const user = msUser || legacyUser;
   const [showApiKey, setShowApiKey] = useState(false);
-  const [apiKeys, setApiKeys] = useState({
-    openai: localStorage.getItem('openai_api_key') || "",
+  const [rememberApiKey, setRememberApiKey] = useState(
+    localStorage.getItem('remember_api_key') === 'true'
+  );
+  const [apiKeys, setApiKeys] = useState(() => {
+    const keys = getCurrentApiKeys(user?.id);
+    return keys;
   });
   const [apiKeyStatus, setApiKeyStatus] = useState({
-    openai: { valid: isApiKeyValid, testing: false },
+    openai: { valid: false, testing: false },
+    gemini: { valid: false, testing: false },
   });
+  const [selectedProvider, setSelectedProvider] = useState<ApiProvider>('gemini');
+  const [detectedProvider, setDetectedProvider] = useState<ApiProvider | null>(null);
   const [profile, setProfile] = useState({
     firstName: user?.name?.split(' ')[0] || "",
     lastName: user?.name?.split(' ')[1] || "",
@@ -59,85 +179,190 @@ export default function Settings() {
     analyticsOptIn: true,
   });
 
-  // Sync local apiKeyStatus with global context
+  // Sync local apiKeyStatus with global context and validation status
   useEffect(() => {
     console.log('🔄 Settings: Syncing with global context, isApiKeyValid:', isApiKeyValid);
-    setApiKeyStatus(prev => ({ 
-      ...prev, 
-      openai: { 
-        ...prev.openai, 
-        valid: isApiKeyValid 
-      } 
+    
+    // Check validation status for both providers
+    const validationStatus = JSON.parse(localStorage.getItem('api_key_validation_status') || '{"openai": false, "gemini": false}');
+    console.log('🔄 Settings: Validation status from localStorage:', validationStatus);
+    
+    setApiKeyStatus(prev => ({
+      openai: {
+        ...prev.openai,
+        valid: validationStatus.openai || false
+      },
+      gemini: {
+        ...prev.gemini,
+        valid: validationStatus.gemini || false
+      }
     }));
   }, [isApiKeyValid]);
+
+  // Listen for API key updates from other components
+  useEffect(() => {
+    const handleApiKeyUpdate = () => {
+      console.log('🔄 Settings: Received apiKeyUpdated event, refreshing status');
+      const validationStatus = JSON.parse(localStorage.getItem('api_key_validation_status') || '{"openai": false, "gemini": false}');
+      console.log('🔄 Settings: Updated validation status:', validationStatus);
+      
+      setApiKeyStatus(prev => ({
+        openai: {
+          ...prev.openai,
+          valid: validationStatus.openai || false
+        },
+        gemini: {
+          ...prev.gemini,
+          valid: validationStatus.gemini || false
+        }
+      }));
+    };
+
+    const handleApiKeyCleared = () => {
+      console.log('🔄 Settings: Received apiKeyCleared event, clearing status');
+      setApiKeyStatus(prev => ({
+        openai: {
+          ...prev.openai,
+          valid: false
+        },
+        gemini: {
+          ...prev.gemini,
+          valid: false
+        }
+      }));
+    };
+
+    window.addEventListener('apiKeyUpdated', handleApiKeyUpdate);
+    window.addEventListener('apiKeyCleared', handleApiKeyCleared);
+    
+    return () => {
+      window.removeEventListener('apiKeyUpdated', handleApiKeyUpdate);
+      window.removeEventListener('apiKeyCleared', handleApiKeyCleared);
+    };
+  }, []);
+  
+  // Auto-detect provider when user types
+  useEffect(() => {
+    const currentKey = apiKeys[selectedProvider];
+    const detected = detectApiKeyProvider(currentKey);
+    setDetectedProvider(detected);
+  }, [apiKeys, selectedProvider]);
 
   const handleSaveProfile = () => {
     console.log("Saving profile:", profile);
   };
 
-  const validateOpenAIKey = async (apiKey: string): Promise<{ valid: boolean; status?: number; reason?: string; networkError?: boolean }> => {
-    console.log('🔍 Starting API key validation...', { keyLength: apiKey?.length, keyPrefix: apiKey?.substring(0, 5) + '...' });
+  const validateApiKey = async (apiKey: string, provider: ApiProvider): Promise<{ valid: boolean; status?: number; reason?: string; networkError?: boolean }> => {
+    console.log(`🔍 Starting ${provider} API key validation...`, { keyLength: apiKey?.length, keyPrefix: apiKey?.substring(0, 8) + '...' });
     
     try {
-      if (!apiKey || !apiKey.startsWith('sk-') || apiKey.length < 20) {
-        console.log('❌ API key format validation failed');
-        setApiKeyStatus(prev => ({ ...prev, openai: { valid: false, testing: false } }));
-        return { valid: false, reason: 'Invalid API key format. OpenAI keys must start with "sk-" and be at least 20 characters long.' };
+      // Auto-detect if provider doesn't match key format
+      const detectedProvider = detectApiKeyProvider(apiKey);
+      if (detectedProvider && detectedProvider !== provider) {
+        console.log(`🔄 Auto-detected provider: ${detectedProvider} (user selected: ${provider})`);
+        // Auto-switch to detected provider
+        setSelectedProvider(detectedProvider);
+        provider = detectedProvider;
       }
       
-      console.log('✅ API key format is valid, starting backend validation...');
-      setApiKeyStatus(prev => ({ ...prev, openai: { valid: false, testing: true } }));
+      if (!apiKey || apiKey.length < 10) {
+        console.log('❌ API key format validation failed - too short');
+        setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: false, testing: false } }));
+        return { valid: false, reason: 'API key is too short. Please enter a valid API key.' };
+      }
+      
+      // Validate format based on provider
+      if (provider === 'openai' && (!apiKey.startsWith('sk-') || apiKey.length < 20)) {
+        console.log('❌ OpenAI API key format validation failed');
+        setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: false, testing: false } }));
+        return { valid: false, reason: 'Invalid OpenAI API key format. OpenAI keys must start with "sk-" and be at least 20 characters long.' };
+      }
+      
+      if (provider === 'gemini' && (!apiKey.startsWith('AIzaSy') || apiKey.length < 30)) {
+        console.log('❌ Gemini API key format validation failed');
+        setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: false, testing: false } }));
+        return { valid: false, reason: 'Invalid Gemini API key format. Gemini keys must start with "AIzaSy" and be at least 30 characters long.' };
+      }
+      
+      console.log(`✅ ${provider} API key format is valid, starting validation...`);
+      setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: false, testing: true } }));
 
-      // Use backend validation to avoid CORS issues
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
-      const validationUrl = `${backendUrl}/api/settings/validate-openai-key`;
-      console.log('🌐 Making request to:', validationUrl);
+      let validationResult;
       
-      const boundFetch = window.fetch.bind(window);
-      console.log('📡 Sending validation request...');
-      const response = await boundFetch(validationUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ apiKey })
-      });
+      if (provider === 'openai') {
+        // Use backend validation for OpenAI to avoid CORS issues
+        const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+        const validationUrl = `${backendUrl}/api/settings/validate-openai-key`;
+        console.log('🌐 Making request to:', validationUrl);
       
-      console.log('📥 Received response:', { status: response.status, ok: response.ok });
-      
-      if (!response.ok) {
-        throw new Error(`Validation service error: ${response.status}`);
+        const boundFetch = window.fetch.bind(window);
+        console.log('📡 Sending OpenAI validation request...');
+        const response = await boundFetch(validationUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ apiKey })
+        });
+        
+        console.log('📥 Received response:', { status: response.status, ok: response.ok });
+        
+        if (!response.ok) {
+          throw new Error(`Validation service error: ${response.status}`);
+        }
+        
+        const result = await response.json();
+        validationResult = result;
+      } else if (provider === 'gemini') {
+        // Direct validation for Gemini API
+        console.log('📡 Sending Gemini validation request...');
+        const response = await window.fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        console.log('📥 Received Gemini response:', { status: response.status, ok: response.ok });
+        
+        validationResult = {
+          success: response.ok,
+          valid: response.ok,
+          status: response.status,
+          reason: response.ok ? 'Gemini API key validated successfully' : 'Invalid Gemini API key or network error'
+        };
       }
       
-      const result = await response.json();
-      console.log('📋 Validation result:', result);
+      console.log('📋 Validation result:', validationResult);
       
-      if (result.success && result.valid) {
-        console.log('✅ API key validation successful!');
-        setApiKeyStatus(prev => ({ ...prev, openai: { valid: true, testing: false } }));
+      if (validationResult.success && validationResult.valid) {
+        console.log(`✅ ${provider} API key validation successful!`);
+        setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: true, testing: false } }));
+        
         return { 
           valid: true, 
-          status: result.status, 
-          reason: result.reason
+          status: validationResult.status, 
+          reason: validationResult.reason
         };
       } else {
-        console.log('❌ API key validation failed:', result.reason);
-        setApiKeyStatus(prev => ({ ...prev, openai: { valid: false, testing: false } }));
+        console.log(`❌ ${provider} API key validation failed:`, validationResult.reason);
+        setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: false, testing: false } }));
+        
         return { 
           valid: false, 
-          status: result.status, 
-          reason: result.reason
+          status: validationResult.status, 
+          reason: validationResult.reason
         };
       }
       
     } catch (error: any) {
-      console.error('🚨 Validation error:', error);
-      setApiKeyStatus(prev => ({ ...prev, openai: { valid: false, testing: false } }));
+      console.error(`🚨 ${provider} validation error:`, error);
+      setApiKeyStatus(prev => ({ ...prev, [provider]: { valid: false, testing: false } }));
       
       if (error.name === 'TimeoutError' || error.name === 'AbortError') {
         return { valid: false, reason: 'Validation timeout. Please check your internet connection and try again.' };
       }
-      return { valid: false, reason: `API key validation failed: ${error.message}` };
+      return { valid: false, reason: `${provider} API key validation failed: ${error.message}` };
     }
   };
 
@@ -145,48 +370,99 @@ export default function Settings() {
   // No backend storage of sensitive user data
 
   const handleSaveApiKeys = async () => {
-    console.log("Validating and saving API keys (client-side only)");
+    console.log("Validating and saving API keys (user-specific storage)");
     
-    if (apiKeys.openai) {
-      const result = await validateOpenAIKey(apiKeys.openai);
+    if (!user?.id) {
+      alert('❌ User session not found. Please log in again.');
+      return;
+    }
+    
+    const currentKey = apiKeys[selectedProvider];
+    if (currentKey) {
+      const result = await validateApiKey(currentKey, selectedProvider);
       if (result.valid) {
-        // Save to localStorage only (no backend storage for security)
-        localStorage.setItem('openai_api_key', apiKeys.openai);
+        // Save using user-specific storage with remember option
+        setUserApiKey(user.id, selectedProvider, currentKey, rememberApiKey);
         
         // Store validation status for AI services to check (compatible with ApiKeyContext)
+        const existingValidation = JSON.parse(localStorage.getItem('api_key_validation_status') || '{"openai": false, "gemini": false}');
         const validationData = { 
-          openai: true, 
+          ...existingValidation,
+          [selectedProvider]: true,
           timestamp: Date.now(),
+          userId: user.id,
+          rememberKey: rememberApiKey,
           backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001',
-          reason: 'API key validated successfully'
+          reason: `${selectedProvider} API key validated successfully`
         };
         localStorage.setItem('api_key_validation_status', JSON.stringify(validationData));
+        
+        // Update legacy storage for backward compatibility
+        if (rememberApiKey) {
+          localStorage.setItem(`${selectedProvider}_api_key`, currentKey);
+        } else {
+          localStorage.removeItem(`${selectedProvider}_api_key`);
+        }
         
         // Dispatch custom event to notify other components
         window.dispatchEvent(new CustomEvent('apiKeyUpdated'));
         
-        // Also trigger the global context to refresh
-        await checkApiKey();
+        // Update global context after a brief delay to ensure localStorage is committed
+        console.log('🔄 [DEBUG] Updating global context to valid after successful save');
+        setTimeout(() => {
+          setApiKeyValid(true);
+          console.log('🔄 [DEBUG] Global context update completed');
+        }, 10);
+        
+        // Reinitialize all AI services
+        pureAIFallback.reinitialize();
+        unifiedChatService.reinitialize();
+        console.log('🔄 Reinitialized AI services after save');
+        
+        // Force refresh the context to ensure state propagation
+        setTimeout(async () => {
+          await checkApiKey();
+          console.log('🔄 [DEBUG] Context refresh completed');
+        }, 100);
+        
+        const providerName = selectedProvider === 'openai' ? 'OpenAI' : 'Gemini';
+        const rememberText = rememberApiKey 
+          ? '\n\n💾 Your API key will be remembered for future sessions.' 
+          : '\n\n🔐 Your API key will only be used for this session and will be cleared when you log out.';
         
         if (result.status === 403 || result.status === 429) {
-          alert('✅ OpenAI API key validated and saved securely in your browser!\n\n⚠️ Note: Your key is valid but may have usage restrictions. You can now use all AI features including transcript parsing.');
+          alert(`✅ ${providerName} API key validated and saved securely!${rememberText}\n\n⚠️ Note: Your key is valid but may have usage restrictions. You can now use all AI features including transcript parsing.`);
         } else {
-          alert('✅ OpenAI API key validated and saved securely in your browser!\n\n🎉 All AI features are now fully enabled, including transcript parsing, chat assistant, and academic planning.');
+          alert(`✅ ${providerName} API key validated and saved securely!${rememberText}\n\n🎉 All AI features are now fully enabled, including transcript parsing, chat assistant, and academic planning.`);
         }
       } else {
-        alert(`❌ API key validation failed.\nReason: ${result.reason || 'Invalid key format or network error'}.\n\nPlease check your API key and try again.`);
+        // Update global context on validation failure
+        setApiKeyValid(false);
+        const providerName = selectedProvider === 'openai' ? 'OpenAI' : 'Gemini';
+        alert(`❌ ${providerName} API key validation failed.\nReason: ${result.reason || 'Invalid key format or network error'}.\n\nPlease check your API key and try again.`);
       }
     } else {
-      // Clear the key
-      localStorage.removeItem('openai_api_key');
+      // Clear the key for this user
+      clearUserApiKey(user.id, selectedProvider);
+      const existingValidation = JSON.parse(localStorage.getItem('api_key_validation_status') || '{"openai": false, "gemini": false}');
       const validationData = { 
-        openai: false, 
+        ...existingValidation,
+        [selectedProvider]: false,
         timestamp: Date.now(),
+        userId: user.id,
         backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001',
-        reason: 'API key cleared by user'
+        reason: `${selectedProvider} API key cleared by user`
       };
       localStorage.setItem('api_key_validation_status', JSON.stringify(validationData));
-      setApiKeyStatus(prev => ({ ...prev, openai: { valid: false, testing: false } }));
+      
+      // Clear legacy storage
+      localStorage.removeItem(`${selectedProvider}_api_key`);
+      
+      setApiKeyStatus(prev => ({ ...prev, [selectedProvider]: { valid: false, testing: false } }));
+      
+      // Update global context when clearing if no other providers are valid
+      const hasValidProvider = Object.values(validationData).some(v => v === true);
+      setApiKeyValid(hasValidProvider);
       
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('apiKeyUpdated'));
@@ -194,7 +470,8 @@ export default function Settings() {
       // Also trigger the global context to refresh
       await checkApiKey();
       
-      alert('🗑️ API key removed from your browser.');
+      const providerName = selectedProvider === 'openai' ? 'OpenAI' : 'Gemini';
+      alert(`🗑️ ${providerName} API key removed from your browser.`);
     }
   };
 
@@ -291,18 +568,20 @@ export default function Settings() {
           </Card>
 
           {/* API Keys */}
-          <Card title="AI Configuration" right={
+          <Card title="AI Configuration (OpenAI or Gemini)" right={
             <div className="flex items-center gap-2">
-              <Badge className={apiKeyStatus.openai.valid ? "bg-green-800/20 text-green-300" : "bg-neutral-800 text-neutral-300"}>
-                {apiKeyStatus.openai.valid ? 'Connected' : 'Disconnected'}
+              <Badge className={(apiKeyStatus.openai.valid || apiKeyStatus.gemini.valid) ? "bg-green-800/20 text-green-300" : "bg-neutral-800 text-neutral-300"}>
+                {apiKeyStatus.openai.valid && 'OpenAI Connected'}
+                {apiKeyStatus.gemini.valid && 'Gemini Connected'}
+                {!apiKeyStatus.openai.valid && !apiKeyStatus.gemini.valid && 'Not Connected'}
               </Badge>
-              <PurdueButton size="small" onClick={handleSaveApiKeys} disabled={apiKeyStatus.openai.testing}>
-                {apiKeyStatus.openai.testing ? (
+              <PurdueButton size="small" onClick={handleSaveApiKeys} disabled={apiKeyStatus[selectedProvider].testing}>
+                {apiKeyStatus[selectedProvider].testing ? (
                   <div className="animate-spin h-3 w-3 border border-neutral-600 rounded-full border-t-amber-500 mr-1"></div>
                 ) : (
                   <Save size={14} className="mr-1" />
                 )}
-                {apiKeyStatus.openai.testing ? 'Testing...' : 'Save & Test'}
+                {apiKeyStatus[selectedProvider].testing ? 'Testing...' : 'Save & Test'}
               </PurdueButton>
             </div>
           }>
@@ -313,39 +592,96 @@ export default function Settings() {
                   <span className="text-base font-medium text-blue-300">AI Enhancement</span>
                 </div>
                 <p className="text-sm text-blue-200 mb-3">
-                  Enter your OpenAI API key to unlock intelligent chat responses, AI-powered transcript parsing, 
-                  and personalized academic recommendations.
+                  Enter your OpenAI or Gemini API key to unlock intelligent chat responses, AI-powered transcript parsing, 
+                  and personalized academic recommendations. Either provider works!
                 </p>
-                <p className="text-xs text-blue-300">
-                  <AlertCircle size={12} className="inline mr-1" />
-                  Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-100">platform.openai.com/api-keys</a>
-                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <div className="text-blue-300">
+                    <Bot size={12} className="inline mr-1" />
+                    OpenAI: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="underline hover:text-blue-100">Get API Key</a> (Pay-as-you-go)
+                  </div>
+                  <div className="text-green-300">
+                    <Star size={12} className="inline mr-1" />
+                    Gemini: <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="underline hover:text-green-100">Get API Key</a> (Free!)
+                  </div>
+                </div>
+              </div>
+              
+              {/* Provider Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-neutral-300">Choose AI Provider</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setSelectedProvider('gemini')}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedProvider === 'gemini' 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Star className="h-4 w-4" />
+                      <span className="font-medium">Gemini</span>
+                      {apiKeyStatus.gemini.valid && <CheckCircle className="h-4 w-4 text-green-500" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Google's free AI model</p>
+                    <p className="text-xs text-green-400 mt-1">Completely free!</p>
+                  </button>
+                  
+                  <button
+                    onClick={() => setSelectedProvider('openai')}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      selectedProvider === 'openai' 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-2 mb-1">
+                      <Bot className="h-4 w-4" />
+                      <span className="font-medium">OpenAI</span>
+                      {apiKeyStatus.openai.valid && <CheckCircle className="h-4 w-4 text-green-500" />}
+                    </div>
+                    <p className="text-xs text-muted-foreground">GPT-4 models</p>
+                    <p className="text-xs text-blue-400 mt-1">Pay-as-you-go</p>
+                  </button>
+                </div>
+                
+                {detectedProvider && detectedProvider !== selectedProvider && (
+                  <div className="p-2 rounded-lg bg-amber-900/20 border border-amber-800 text-xs text-amber-200">
+                    <AlertCircle size={12} className="inline mr-1" />
+                    Detected {detectedProvider === 'openai' ? 'OpenAI' : 'Gemini'} API key format. Auto-switching provider.
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-base font-medium text-neutral-300 mb-3">OpenAI API Key</label>
+                <label className="block text-base font-medium text-neutral-300 mb-3">
+                  {selectedProvider === 'openai' ? 'OpenAI' : 'Gemini'} API Key
+                </label>
                 <div className="relative">
                   <PurdueInput
                     type={showApiKey ? "text" : "password"}
-                    placeholder="sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxx"
-                    value={apiKeys.openai}
+                    placeholder={selectedProvider === 'openai' ? "sk-proj-xxxxxxxxxxxxxxxxxxxxxxxxxx" : "AIzaSyXXXXXXXXXXXXXXXXXXXXXXXXXX"}
+                    value={apiKeys[selectedProvider]}
                     onChange={(e) => {
-                      setApiKeys({...apiKeys, openai: e.target.value});
+                      setApiKeys({...apiKeys, [selectedProvider]: e.target.value});
                       // Clear validation status when user starts typing
-                      setApiKeyStatus({...apiKeyStatus, openai: { valid: false, message: "", loading: false }});
-                      // Clear stored validation status
-                      localStorage.removeItem('api_key_validation_status');
+                      setApiKeyStatus({...apiKeyStatus, [selectedProvider]: { valid: false, testing: false }});
+                      // Clear stored validation status for this provider
+                      const validationStatus = JSON.parse(localStorage.getItem('api_key_validation_status') || '{"openai": false, "gemini": false}');
+                      validationStatus[selectedProvider] = false;
+                      localStorage.setItem('api_key_validation_status', JSON.stringify(validationStatus));
                       // Notify context to update UI
                       window.dispatchEvent(new CustomEvent('apiKeyCleared'));
                     }}
                     className="pr-20 text-sm"
                   />
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-                    {apiKeyStatus.openai.testing && (
+                    {apiKeyStatus[selectedProvider].testing && (
                       <div className="animate-spin h-4 w-4 border border-neutral-600 rounded-full border-t-amber-500"></div>
                     )}
-                    {!apiKeyStatus.openai.testing && apiKeys.openai && (
-                      apiKeyStatus.openai.valid ? 
+                    {!apiKeyStatus[selectedProvider].testing && apiKeys[selectedProvider] && (
+                      apiKeyStatus[selectedProvider].valid ? 
                         <CheckCircle size={16} className="text-green-500" /> : 
                         <XCircle size={16} className="text-red-500" />
                     )}
@@ -359,33 +695,54 @@ export default function Settings() {
                 </div>
               </div>
 
+              {/* Remember API Key Option */}
+              <div className="flex items-center justify-between p-3 rounded-lg border border-neutral-800">
+                <div>
+                  <div className="text-sm font-medium text-neutral-200">Remember API Key</div>
+                  <div className="text-xs text-neutral-400">
+                    Save your API key for future sessions (stored securely in your browser)
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rememberApiKey}
+                    onChange={(e) => setRememberApiKey(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-yellow-600"></div>
+                </label>
+              </div>
+
               {/* Features unlocked display */}
               <div className="p-4 rounded-lg bg-neutral-900/50 border border-neutral-800">
                 <h4 className="text-sm font-medium text-neutral-200 mb-4">AI Features Available:</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className={`flex items-center gap-2 text-sm ${apiKeyStatus.openai.valid ? 'text-green-300' : 'text-neutral-500'}`}>
-                    {apiKeyStatus.openai.valid ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                    Intelligent Chat Assistant
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm ${apiKeyStatus.openai.valid ? 'text-green-300' : 'text-neutral-500'}`}>
-                    {apiKeyStatus.openai.valid ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                    AI Transcript Parsing
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm ${apiKeyStatus.openai.valid ? 'text-green-300' : 'text-neutral-500'}`}>
-                    {apiKeyStatus.openai.valid ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                    Course Recommendations
-                  </div>
-                  <div className={`flex items-center gap-2 text-sm ${apiKeyStatus.openai.valid ? 'text-green-300' : 'text-neutral-500'}`}>
-                    {apiKeyStatus.openai.valid ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                    Academic Planning Help
-                  </div>
+                  {['Intelligent Chat Assistant', 'AI Transcript Parsing', 'Course Recommendations', 'Academic Planning Help'].map((feature) => {
+                    const isEnabled = apiKeyStatus.openai.valid || apiKeyStatus.gemini.valid;
+                    return (
+                      <div key={feature} className={`flex items-center gap-2 text-sm ${isEnabled ? 'text-green-300' : 'text-neutral-500'}`}>
+                        {isEnabled ? <CheckCircle size={14} /> : <XCircle size={14} />}
+                        {feature}
+                      </div>
+                    );
+                  })}
                 </div>
+                
+                {/* Show active provider */}
+                {(apiKeyStatus.openai.valid || apiKeyStatus.gemini.valid) && (
+                  <div className="mt-3 p-2 rounded bg-green-900/20 border border-green-800 text-xs text-green-200">
+                    <span className="font-medium">Active Provider:</span>
+                    {apiKeyStatus.gemini.valid && ' ✅ Gemini (Free)'}
+                    {apiKeyStatus.openai.valid && ' ✅ OpenAI (GPT-4)'}
+                  </div>
+                )}
               </div>
 
               <div className="p-3 rounded-lg bg-neutral-900/70 border border-neutral-800">
                 <p className="text-xs text-neutral-400">
                   <Lock size={12} className="inline mr-1" />
-                  🔒 <strong>FERPA & Security Compliant:</strong> Your API key is stored only in your browser's local storage and sent directly to OpenAI for processing. We never store API keys, transcript data, or personal information on our servers.
+                  🔒 <strong>FERPA & Security Compliant:</strong> Your API key is stored only in your browser's local storage and sent directly to the AI provider (OpenAI/Google) for processing. We never store API keys, transcript data, or personal information on our servers.
                 </p>
               </div>
             </div>
@@ -441,8 +798,12 @@ export default function Settings() {
                 <XCircle size={16} className="text-red-400" />
               </div>
               <div className="flex items-center justify-between p-2 rounded-lg bg-neutral-950/60">
-                <span className="text-sm text-neutral-300">API Keys</span>
-                <AlertCircle size={16} className="text-yellow-400" />
+                <span className="text-sm text-neutral-300">AI Providers</span>
+                {(apiKeyStatus.openai.valid || apiKeyStatus.gemini.valid) ? (
+                  <CheckCircle size={16} className="text-green-400" />
+                ) : (
+                  <AlertCircle size={16} className="text-yellow-400" />
+                )}
               </div>
             </div>
           </Card>

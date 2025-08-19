@@ -289,13 +289,13 @@ class MockEloAPIService {
 // Create and export singleton instance
 export const mockEloAPI = new MockEloAPIService();
 
-// Auto-enable in development
+// Auto-enable in development (temporarily disabled for debugging)
 if (import.meta.env.DEV) {
-  mockEloAPI.enable();
+  // mockEloAPI.enable(); // Temporarily disabled
   
   // Add to window for debugging
   (window as any).mockEloAPI = mockEloAPI;
   
-  console.log('🔧 Mock ELO API initialized for development');
-  console.log('💡 Use mockEloAPI.testAPI() to test, mockEloAPI.populateTestData() to add sample data');
+  console.log('🔧 Mock ELO API available but disabled for debugging');
+  console.log('💡 Use mockEloAPI.enable() to activate, mockEloAPI.testAPI() to test');
 }

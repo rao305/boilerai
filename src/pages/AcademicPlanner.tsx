@@ -155,7 +155,7 @@ interface Course {
 
 export default function AcademicPlanner() {
   const { user } = useAuth();
-  const { plannedCourses, setPlannedCourses } = useAcademicPlan();
+  const { plannedCourses, setPlannedCourses, transcriptData: contextTranscriptData, setTranscriptData: setContextTranscriptData } = useAcademicPlan();
   
   // Clear any old localStorage data that might have wrong semester ordering
   useEffect(() => {
@@ -190,7 +190,7 @@ export default function AcademicPlanner() {
   const [courseLibraryExpanded, setCourseLibraryExpanded] = useState(true);
   const [draggedCourse, setDraggedCourse] = useState<any>(null);
   const [degreeProgress, setDegreeProgress] = useState<DegreeProgress | null>(null);
-  const [transcriptData, setTranscriptData] = useState<TranscriptData | null>(null);
+  // Use transcript data from context
   const [showTranscriptUpload, setShowTranscriptUpload] = useState(false);
   const [aiRecommendations, setAiRecommendations] = useState<any[]>([]);
   
@@ -198,14 +198,6 @@ export default function AcademicPlanner() {
   useEffect(() => {
     const catalog = generateCourseCatalog();
     setAvailableCourses(catalog);
-    
-    // Check if transcript data exists in localStorage
-    const savedTranscriptData = localStorage.getItem('transcriptData');
-    if (savedTranscriptData) {
-      const parsedData = JSON.parse(savedTranscriptData);
-      setTranscriptData(parsedData);
-      importCoursesFromTranscript(parsedData);
-    }
   }, []);
   
   // Create semester key from selected semester and year
@@ -320,8 +312,7 @@ export default function AcademicPlanner() {
       const text = await file.text();
       const parsedData = await parseTranscriptWithEnhancedParser(text);
       
-      setTranscriptData(parsedData);
-      localStorage.setItem('transcriptData', JSON.stringify(parsedData));
+      setContextTranscriptData(parsedData); // Use context method which auto-saves to localStorage
       
       importCoursesFromTranscript(parsedData);
       setShowTranscriptUpload(false);
@@ -472,18 +463,20 @@ export default function AcademicPlanner() {
       <div className="max-w-none space-y-8">
         <PageHeader 
           title="Academic Planner" 
-          subtitle="Plan your academic journey with transcript integration and AI recommendations"
+          subtitle={
+            contextTranscriptData 
+              ? `Plan your academic journey • Transcript loaded for ${contextTranscriptData.studentInfo?.name || 'Student'}`
+              : "Plan your academic journey with transcript integration and AI recommendations"
+          }
           actions={
             <div className="flex gap-3">
-              {!transcriptData && (
-                <PurdueButton 
-                  variant="secondary"
-                  onClick={() => setShowTranscriptUpload(true)}
-                >
-                  <Upload size={18} className="mr-2" />
-                  Import Transcript
-                </PurdueButton>
-              )}
+              <PurdueButton 
+                variant={contextTranscriptData ? "secondary" : "primary"}
+                onClick={() => setShowTranscriptUpload(true)}
+              >
+                <Upload size={18} className="mr-2" />
+                {contextTranscriptData ? "Update Transcript" : "Import Transcript"}
+              </PurdueButton>
               <PurdueButton variant="secondary">
                 <Download size={18} className="mr-2" />
                 Export Plan

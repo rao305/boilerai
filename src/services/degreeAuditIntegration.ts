@@ -191,7 +191,10 @@ export function mapTranscriptToRequirements(
     .flatMap(semester => semester.courses);
   
   // Add in-progress courses
-  const allCourses = [...allCompletedCourses, ...transcriptData.coursesInProgress];
+  const inProgressCourses = Array.isArray(transcriptData.coursesInProgress) 
+    ? transcriptData.coursesInProgress 
+    : [];
+  const allCourses = [...allCompletedCourses, ...inProgressCourses];
   
   console.log(`📚 Processing ${allCourses.length} courses from transcript`);
 
@@ -277,7 +280,10 @@ export function calculateGraduationPrediction(
   const totalCreditsCompleted = Object.values(transcriptData.completedCourses)
     .reduce((sum, semester) => sum + semester.semesterCredits, 0);
   
-  const totalCreditsInProgress = transcriptData.coursesInProgress
+  const inProgressCoursesForCredits = Array.isArray(transcriptData.coursesInProgress) 
+    ? transcriptData.coursesInProgress 
+    : [];
+  const totalCreditsInProgress = inProgressCoursesForCredits
     .reduce((sum, course) => sum + course.credits, 0);
   
   const currentCredits = totalCreditsCompleted + totalCreditsInProgress;

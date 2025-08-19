@@ -2,37 +2,39 @@ const express = require('express');
 const { query, param, validationResult } = require('express-validator');
 const { verifyToken } = require('./auth');
 const router = express.Router();
+const unifiedAIService = require('../services/unifiedAIService');
 
-// Mock course data (replace with database in production)
-const mockCourses = [
-  {
-    id: 'cs18000',
-    subject: 'CS',
-    courseNumber: '18000',
-    title: 'Problem Solving and Object-Oriented Programming',
-    credits: 4,
-    description: 'Problem solving and algorithms, implementation of algorithms in a high level programming language, introduction to object-oriented programming, data types, control structures, functions, arrays, file I/O, and classes.',
-    prerequisites: [],
-    level: 'UG'
-  },
-  {
-    id: 'ma16500',
-    subject: 'MA',
-    courseNumber: '16500',
-    title: 'Analytic Geometry and Calculus I',
-    credits: 4,
-    description: 'Introduction to differential and integral calculus of one variable, with applications.',
-    prerequisites: [],
-    level: 'UG'
+/**
+ * Generate AI-powered course data
+ */
+async function generateCourseData(filters = {}, apiKey) {
+  try {
+    return await unifiedAIService.generateCourseData(filters, apiKey);
+  } catch (error) {
+    console.error('Course data generation failed', { error: error.message });
+    return unifiedAIService.getStaticCourseData();
   }
-];
+}
 
-// Get all courses (protected route)
+/**
+ * Search courses using AI
+ */
+async function searchCoursesWithAI(searchTerm, apiKey) {
+  try {
+    return await unifiedAIService.searchCoursesWithAI(searchTerm, apiKey);
+  } catch (error) {
+    console.error('Course search failed', { error: error.message });
+    return [];
+  }
+}
+
+// Get all courses (protected route with AI generation)
 router.get('/', verifyToken, [
   query('page').optional().isInt({ min: 1 }),
   query('limit').optional().isInt({ min: 1, max: 100 }),
-  query('subject').optional().isAlpha().isLength({ min: 2, max: 10 })
-], (req, res) => {
+  query('subject').optional().isAlpha().isLength({ min: 2, max: 10 }),
+  query('apiKey').optional().isString()
+], async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -44,13 +46,16 @@ router.get('/', verifyToken, [
       });
     }
 
-    const { page = 1, limit = 20, subject } = req.query;
+    const { page = 1, limit = 20, subject, apiKey } = req.query;
     
-    let filteredCourses = [...mockCourses];
+    // Generate AI-powered course data
+    const filters = { subject };
+    const allCourses = await generateCourseData(filters, apiKey);
     
-    // Filter by subject if provided
-    if (subject) {
-      filteredCourses = filteredCourses.filter(course => 
+    // Filter by subject if provided and not already filtered by AI
+    let filteredCourses = allCourses;
+    if (subject && !apiKey) {
+      filteredCourses = allCourses.filter(course => 
         course.subject.toLowerCase() === subject.toLowerCase()
       );
     }
@@ -69,7 +74,8 @@ router.get('/', verifyToken, [
         total: filteredCourses.length,
         hasNext: endIndex < filteredCourses.length,
         hasPrev: page > 1
-      }
+      },
+      generatedBy: apiKey ? 'AI-Enhanced' : 'Basic'
     });
   } catch (error) {
     console.error('Courses fetch error:', error);
@@ -88,8 +94,9 @@ router.get('/search', verifyToken, [
   query('level').optional().isIn(['UG', 'GR']),
   query('credits').optional().isInt({ min: 1, max: 10 }),
   query('page').optional().isInt({ min: 1 }),
-  query('limit').optional().isInt({ min: 1, max: 50 })
-], (req, res) => {
+  query('limit').optional().isInt({ min: 1, max: 50 }),
+  query('apiKey').optional().isString()
+], async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -101,23 +108,41 @@ router.get('/search', verifyToken, [
       });
     }
 
-    const { q, subject, level, credits, page = 1, limit = 20 } = req.query;
+    const { q, subject, level, credits, page = 1, limit = 20, apiKey } = req.query;
     
     // Sanitize search query
     const searchQuery = q.toLowerCase().trim();
     
-    let results = mockCourses.filter(course => {
-      const matchesQuery = course.title.toLowerCase().includes(searchQuery) ||
-                          course.subject.toLowerCase().includes(searchQuery) ||
-                          course.courseNumber.includes(searchQuery) ||
-                          course.description.toLowerCase().includes(searchQuery);
+    // Use AI-powered search if API key is provided
+    let results;
+    if (apiKey) {
+      results = await searchCoursesWithAI(searchQuery, apiKey);
       
-      const matchesSubject = !subject || course.subject.toLowerCase() === subject.toLowerCase();
-      const matchesLevel = !level || course.level === level;
-      const matchesCredits = !credits || course.credits === parseInt(credits);
-      
-      return matchesQuery && matchesSubject && matchesLevel && matchesCredits;
-    });
+      // Apply additional filters to AI results
+      if (subject || level || credits) {
+        results = results.filter(course => {
+          const matchesSubject = !subject || course.subject.toLowerCase() === subject.toLowerCase();
+          const matchesLevel = !level || course.level === level;
+          const matchesCredits = !credits || course.credits === parseInt(credits);
+          return matchesSubject && matchesLevel && matchesCredits;
+        });
+      }
+    } else {
+      // Fallback to basic course generation and filtering
+      const basicCourses = await generateCourseData({}, null);
+      results = basicCourses.filter(course => {
+        const matchesQuery = course.title.toLowerCase().includes(searchQuery) ||
+                            course.subject.toLowerCase().includes(searchQuery) ||
+                            course.courseNumber.includes(searchQuery) ||
+                            course.description.toLowerCase().includes(searchQuery);
+        
+        const matchesSubject = !subject || course.subject.toLowerCase() === subject.toLowerCase();
+        const matchesLevel = !level || course.level === level;
+        const matchesCredits = !credits || course.credits === parseInt(credits);
+        
+        return matchesQuery && matchesSubject && matchesLevel && matchesCredits;
+      });
+    }
     
     // Pagination
     const startIndex = (page - 1) * limit;
@@ -130,7 +155,8 @@ router.get('/search', verifyToken, [
       search: {
         query: searchQuery,
         filters: { subject, level, credits },
-        resultCount: results.length
+        resultCount: results.length,
+        searchMethod: apiKey ? 'AI-Powered' : 'Basic'
       },
       pagination: {
         page: parseInt(page),
@@ -150,10 +176,11 @@ router.get('/search', verifyToken, [
   }
 });
 
-// Get specific course by ID (protected route)
+// Get specific course by ID (protected route with AI enhancement)
 router.get('/:courseId', verifyToken, [
-  param('courseId').isAlphanumeric().isLength({ min: 1, max: 20 })
-], (req, res) => {
+  param('courseId').isAlphanumeric().isLength({ min: 1, max: 20 }),
+  query('apiKey').optional().isString()
+], async (req, res) => {
   try {
     // Check validation errors
     const errors = validationResult(req);
@@ -166,7 +193,29 @@ router.get('/:courseId', verifyToken, [
     }
 
     const { courseId } = req.params;
-    const course = mockCourses.find(c => c.id.toLowerCase() === courseId.toLowerCase());
+    const { apiKey } = req.query;
+    
+    // Generate course data (AI will include more realistic courses)
+    const courses = await generateCourseData({}, apiKey);
+    const course = courses.find(c => c.id.toLowerCase() === courseId.toLowerCase());
+    
+    if (!course && apiKey) {
+      // Try AI search for the specific course
+      const searchResults = await searchCoursesWithAI(courseId, apiKey);
+      const foundCourse = searchResults.find(c => 
+        c.id.toLowerCase() === courseId.toLowerCase() ||
+        c.courseNumber === courseId.toUpperCase() ||
+        (c.subject + c.courseNumber).toLowerCase() === courseId.toLowerCase()
+      );
+      
+      if (foundCourse) {
+        return res.json({
+          success: true,
+          data: foundCourse,
+          source: 'AI-Search'
+        });
+      }
+    }
     
     if (!course) {
       return res.status(404).json({
@@ -177,7 +226,8 @@ router.get('/:courseId', verifyToken, [
     
     res.json({
       success: true,
-      data: course
+      data: course,
+      source: apiKey ? 'AI-Generated' : 'Basic'
     });
   } catch (error) {
     console.error('Course fetch error:', error);

@@ -9,15 +9,18 @@ interface User {
   name: string;
   emailVerified?: boolean;
   created_at?: string;
+  // Academic profile fields
+  major?: string;
+  currentYear?: string;
+  expectedGraduationYear?: number;
+  interests?: string[];
+  academicGoals?: string[];
+  profileCompleted?: boolean;
+  sessionCount?: number;
   preferences?: {
     theme: 'light' | 'dark' | 'system';
     notifications: boolean;
     onboardingCompleted?: boolean;
-    major?: string;
-    year?: string;
-    graduationYear?: string;
-    interests?: string[];
-    goals?: string[];
     hasTranscript?: boolean;
   };
 }
@@ -27,6 +30,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  sessionId: string;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string, name: string) => Promise<{ needsVerification?: boolean }>;
   logout: () => Promise<void>;
@@ -36,6 +40,14 @@ interface AuthContextType {
   resendVerification: (email: string) => Promise<void>;
   checkVerificationStatus: (email: string) => Promise<{ emailVerified: boolean }>;
   updateProfile: (updates: Partial<User>) => Promise<void>;
+  updateAcademicProfile: (data: {
+    major?: string;
+    currentYear?: string;
+    expectedGraduationYear?: number;
+    interests?: string[];
+    academicGoals?: string[];
+  }) => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -57,6 +69,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Generate a unique session ID for this app session
+  const [sessionId] = useState(() => `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`);
 
   const isAuthenticated = !!user && !!session;
 
@@ -478,11 +493,126 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const updateAcademicProfile = async (data: {
+    major?: string;
+    currentYear?: string;
+    expectedGraduationYear?: number;
+    interests?: string[];
+    academicGoals?: string[];
+  }): Promise<void> => {
+    try {
+      setError(null);
+      
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      logger.auth('Updating academic profile via backend API', data);
+
+      // Get auth token from localStorage or session
+      const authToken = localStorage.getItem('auth_token') || session?.access_token;
+      
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+      const response = await window.fetch(`${backendUrl}/api/auth/profile`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update academic profile');
+      }
+
+      const result = await response.json();
+      logger.auth('Academic profile updated successfully', result.data);
+
+      // Update local state with returned data
+      setUser(prev => prev ? { 
+        ...prev, 
+        ...result.data
+      } : null);
+      
+    } catch (error: any) {
+      logger.error('Update academic profile error', 'AUTH', error);
+      setError(error.message || 'Failed to update academic profile');
+      throw error;
+    }
+  };
+
+  const refreshProfile = async (): Promise<void> => {
+    try {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const authToken = localStorage.getItem('auth_token') || session?.access_token;
+      
+      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+      const response = await window.fetch(`${backendUrl}/api/auth/profile`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        }
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to refresh profile');
+      }
+
+      const result = await response.json();
+      logger.auth('Profile refreshed successfully', result.data);
+
+      // Update local state with fresh data from backend
+      setUser(prev => prev ? { 
+        ...prev, 
+        ...result.data
+      } : null);
+      
+    } catch (error: any) {
+      logger.error('Refresh profile error', 'AUTH', error);
+      throw error;
+    }
+  };
+
+  // Update session tracking when user logs in
+  useEffect(() => {
+    if (user?.id && sessionId) {
+      const updateSession = async () => {
+        try {
+          const authToken = localStorage.getItem('auth_token') || session?.access_token;
+          const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5001';
+          
+          await window.fetch(`${backendUrl}/api/auth/session`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${authToken}`,
+            },
+            body: JSON.stringify({ sessionId })
+          });
+          
+          logger.auth('Session tracking updated', { sessionId, userId: user.id });
+        } catch (error) {
+          logger.error('Session tracking error', 'AUTH', error);
+        }
+      };
+      
+      updateSession();
+    }
+  }, [user?.id, sessionId, session?.access_token]);
+
   const value: AuthContextType = {
     user,
     session,
     isLoading,
     isAuthenticated,
+    sessionId,
     login,
     register,
     logout,
@@ -492,6 +622,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     resendVerification,
     checkVerificationStatus,
     updateProfile,
+    updateAcademicProfile,
+    refreshProfile,
   };
 
   return (

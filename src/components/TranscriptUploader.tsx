@@ -95,19 +95,19 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
         });
       }, 400);
 
-      // Get OpenAI API key from environment or localStorage  
-      const openaiApiKey = localStorage.getItem('openai_api_key') || import.meta.env.VITE_OPENAI_API_KEY;
+      // Get Gemini API key from environment or localStorage  
+      const geminiApiKey = localStorage.getItem('gemini_api_key') || import.meta.env.VITE_GEMINI_API_KEY;
       
-      if (!openaiApiKey || openaiApiKey === 'your_openai_api_key_here' || openaiApiKey.length < 10) {
-        console.log('🔧 No valid OpenAI API key found - using offline processing');
+      if (!geminiApiKey || geminiApiKey === 'your_gemini_api_key_here' || geminiApiKey.length < 10) {
+        console.log('🔧 No valid Gemini API key found - using offline processing');
       } else {
-        console.log('🔑 Valid OpenAI API key found - enabling AI processing');
+        console.log('🔑 Valid Gemini API key found - enabling AI processing');
         
         // Force reinitialize AI services with current API key to ensure fresh connection
         try {
           const { aiTranscriptParser } = await import('@/services/aiTranscriptParser');
           if (aiTranscriptParser.updateApiKey) {
-            const success = aiTranscriptParser.updateApiKey(openaiApiKey);
+            const success = aiTranscriptParser.updateApiKey(geminiApiKey);
             console.log(success ? '✅ AI transcript parser updated' : '⚠️ AI transcript parser update failed');
           }
         } catch (error) {
@@ -135,8 +135,8 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
             transcriptText: transcriptText
           };
           
-          if (openaiApiKey && openaiApiKey !== 'your_openai_api_key_here') {
-            requestBody.apiKey = openaiApiKey;
+          if (geminiApiKey && geminiApiKey !== 'your_gemini_api_key_here') {
+            requestBody.apiKey = geminiApiKey;
           } else {
             // Still send request without API key for offline processing
             console.log('🔧 Sending request for offline processing');
@@ -172,7 +172,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
               
               // Handle network errors
               if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                throw new Error('Network error: Unable to connect to server. Please check if the backend is running on port 5002.');
+                throw new Error('Network error: Unable to connect to server. Please check if the backend is running on port 5001.');
               }
               
               // Handle timeout errors
@@ -263,7 +263,12 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
       const completedCourses = transcriptData.completedCourses 
         ? Object.values(transcriptData.completedCourses).flatMap((sem: any) => sem.courses || [])
         : [];
-      const inProgressCourses = transcriptData.coursesInProgress || [];
+      
+      // Ensure inProgressCourses is always an array
+      const inProgressCourses = Array.isArray(transcriptData.coursesInProgress) 
+        ? transcriptData.coursesInProgress 
+        : [];
+      
       const allCourses = [...completedCourses, ...inProgressCourses];
       
       if (allCourses.length > 0) {
@@ -272,7 +277,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
         
         try {
           console.log('🔄 Transferring courses to planner...', allCourses.length, 'courses');
-          transferCoursesToPlanner(allCourses);
+          transferCoursesToPlanner(allCourses, true); // Override existing transcript courses
           console.log('✅ Courses transferred successfully');
           
           toast({
@@ -482,19 +487,19 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
       
       progressInterval = setInterval(updateProgress, 800);
 
-      // Get OpenAI API key and validate it properly
-      const openaiApiKey = localStorage.getItem('openai_api_key');
+      // Get Gemini API key and validate it properly
+      const geminiApiKey = localStorage.getItem('gemini_api_key');
       const validationStatus = localStorage.getItem('api_key_validation_status');
       
       console.log('🔍 API Key Check:', {
-        storedKey: openaiApiKey ? `${openaiApiKey.substring(0, 8)}...` : 'not found',
-        keyLength: openaiApiKey?.length,
+        storedKey: geminiApiKey ? `${geminiApiKey.substring(0, 8)}...` : 'not found',
+        keyLength: geminiApiKey?.length,
         validationStatus: validationStatus
       });
       
       // Check for API key existence and basic format
-      if (!openaiApiKey || openaiApiKey.length < 20 || !openaiApiKey.startsWith('sk-')) {
-        throw new Error('Valid OpenAI API key required for transcript processing. Please go to Settings and add your API key.');
+      if (!geminiApiKey || geminiApiKey.length < 20 || !geminiApiKey.startsWith('AIza')) {
+        throw new Error('Valid Gemini API key required for transcript processing. Please go to Settings and add your API key.');
       }
       
       // Check validation status - ensure it's actually validated
@@ -502,19 +507,19 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
       if (validationStatus) {
         try {
           const status = JSON.parse(validationStatus);
-          isValidated = status.openai === true && status.timestamp && (Date.now() - status.timestamp < 3600000); // 1 hour cache
+          isValidated = status.gemini === true && status.timestamp && (Date.now() - status.timestamp < 3600000); // 1 hour cache
         } catch {
           isValidated = false;
         }
       }
       
       if (!isValidated) {
-        throw new Error('API key validation required. Please go to Settings to validate your OpenAI API key before processing transcripts.');
+        throw new Error('API key validation required. Please go to Settings to validate your Gemini API key before processing transcripts.');
       }
       
-      console.log('🔑 Valid and verified OpenAI API key found - using AI processing');
+      console.log('🔑 Valid and verified Gemini API key found - using AI processing');
       
-      // Process the transcript with timeout and single retry using OpenAI
+      // Process the transcript with timeout and single retry using Gemini
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Processing timeout - please try again')), 90000); // 90 second timeout
       });
@@ -528,7 +533,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
           // Use backend API for AI-powered processing
           const formData = new FormData();
           formData.append('transcript', selectedFile);
-          formData.append('apiKey', openaiApiKey);
+          formData.append('apiKey', geminiApiKey);
           console.log('🔧 Sending file upload for AI processing');
           
           const transcriptPromise = (async () => {
@@ -573,7 +578,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
               
               // Handle network errors
               if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-                throw new Error('Network error: Unable to connect to server. Please check if the backend is running on port 5002.');
+                throw new Error('Network error: Unable to connect to server. Please check if the backend is running on port 5001.');
               }
               
               // Handle timeout errors
@@ -646,7 +651,12 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
       const completedCourses = transcriptData.completedCourses 
         ? Object.values(transcriptData.completedCourses).flatMap((sem: any) => sem.courses || [])
         : [];
-      const inProgressCourses = transcriptData.coursesInProgress || [];
+      
+      // Ensure inProgressCourses is always an array
+      const inProgressCourses = Array.isArray(transcriptData.coursesInProgress) 
+        ? transcriptData.coursesInProgress 
+        : [];
+      
       const allCourses = [...completedCourses, ...inProgressCourses];
       
       if (allCourses.length > 0) {
@@ -655,7 +665,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
         
         try {
           console.log('🔄 Transferring courses to planner...', allCourses.length, 'courses');
-          transferCoursesToPlanner(allCourses);
+          transferCoursesToPlanner(allCourses, true); // Override existing transcript courses
           console.log('✅ Courses transferred successfully');
           
           toast({
@@ -778,7 +788,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
             <div className="text-center">
               <p className="text-sm text-neutral-400">
                 Upload your official Purdue transcript (PDF) or paste transcript text. 
-                {isApiKeyValid ? 'Using AI-powered parsing for best accuracy.' : 'Configure OpenAI API key in Settings to enable AI file processing.'}
+                {isApiKeyValid ? 'Using AI-powered parsing for best accuracy.' : 'Configure Gemini API key in Settings to enable AI file processing.'}
               </p>
               <div className="flex gap-2 justify-center mt-2">
                 <PurdueButton 
@@ -958,7 +968,7 @@ const TranscriptUploaderContent: React.FC<TranscriptUploaderProps> = ({ onUpload
           </div>
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-            <span>Configure OpenAI API key in Settings for best results</span>
+            <span>Configure Gemini API key in Settings for best results</span>
           </div>
         </div>
           </div>

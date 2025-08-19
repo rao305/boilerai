@@ -28,14 +28,20 @@ export default function StreamlinedLogin() {
   // Clear any stuck authentication state on mount
   useEffect(() => {
     // Only clear if we're actually on the login page and not authenticated
-    if (!isAuthenticated && window.location.pathname === '/login') {
+    // AND we're not in a loading state (to avoid clearing during auth checks)
+    if (!isAuthenticated && !isLoading && window.location.pathname === '/login') {
       console.log('🧹 Clearing any stuck authentication state');
-      // Clear old session data
+      // Clear old session data but preserve onboarding completion status
+      const onboardingCompleted = localStorage.getItem('onboardingCompleted');
       localStorage.removeItem('msUser');
       localStorage.removeItem('msAccessToken');
       sessionStorage.clear();
+      // Restore onboarding completion status
+      if (onboardingCompleted) {
+        localStorage.setItem('onboardingCompleted', onboardingCompleted);
+      }
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, isLoading]);
 
   // Handle authentication state changes
   useEffect(() => {
@@ -48,7 +54,7 @@ export default function StreamlinedLogin() {
         navigate('/onboarding', { replace: true });
       } else {
         console.log('🎯 Returning user, redirecting to dashboard');
-        navigate('/main', { replace: true });
+        navigate('/dashboard', { replace: true });
       }
     }
   }, [isAuthenticated, isFirstTimeUser, hasAttemptedLogin, navigate]);

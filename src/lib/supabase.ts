@@ -20,6 +20,12 @@ export const supabase = isSupabaseConfigured ? createClient(supabaseUrl, supabas
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce'
+  },
+  global: {
+    headers: {
+      'apikey': supabaseAnonKey,
+      'Authorization': `Bearer ${supabaseAnonKey}`
+    }
   }
 }) : null
 

@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { comprehensiveDegreeRequirements } from "@/data/comprehensive_degree_requirements";
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Available degree programs
 const availablePrograms = [
@@ -206,6 +207,7 @@ const convertToAuditFormat = (programKey: string, completions: CourseCompletion 
 };
 
 export default function DegreeAudit() {
+  const { theme } = useTheme();
   const { transcriptData, getAllTranscriptCourses } = useAcademicPlan();
   const [selectedProgram, setSelectedProgram] = useState<string>("computer_science");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -494,10 +496,10 @@ export default function DegreeAudit() {
       <Card title="Degree Completion Progress">
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <span className="text-neutral-300">Progress to Graduation</span>
-            <span className="text-2xl font-bold text-neutral-100">{stats.completionPercentage}%</span>
+            <span className={theme === 'light' ? 'text-neutral-700' : 'text-neutral-300'}>Progress to Graduation</span>
+            <span className={`text-2xl font-bold ${theme === 'light' ? 'text-neutral-900' : 'text-neutral-100'}`}>{stats.completionPercentage}%</span>
           </div>
-          <div className="w-full bg-neutral-800 rounded-full h-3">
+          <div className={`w-full rounded-full h-3 ${theme === 'light' ? 'bg-neutral-200' : 'bg-neutral-800'}`}>
             <div 
               className="h-3 rounded-full transition-all duration-300" 
               style={{ width: `${stats.completionPercentage}%`, background: "#CFB991" }}
@@ -506,19 +508,19 @@ export default function DegreeAudit() {
           <div className="grid grid-cols-4 gap-4 text-sm">
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-green-400"></div>
-              <span className="text-neutral-400">Completed ({stats.totalCompleted})</span>
+              <span className={theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}>Completed ({stats.totalCompleted})</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-blue-400"></div>
-              <span className="text-neutral-400">In Progress ({stats.totalInProgress})</span>
+              <span className={theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}>In Progress ({stats.totalInProgress})</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-              <span className="text-neutral-400">Planned</span>
+              <span className={theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}>Planned</span>
             </div>
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-full bg-red-400"></div>
-              <span className="text-neutral-400">Needed ({stats.totalRemaining})</span>
+              <span className={theme === 'light' ? 'text-neutral-600' : 'text-neutral-400'}>Needed ({stats.totalRemaining})</span>
             </div>
           </div>
         </div>
