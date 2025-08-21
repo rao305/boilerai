@@ -197,7 +197,10 @@ app.use(cors({
     'Content-Type', 
     'Authorization', 
     'X-Requested-With',
-    'X-Request-ID'
+    'X-Request-ID',
+    'X-LLM-Provider',
+    'X-LLM-Api-Key',
+    'X-LLM-Model'
   ],
   exposedHeaders: ['X-Request-ID'],
   maxAge: configManager.isProduction() ? 86400 : 300 // 24h in prod, 5min in dev
@@ -206,6 +209,7 @@ app.use(cors({
 // Import security middleware
 const { sanitizeRequest } = require('./middleware/inputSanitization');
 const { enforceUserIsolation, validateUserParams } = require('./middleware/userIsolation');
+const { extractLLMConfig } = require('./middleware/llmConfig');
 
 // Request logging middleware
 app.use(requestLogger);
@@ -242,6 +246,9 @@ app.use(sanitizeRequest({
 // CRITICAL SECURITY: User data isolation enforcement
 app.use('/api', enforceUserIsolation);
 app.use('/api', validateUserParams);
+
+// Extract LLM configuration from headers
+app.use('/api', extractLLMConfig);
 
 // CRITICAL SECURITY: Enhanced rate limiting with different tiers
 const generalLimiter = rateLimit({

@@ -1,24 +1,15 @@
-import React, { useState, useEffect, useRef } from "react";
-import { unifiedChatService } from "@/services/unifiedChatService";
-import { cladoService } from "@/services/cladoService";
-import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useApiKey } from "@/contexts/ApiKeyContext";
-import { Maximize2, Minimize2, MessageSquare, Plus, Edit3, Trash2, Sidebar, AlertCircle, Settings, ExternalLink, Brain, Key, FileText, Upload } from "lucide-react";
+import { Settings, Brain, Key, MessageSquare, Send, Users, Search } from "lucide-react";
 import { Link } from "react-router-dom";
-import ThinkingMessage from "@/components/ThinkingMessage";
-import SimpleEloRating from "@/components/SimpleEloRating";
-import { EnhancedMessage, ChatSession, AIReasoningResponse } from "@/types/thinking";
-import { pureAIFallback } from "@/services/pureAIFallback";
-import { eloTrackingService } from "@/services/eloTrackingService";
-import transcriptContextService from "@/services/transcriptContextService";
-import contextualMemoryService from "@/services/contextualMemoryService";
+import { apiService } from "@/services/apiService";
+import { cladoService } from "@/services/cladoService";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 // Purdue palette
 const PURDUE_GOLD = "#CFB991";
-
-// Generate unique IDs
-const generateId = () => `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 
 // Extract first name from user email or full name
 const getFirstName = (user: any): string => {
@@ -46,1288 +37,370 @@ const getFirstName = (user: any): string => {
   return '';
 };
 
+interface ChatMessage {
+  id: string;
+  content: string;
+  role: 'user' | 'assistant';
+  timestamp: Date;
+  provider?: string;
+  model?: string;
+  service?: 'clado' | 'ai';
+}
+
+type ServiceType = 'clado' | 'ai';
+
 export default function AIAssistant() {
-  const { transcriptData } = useAcademicPlan();
   const { user } = useAuth();
-  const { isApiKeyValid, setApiKeyValid } = useApiKey();
+  const { isApiKeyValid } = useApiKey();
   
-  // Debug logging for API key state changes
-  useEffect(() => {
-    console.log('🔍 [AIAssistant] isApiKeyValid state changed to:', isApiKeyValid);
-  }, [isApiKeyValid]);
-
-  // Listen for API key updates and force state refresh
-  useEffect(() => {
-    const handleApiKeyUpdate = () => {
-      console.log('🔄 [AIAssistant] Received apiKeyUpdated event, forcing state refresh');
-      // Force component re-render by triggering a state update
-      setInput(prev => prev); // This will cause a re-render without changing the input
-    };
-
-    window.addEventListener('apiKeyUpdated', handleApiKeyUpdate);
-    return () => window.removeEventListener('apiKeyUpdated', handleApiKeyUpdate);
-  }, []);
+  // Service toggle state
+  const [currentService, setCurrentService] = useState<ServiceType>('ai');
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [focus, setFocus] = useState(false);
-  const [showSidebar, setShowSidebar] = useState(false);
-  const [editingChatId, setEditingChatId] = useState<string | null>(null);
-  const [editingName, setEditingName] = useState("");
-  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [chatSessions, setChatSessions] = useState<ChatSession[]>([]);
-  const [messages, setMessages] = useState<EnhancedMessage[]>([]);
-  const [aiService, setAiService] = useState<'clado' | 'openai'>('openai'); // Toggle between Clado and OpenAI
-  const [reasoningMode, setReasoningMode] = useState(false); // Disable reasoning by default for better performance
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [transcriptIntegrated, setTranscriptIntegrated] = useState(false);
-  const [isIntegratingTranscript, setIsIntegratingTranscript] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll to bottom when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
-  // Track implicit feedback through user behavior (simplified for ELO system)
-  useEffect(() => {
-    // Track conversation continuation when new messages are added
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === 'user' && messages.length > 2) {
-        // User continued conversation - positive implicit signal
-        const previousAIMessage = messages[messages.length - 3];
-        if (previousAIMessage?.role === 'assistant') {
-          console.log('📈 Implicit positive signal: conversation continued after AI response');
-        }
-      }
-    }
-  }, [messages]);
-
-  // Track scrolling behavior for engagement (simplified)
-  const handleScroll = () => {
-    // Simple engagement tracking - no complex collector needed
-    console.log('👁️ User scrolling - engagement signal');
-  };
-
-  // Simple page unload tracking
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      console.log('👋 Session ending with', messages.filter(m => m.role === 'assistant' && !m.isThinking).length, 'AI messages');
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [messages, user?.id]);
-
-  // Auto-enable Clado service when Clado AI is selected
-  useEffect(() => {
-    if (aiService === 'clado') {
-      cladoService.enable();
-    } else {
-      cladoService.disable();
-    }
-  }, [aiService]);
-
-  // Update unified chat service reasoning mode when changed
-  useEffect(() => {
-    unifiedChatService.setReasoningMode(reasoningMode);
-  }, [reasoningMode]);
-
-  // Initialize chats - always start with new chat, load history in sidebar
-  useEffect(() => {
-    const initializeChats = async () => {
-      const savedChats = localStorage.getItem(`chatSessions_${user?.id || 'anonymous'}`);
-      
-      // Create new chat for current session
-      const newChat = await createNewChat();
-      setCurrentChatId(newChat.id);
-      setMessages(newChat.messages);
-      
-      if (savedChats) {
-        const parsed = JSON.parse(savedChats);
-        // Convert string timestamps back to Date objects
-        const hydratedChats = parsed.map((chat: any) => ({
-          ...chat,
-          createdAt: new Date(chat.createdAt),
-          lastMessageAt: new Date(chat.lastMessageAt),
-          messages: chat.messages.map((msg: any) => ({
-            ...msg,
-            timestamp: new Date(msg.timestamp)
-          }))
-        }));
-        
-        // Set new chat first, then add saved chats to sidebar
-        setChatSessions([newChat, ...hydratedChats]);
-      } else {
-        setChatSessions([newChat]);
-      }
-    };
-
-    initializeChats();
-  }, [user?.id]);
-
-  // Save chats to localStorage whenever they change
-  useEffect(() => {
-    if (chatSessions.length > 0) {
-      localStorage.setItem(`chatSessions_${user?.id || 'anonymous'}`, JSON.stringify(chatSessions));
-    }
-  }, [chatSessions, user?.id]);
-
-  const createNewChat = async (): Promise<ChatSession> => {
-    const newChat: ChatSession = {
-      id: generateId(),
-      name: "New Chat",
-      messages: [], // Will add AI-generated greeting if available
-      createdAt: new Date(),
-      lastMessageAt: new Date()
-    };
-
-    // Skip automatic greeting generation to reduce API calls
-    // Users can start the conversation when they're ready
-    console.log('💬 Starting with empty chat to avoid unnecessary API calls');
-    
-    // Note: Automatic greeting generation has been disabled to prevent rate limiting
-    // The AI will provide a personalized greeting when the user first interacts
-
-    return newChat;
-  };
-
-  const handleNewChat = async () => {
-    const newChat = await createNewChat();
-    setChatSessions(prev => [newChat, ...prev]);
-    setCurrentChatId(newChat.id);
-    setMessages(newChat.messages);
-  };
-
-  const handleDeleteChat = (chatId: string) => {
-    setChatSessions(prev => {
-      const filtered = prev.filter(chat => chat.id !== chatId);
-      if (filtered.length === 0) {
-        createNewChat().then(newChat => {
-          setCurrentChatId(newChat.id);
-          setMessages(newChat.messages);
-          setChatSessions([newChat]);
-        });
-        return [];
-      }
-      if (currentChatId === chatId) {
-        setCurrentChatId(filtered[0].id);
-        setMessages(filtered[0].messages);
-      }
-      return filtered;
-    });
-  };
-
-  const handleRenameChat = (chatId: string, newName: string) => {
-    setChatSessions(prev => prev.map(chat => 
-      chat.id === chatId ? { ...chat, name: newName } : chat
-    ));
-    setEditingChatId(null);
-    setEditingName("");
-  };
-
-  const switchToChat = (chatId: string) => {
-    const chat = chatSessions.find(c => c.id === chatId);
-    if (chat) {
-      setCurrentChatId(chatId);
-      setMessages(chat.messages);
-    }
-  };
-
   const [isLoading, setIsLoading] = useState(false);
-
-  // Helper function to detect LinkedIn search queries
-  const isLinkedInSearchQuery = (message: string): boolean => {
-    const linkedInKeywords = [
-      'software engineer', 'developers', 'data scientist', 'product manager',
-      'alumni', 'professionals', 'engineers', 'managers', 'analysts',
-      'at google', 'at apple', 'at microsoft', 'at meta', 'at amazon',
-      'in silicon valley', 'in san francisco', 'in new york', 'in bay area',
-      'purdue alumni', 'purdue graduates', 'computer science', 'networking',
-      'find people', 'connect me', 'career', 'mentors'
-    ];
-    
-    const lowerMessage = message.toLowerCase();
-    return linkedInKeywords.some(keyword => lowerMessage.includes(keyword));
-  };
-
-  // Helper function to send message to Python AI backend with Claude integration
-  const sendToAIBackend = async (message: string, userId: string): Promise<string> => {
-    try {
-      // Try Pure AI service first (port 5003)
-      const response = await window.fetch('http://localhost:5003/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: message,
-          context: {
-            userId: userId,
-            timestamp: new Date().toISOString(),
-            hasTranscript: transcriptData !== null
-          }
-        })
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.response && !data.error) {
-          return data.response;
-        }
-      }
-      
-      // If Pure AI fails, try other bridge services
-      const fallbackPorts = [5001, 5002];
-      for (const port of fallbackPorts) {
-        try {
-          const fallbackResponse = await window.fetch(`http://localhost:${port}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message, context: { userId } })
-          });
-          
-          if (fallbackResponse.ok) {
-            const fallbackData = await fallbackResponse.json();
-            if (fallbackData.response && !fallbackData.error) {
-              return fallbackData.response;
-            }
-          }
-        } catch (error) {
-          console.log(`Fallback service on port ${port} unavailable`);
-        }
-      }
-      
-      throw new Error('All AI backend services unavailable');
-    } catch (error) {
-      console.error('AI Backend connection failed:', error);
-      // Final fallback to unified AI service
-      return await unifiedChatService.sendMessage(message, userId);
+  
+  // Check if we have valid API keys from settings
+  const hasValidAPIConfig = isApiKeyValid;
+  
+  useEffect(() => {
+    // Load service preference from localStorage
+    const savedService = localStorage.getItem('preferred_service') as ServiceType;
+    if (savedService && (savedService === 'clado' || savedService === 'ai')) {
+      setCurrentService(savedService);
     }
+  }, []);
+  
+  const handleServiceToggle = (service: ServiceType) => {
+    setCurrentService(service);
+    localStorage.setItem('preferred_service', service);
+    // Clear messages when switching services
+    setMessages([]);
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
+    if (!input.trim() || isLoading || !hasValidAPIConfig) return;
     
     setIsLoading(true);
-    const timestamp = new Date();
     const trimmedInput = input.trim();
+    const messageId = Date.now().toString();
     
-    // Handle /clado command - switch to Clado service
-    if (trimmedInput === '/clado') {
-      setAiService('clado');
-      const aiMessage: EnhancedMessage = { 
-        id: generateId(),
-        role: "assistant", 
-        content: "Switched to Clado AI mode! I can now search LinkedIn profiles and provide networking insights. Try asking about professionals, companies, or career paths.", 
-        timestamp: new Date() 
-      };
-      
-      const newMessages = [...messages];
-      const finalMessages = [...newMessages, aiMessage];
-      setMessages(finalMessages);
-      
-      if (currentChatId) {
-        setChatSessions(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { ...chat, messages: finalMessages, lastMessageAt: new Date() }
-            : chat
-        ));
-      }
-      
-      setIsLoading(false);
-      return;
-    }
-    
-    // Add user message
-    const userMessage: EnhancedMessage = { 
-      id: generateId(),
-      role: "user", 
-      content: trimmedInput, 
-      timestamp 
-    };
-    
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
-    
-    // Add AI thinking indicator with detailed process display for ALL responses
-    const thinkingMessage: EnhancedMessage = {
-      id: generateId(),
-      role: "assistant",
-      content: "AI is analyzing your query...",
+    // Add user message immediately
+    const userMessage: ChatMessage = {
+      id: messageId,
+      content: trimmedInput,
+      role: 'user',
       timestamp: new Date(),
-      isThinking: true,
-              reasoning: {
-          steps: [
-            { id: 'understand', title: 'understand', content: `Analyzing your query: "${trimmedInput.substring(0, 50)}${trimmedInput.length > 50 ? '...' : ''}"`, status: 'processing', timestamp: new Date() },
-            { id: 'context', title: 'context', content: transcriptData ? 'Applying your transcript data and academic history' : 'Gathering Purdue academic knowledge', status: 'pending', timestamp: new Date() },
-            { id: 'formulate', title: 'formulate', content: 'Formulating personalized academic guidance and recommendations', status: 'pending', timestamp: new Date() },
-            { id: 'finalize', title: 'finalize', content: 'Finalizing response with actionable next steps', status: 'pending', timestamp: new Date() }
-          ],
-          isComplete: false,
-          currentStep: 0
-        }
+      service: currentService
     };
     
-    const messagesWithThinking = [...newMessages, thinkingMessage];
-    setMessages(messagesWithThinking);
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
 
-    // Update current chat session
-    if (currentChatId) {
-      setChatSessions(prev => prev.map(chat => 
-        chat.id === currentChatId 
-          ? { 
-              ...chat, 
-              messages: newMessages,
-              lastMessageAt: timestamp,
-              name: chat.name === "New Chat" ? trimmedInput.slice(0, 30) + (trimmedInput.length > 30 ? "..." : "") : chat.name
-            }
-          : chat
-      ));
-    }
-
     try {
-      const userId = user?.id || 'anonymous';
-      let aiMessage: EnhancedMessage;
+      let assistantMessage: ChatMessage;
       
-      // Route based on service selection
-              // Update thinking message to show processing for ALL responses
-        const updatedThinkingMessage: EnhancedMessage = {
-          ...thinkingMessage,
-          reasoning: {
-            steps: thinkingMessage.reasoning!.steps.map((step, index) => ({
-              ...step,
-              status: 'completed' as const,
-              content: index === 0 ? step.content : 
-                      index === 1 ? `Applied ${transcriptData ? 'your transcript data and' : ''} Purdue academic knowledge` :
-                      index === 2 ? 'Generated personalized academic guidance and recommendations' :
-                      'Reviewed response for accuracy, helpfulness, and actionable next steps'
-            })),
-            isComplete: true,
-            currentStep: 4
-          }
-        };
-      
-      // Show thinking process for a moment
-      setMessages([...newMessages, updatedThinkingMessage]);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      if (aiService === 'clado') {
-        // Use Clado service for LinkedIn searches only
-        console.log('🔗 Using Clado AI service:', trimmedInput);
-        
-        let aiResponseText: string;
-        
-        // Check if this is a LinkedIn search query
-        if (trimmedInput.toLowerCase().startsWith('/clado') || isLinkedInSearchQuery(trimmedInput)) {
-          // Use Clado API for LinkedIn searches
-          try {
-            const cladoResponse = await cladoService.searchPeople({
-              query: trimmedInput.replace('/clado', '').trim() || trimmedInput,
-              limit: 10
-            });
-            aiResponseText = cladoService.formatSearchResults(cladoResponse);
-          } catch (error) {
-            console.error('Clado search failed:', error);
-            aiResponseText = `LinkedIn search error: ${error instanceof Error ? error.message : 'Unknown error'}. Try rephrasing your search or check if Clado is enabled.`;
-          }
-        } else {
-          // For non-LinkedIn queries, check if AI service is available before using it
-          if (!isApiKeyValid || !unifiedChatService.isAvailable()) {
-            console.log('⚠️ AI service not available in Clado mode - using fallback');
-            aiResponseText = await pureAIFallback.generateResponse(
-              trimmedInput,
-              transcriptData ? 'academic' : 'general',
-              transcriptData || undefined
-            );
-          } else {
-            // Use unified AI service for non-LinkedIn queries when available
-            try {
-              if (reasoningMode) {
-                const reasoningResponse: AIReasoningResponse = await unifiedChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
-                aiResponseText = reasoningResponse.final_response;
-              } else {
-                aiResponseText = await unifiedChatService.sendMessage(trimmedInput, userId);
-              }
-            } catch (error) {
-              console.error('OpenAI fallback failed:', error);
-              // Check if it's a rate limit error
-              const isRateLimit = error instanceof Error && (
-                error.message.includes('rate limit') || 
-                error.message.includes('429') ||
-                error.message.includes('quota')
-              );
-              
-              if (isRateLimit) {
-                aiResponseText = await pureAIFallback.generateResponse(
-                  trimmedInput,
-                  transcriptData ? 'academic' : 'general',
-                  transcriptData || undefined
-                );
-              } else {
-                aiResponseText = `I'm having trouble connecting to the AI service right now. This might be due to high usage or rate limits. 
-
-Here's what I can suggest in the meantime:
-- If you're asking about course planning, check the Purdue Course Catalog online
-- For academic policies, visit the Purdue Academic Regulations website
-- For urgent academic matters, contact your academic advisor directly
-- Try asking your question again in a few minutes
-
-I apologize for the inconvenience and appreciate your patience!`;
-              }
-            }
-          }
-        }
-
-        aiMessage = { 
-          id: generateId(),
-          role: "assistant", 
-          content: aiResponseText, 
-          timestamp: new Date(),
-          metadata: {
-            thinkingSummary: isLinkedInSearchQuery(trimmedInput) || trimmedInput.toLowerCase().startsWith('/clado') 
-              ? `LinkedIn Search via Clado: analyzed query → searched professional profiles → formatted networking results`
-              : `Clado Mode + OpenAI: analyzed query → applied ${transcriptData ? 'your academic context and' : ''} professional knowledge → generated career-focused guidance`
-          }
-        };
-      } else {
-        // Check if unified AI service is properly configured and validated
-        const serviceAvailable = unifiedChatService.isAvailable();
-        const hasValidationStatus = localStorage.getItem('api_key_validation_status');
-        const validationData = hasValidationStatus ? JSON.parse(hasValidationStatus) : null;
-        const hasAnyValidProvider = validationData?.openai === true || validationData?.gemini === true;
-        
-        console.log('🔍 [DEBUG] Checking AI service availability:', {
-          isApiKeyValid,
-          serviceAvailable,
-          hasAnyValidProvider,
-          apiKeyStatus: hasValidationStatus,
-          currentProvider: unifiedChatService.getCurrentProvider(),
-          availableProviders: unifiedChatService.getAvailableProviders(),
-          validationTimestamp: validationData?.timestamp
-        });
-        
-        // More robust availability check - if the service is available OR we have any valid provider, try to use it
-        const shouldUseMainService = (isApiKeyValid || hasAnyValidProvider) && serviceAvailable;
-        
-        if (!shouldUseMainService) {
-          console.log('⚠️ AI service not available or API key not validated - using fallback');
-          try {
-            // Use pure AI fallback when OpenAI is not available
-            const fallbackResponse = await pureAIFallback.generateResponse(
-              trimmedInput,
-              transcriptData ? 'academic' : 'general',
-              transcriptData || undefined
-            );
-            
-            const fallbackMessage: EnhancedMessage = { 
-              id: generateId(),
-              role: "assistant", 
-              content: fallbackResponse,
-              timestamp: new Date(),
-              thinkingSummary: `Basic AI processing: analyzed query → applied available knowledge → generated response`,
-              metadata: { 
-                service: 'fallback',
-                confidence_score: 0.6,
-                model_used: 'pure-ai-fallback'
-              }
-            };
-            
-            setMessages(prev => [...prev, fallbackMessage]);
-            setIsLoading(false);
-            return;
-          } catch (fallbackError: any) {
-            console.error('Fallback AI also failed:', fallbackError);
-            
-            // Check if fallback also hit rate limits
-            if (fallbackError.message === 'RATE_LIMIT_ERROR') {
-              // Same rate limit message as main service
-              throw fallbackError;
-            }
-            
-            // If fallback fails completely, throw to be handled by main error handler
-            throw new Error('AI_COMPLETELY_UNAVAILABLE');
-          }
+      if (currentService === 'clado') {
+        // Handle Clado LinkedIn search
+        if (!cladoService.isEnabledMode()) {
+          cladoService.enable();
         }
         
-        // Use unified AI service when properly validated
-        console.log('🤖 Using unified AI service (validated):', trimmedInput, 'Provider:', unifiedChatService.getCurrentProvider());
-        
-        let aiResponseText: string;
-        let metadata: any = {};
-
         try {
-          if (reasoningMode) {
-            // Get reasoning response
-            const reasoningResponse: AIReasoningResponse = await unifiedChatService.sendMessageWithReasoning(trimmedInput, userId, currentChatId || undefined);
-            aiResponseText = reasoningResponse.final_response;
-            metadata = {
-              confidence_score: reasoningResponse.confidence_score,
-              reasoning_time: reasoningResponse.reasoning_time,
-              model_used: reasoningResponse.model_used,
-              provider: unifiedChatService.getCurrentProvider(),
-              thinkingSummary: reasoningResponse.thinkingSummary || `Applied structured reasoning: analyzed query → retrieved knowledge → validated against Purdue policies → synthesized personalized guidance`
-            };
-          } else {
-            // Direct response
-            aiResponseText = await unifiedChatService.sendMessage(trimmedInput, userId, currentChatId || undefined);
-            metadata = {
-              provider: unifiedChatService.getCurrentProvider(),
-              thinkingSummary: `Generated response: analyzed query → applied ${transcriptData ? 'your academic profile and' : ''} Purdue knowledge → formulated guidance → reviewed for accuracy`
-            };
-          }
-        } catch (error: any) {
-          if (error.message === 'AI_COMPLETELY_UNAVAILABLE') {
-            // AI is completely unavailable - show an empty state or prompt for API key
-            throw error; // Re-throw to be handled by outer catch block
-          }
-          throw error;
-        }
-        
-        aiMessage = { 
-          id: generateId(),
-          role: "assistant", 
-          content: aiResponseText, 
-          timestamp: new Date(),
-          metadata
-        };
-      }
-      
-      // Remove thinking indicator and add AI response
-      const finalMessages = [...newMessages, aiMessage];
-      setMessages(finalMessages);
-      
-      // Update chat session with AI response
-      if (currentChatId) {
-        setChatSessions(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { ...chat, messages: finalMessages, lastMessageAt: new Date() }
-            : chat
-        ));
-      }
-    } catch (error: any) {
-      console.error('AI response failed:', error);
-      
-      if (error.message === 'AI_COMPLETELY_UNAVAILABLE') {
-        // AI is completely unavailable - remove thinking indicator and show empty state
-        setMessages(newMessages);
-        setIsLoading(false);
-        
-        // Show a toast or modal asking to configure API key
-        console.log('🚨 AI service is completely unavailable. Please configure your API key or check service status.');
-        return;
-      }
-      
-      // Check if it's a rate limit error
-      const isRateLimit = error.message && (
-        error.message.includes('rate limit') || 
-        error.message.includes('429') ||
-        error.message.includes('quota') ||
-        error.message.includes('RateLimitError') ||
-        error.message === 'RATE_LIMIT_ERROR'
-      );
-      
-      if (isRateLimit) {
-        // Show rate limit specific message
-        const rateLimitMessage: EnhancedMessage = { 
-          id: generateId(),
-          role: "assistant", 
-          content: `⚠️ **API Rate Limit Reached**
-
-I'm temporarily unable to respond because your OpenAI API key has reached its usage quota or rate limit.
-
-**What this means:**
-- Your API key is valid but has exceeded the current usage limit
-- This is typically due to reaching your monthly spending limit or requests per minute
-
-**What you can do:**
-1. **Check your OpenAI usage**: Visit [OpenAI Usage Dashboard](https://platform.openai.com/usage) to see your current usage
-2. **Upgrade your plan**: If you've hit your monthly limit, consider upgrading your OpenAI plan
-3. **Wait and retry**: Rate limits reset periodically, so you can try again in a few minutes
-4. **Check billing**: Ensure your payment method is up to date on your OpenAI account
-
-**For immediate help:**
-- Review course planning with the Purdue Course Catalog online
-- Contact your academic advisor directly for urgent academic matters
-- Use the transcript parsing features which don't require AI responses
-
-I'll be ready to help once the rate limit resets!`,
-          timestamp: new Date(),
-          metadata: {
-            thinkingSummary: `Detected rate limit error → provided helpful guidance about OpenAI quota limits → suggested alternative resources`
-          }
-        };
-        
-        const errorMessages = [...newMessages, rateLimitMessage];
-        setMessages(errorMessages);
-        
-        // Update chat session with rate limit message
-        if (currentChatId) {
-          setChatSessions(prev => prev.map(chat => 
-            chat.id === currentChatId 
-              ? { ...chat, messages: errorMessages, lastMessageAt: new Date() }
-              : chat
-          ));
-        }
-      } else {
-        try {
-          // Try to use AI to generate contextual error response for non-rate-limit errors
-          const aiErrorResponse = await pureAIFallback.generateErrorResponse(
-            trimmedInput, 
-            'general', 
-            'AI service connection issue'
+          const cladoResponse = await cladoService.searchPeople({
+            query: trimmedInput,
+            limit: 5
+          });
+          
+          const formattedResult = cladoService.formatSearchResults(cladoResponse);
+          
+          assistantMessage = {
+            id: `${messageId}_response`,
+            content: formattedResult,
+            role: 'assistant',
+            timestamp: new Date(),
+            service: 'clado',
+            provider: 'Clado LinkedIn Search'
+          };
+        } catch (cladoError) {
+          // Fallback to regular AI for non-LinkedIn queries or errors
+          console.log('Clado search failed, falling back to AI:', cladoError);
+          const response = await apiService.sendChatMessage(
+            `LinkedIn search for "${trimmedInput}" is unavailable. Here's general career advice: ${trimmedInput}`,
+            user?.id,
+            `session_${Date.now()}`
           );
           
-          const errorMessage: EnhancedMessage = { 
-            id: generateId(),
-            role: "assistant", 
-            content: aiErrorResponse,
+          assistantMessage = {
+            id: `${messageId}_response`,
+            content: `⚠️ LinkedIn search temporarily unavailable. Here's some general guidance:\n\n${response.data.response}`,
+            role: 'assistant',
             timestamp: new Date(),
-            metadata: {
-              thinkingSummary: `Generated error response: detected service issue → applied fallback AI → formulated helpful guidance despite limitations`
-            }
+            service: 'clado',
+            provider: 'AI Fallback'
           };
-          
-          const errorMessages = [...newMessages, errorMessage];
-          setMessages(errorMessages);
-          
-          // Update chat session with error message
-          if (currentChatId) {
-            setChatSessions(prev => prev.map(chat => 
-              chat.id === currentChatId 
-                ? { ...chat, messages: errorMessages, lastMessageAt: new Date() }
-                : chat
-            ));
-          }
-        } catch (fallbackError) {
-          // Even fallback AI failed - just remove thinking indicator
-          setMessages(newMessages);
-          console.log('🚨 All AI services unavailable. Please check your configuration.');
         }
+      } else {
+        // Handle regular AI assistant
+        const response = await apiService.sendChatMessage(
+          trimmedInput,
+          user?.id,
+          `session_${Date.now()}`
+        );
+
+        assistantMessage = {
+          id: `${messageId}_response`,
+          content: response.data.response,
+          role: 'assistant',
+          timestamp: new Date(),
+          service: 'ai',
+          provider: response.data.provider,
+          model: response.data.model
+        };
       }
+      
+      setMessages(prev => [...prev, assistantMessage]);
+      
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      // Add error message
+      const errorMessage: ChatMessage = {
+        id: `${messageId}_error`,
+        content: `Sorry, I encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        role: 'assistant',
+        timestamp: new Date(),
+        service: currentService
+      };
+      
+      setMessages(prev => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Generate personalized AI greeting based on context
-  const generatePersonalizedGreeting = async (): Promise<string> => {
-    try {
-      // Build context for greeting
-      const context = {
-        studentData: transcriptData ? {
-          name: transcriptData.studentInfo?.name,
-          program: transcriptData.studentInfo?.program,
-          gpa: transcriptData.gpaSummary?.cumulativeGPA,
-          credits: transcriptData.gpaSummary?.totalCreditsEarned,
-          recentCourses: Object.values(transcriptData.completedCourses).slice(-1).flatMap(sem => 
-            sem.courses?.slice(-3).map(c => c.courseCode) || []
-          )
-        } : null,
-        timeOfDay: new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 17 ? 'afternoon' : 'evening',
-        hasTranscript: transcriptData !== null
-      };
-
-      // Generate personalized greeting
-      const greetingPrompt = `Generate a warm, personalized greeting for a Purdue University student using this academic advisor. Be natural, conversational, and personable - like a real advisor who genuinely cares.
-
-Student Context: ${JSON.stringify(context.studentData)}
-Time: ${context.timeOfDay}
-Has Transcript: ${context.hasTranscript}
-
-Requirements:
-- Address them by name if available, otherwise use a friendly general greeting
-- Reference their academic situation naturally if transcript data is available
-- Be encouraging and supportive
-- Keep it conversational and natural - no markdown formatting
-- Be brief but personable (2-3 sentences max)
-- Sound like a real human advisor, not a chatbot
-
-Generate a greeting that feels authentic and caring, like you're meeting with a student during office hours.`;
-
-      // Check if unified AI service is available
-      if (!isApiKeyValid || !unifiedChatService.isAvailable()) {
-        console.log('⚠️ AI service not available for greeting - using fallback');
-        return "Hi there! How can I help you with your academic journey at Purdue today?";
-      }
-      
-      const response = await unifiedChatService.sendMessage(greetingPrompt, user?.id || 'anonymous');
-      
-      // Clean up the response and ensure it's natural
-      return response.replace(/^["']|["']$/g, '').trim();
-    } catch (error) {
-      console.error('Failed to generate personalized greeting:', error);
-      return "Hi there! How can I help you with your academic journey at Purdue today?";
+  
+  const getSuggestions = () => {
+    if (currentService === 'clado') {
+      return [
+        'Software engineers at Google',
+        'Purdue alumni in machine learning', 
+        'Data scientists in San Francisco',
+        'Product managers with MBA'
+      ];
+    } else {
+      return [
+        'Suggest a 15-credit schedule',
+        'Explain prereqs for CS 38100',
+        'Find STAT courses that fit Monday/Wednesday',
+        'Help me plan my senior year'
+      ];
     }
   };
-
-  // Generate AI-powered contextual suggestions - no hardcoded templates
-  const generateContextualSuggestions = async (): Promise<string[]> => {
-    if (!isApiKeyValid || !unifiedChatService.isAvailable()) return [];
-    
-    try {
-      // Build context for AI suggestion generation
-      const context = {
-        studentData: transcriptData ? {
-          program: transcriptData.studentInfo?.program,
-          gpa: transcriptData.gpaSummary?.cumulativeGPA,
-          credits: transcriptData.gpaSummary?.totalCreditsEarned,
-          recentCourses: Object.values(transcriptData.completedCourses).slice(-2).flatMap(sem => 
-            sem.courses?.map(c => c.courseCode) || []
-          )
-        } : null,
-        aiService: aiService,
-        currentTime: new Date().toISOString()
-      };
-
-      // Only generate suggestions if we have actual student context
-      if (!context.studentData || !context.studentData.program) {
-        return []; // Don't generate generic suggestions - return empty array
-      }
-
-      // Use AI to generate contextual suggestions
-      const suggestionPrompt = `Based on this specific Purdue student's context, generate 4 actionable questions they should ask their academic advisor right now.
-
-Student Context: ${JSON.stringify(context.studentData)}
-
-Requirements:
-- Generate questions specific to THIS student's actual academic situation
-- Focus on actionable next steps based on their program and progress
-- Each suggestion should be 6-10 words maximum
-- Return ONLY a JSON array of strings
-- No explanatory text, just the array
-
-Example format: ["suggestion 1", "suggestion 2", "suggestion 3", "suggestion 4"]`;
-
-      const response = await unifiedChatService.sendMessage(suggestionPrompt, user?.id || 'anonymous');
-      
-      try {
-        const suggestions = JSON.parse(response);
-        return Array.isArray(suggestions) ? suggestions.slice(0, 4) : [];
-      } catch {
-        // If AI response isn't JSON, extract suggestions manually
-        const lines = response.split('\n').filter(line => line.trim().length > 0);
-        return lines.slice(0, 4).map(line => line.replace(/^[-*"'\d\.\s]+/, '').replace(/['"]*$/, ''));
-      }
-    } catch (error) {
-      console.error('Failed to generate AI suggestions:', error);
-      return []; // Return empty array instead of fallback suggestions
-    }
-  };
-
-  // Load AI-generated suggestions when context changes
-  useEffect(() => {
-    const loadSuggestions = async () => {
-      if (isApiKeyValid && unifiedChatService.isAvailable() && !loadingSuggestions) {
-        setLoadingSuggestions(true);
-        try {
-          const aiSuggestions = await generateContextualSuggestions();
-          setSuggestions(aiSuggestions);
-        } catch (error) {
-          console.error('Failed to load AI suggestions:', error);
-          setSuggestions([]);
-        } finally {
-          setLoadingSuggestions(false);
-        }
-      }
-    };
-
-    loadSuggestions();
-  }, [transcriptData, aiService, isApiKeyValid]);
-
-  // Upload transcript context when available
-  useEffect(() => {
-    if (transcriptData && transcriptData.studentInfo?.name) {
-      console.log('📝 Setting transcript context for AI...');
-      // Convert transcriptData to compatible format by casting
-      unifiedChatService.setTranscriptContext(transcriptData as any);
-      console.log('✅ Transcript context set for AI assistant');
-    }
-  }, [transcriptData, user?.id]);
-
-  const currentChat = chatSessions.find(chat => chat.id === currentChatId);
-
-  // Handle transcript integration for AI context
-  const handleTranscriptIntegration = async () => {
-    if (!transcriptData || !transcriptData.completedCourses || isIntegratingTranscript) {
-      console.log('No transcript data available or already integrating');
-      return;
-    }
-
-    setIsIntegratingTranscript(true);
-
-    try {
-      // Convert transcript data to course format
-      const courses = Object.values(transcriptData.completedCourses)
-        .flatMap(semester => semester.courses || [])
-        .map(course => ({
-          subject: course.courseCode?.split(' ')[0] || '',
-          number: course.courseCode?.split(' ')[1] || '',
-          title: course.title || '',
-          creditHours: course.credits || 3,
-          grade: course.grade || 'A',
-          term: course.term || 'Unknown'
-        }));
-
-      // Generate AI context with student profile
-      const contextData = await transcriptContextService.generateAIContext(courses, 'comprehensive');
-      
-      // Update unified AI service with enhanced context
-      unifiedChatService.setEnhancedContext({
-        studentProfile: contextData.studentProfile,
-        contextPrompt: contextData.contextPrompt,
-        transcriptData: transcriptData
-      });
-
-      // Initialize contextual memory for this session
-      unifiedChatService.setContextualMemory(user?.id || 'anonymous', currentChatId || 'default');
-
-      // Add system message to current chat explaining the integration
-      const systemMessage: EnhancedMessage = {
-        id: generateId(),
-        role: "assistant",
-        content: `🎓 **Transcript Context Integrated!**
-
-I now have full access to your academic profile:
-- **Overall GPA**: ${contextData.studentProfile.gpa.overall}
-- **Major GPA**: ${contextData.studentProfile.gpa.major}
-- **Year Level**: ${contextData.studentProfile.performanceMetrics.yearLevel}
-- **Completed Credits**: ${contextData.studentProfile.performanceMetrics.creditHours.completed}
-- **Academic Strengths**: ${contextData.studentProfile.academicStrengths.join(', ')}
-
-I can now provide:
-✅ **Personalized Academic Advice** based on your actual performance
-✅ **CODO Evaluation** for major changes using your transcript
-✅ **Course Recommendations** aligned with your strengths and weaknesses
-✅ **Smart Context Awareness** across our entire conversation
-✅ **Continuous Learning** to improve advice quality
-
-Ask me anything about your academic progress, course planning, or major requirements - I'll use your complete academic history to provide the most relevant guidance!`,
-        timestamp: new Date(),
-        metadata: {
-          thinkingSummary: `Integrated transcript: analyzed course data → built student profile → initialized enhanced AI context → enabled personalized academic guidance`
-        }
-      };
-
-      const updatedMessages = [...messages, systemMessage];
-      setMessages(updatedMessages);
-
-      if (currentChatId) {
-        setChatSessions(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { ...chat, messages: updatedMessages, lastMessageAt: new Date() }
-            : chat
-        ));
-      }
-
-      setTranscriptIntegrated(true);
-      console.log('✅ Transcript context successfully integrated');
-      
-    } catch (error) {
-      console.error('❌ Failed to integrate transcript context:', error);
-      
-      const errorMessage: EnhancedMessage = {
-        id: generateId(),
-        role: "assistant",
-        content: "⚠️ Failed to integrate transcript data. The AI will still work with basic functionality. Please try again or continue with general academic questions.",
-        timestamp: new Date(),
-        metadata: {
-          thinkingSummary: `Failed transcript integration: attempted data processing → encountered error → gracefully degraded to basic functionality → maintained AI assistance`
-        }
-      };
-
-      const errorMessages = [...messages, errorMessage];
-      setMessages(errorMessages);
-
-      if (currentChatId) {
-        setChatSessions(prev => prev.map(chat => 
-          chat.id === currentChatId 
-            ? { ...chat, messages: errorMessages, lastMessageAt: new Date() }
-            : chat
-        ));
-      }
-    } finally {
-      setIsIntegratingTranscript(false);
-    }
-  };
-
-  // Check for transcript context on page load
-  useEffect(() => {
-    if (transcriptData && Object.keys(transcriptData.completedCourses || {}).length > 0) {
-      const cachedContext = transcriptContextService.getCachedContext();
-      if (cachedContext) {
-        setTranscriptIntegrated(true);
-      }
-    }
-  }, [transcriptData]);
 
   return (
     <div className="flex h-full w-full p-6">
       <div className="flex flex-col w-full space-y-4">
-        {/* Compact API Key Setup Prompt */}
-        {!isApiKeyValid && (
-          <div className="mb-4 p-3 rounded-lg bg-gradient-to-r from-blue-900/20 to-purple-900/20 border border-blue-800/50">
-            <div className="flex items-center gap-3">
-              <div className="p-1.5 rounded-lg bg-blue-900/30">
-                <Brain size={16} className="text-blue-400" />
-              </div>
-              <div>
-                <h4 className="text-sm font-medium text-blue-200">AI Assistant Ready</h4>
-                <p className="text-xs text-blue-300/80">Configure OpenAI API key in Settings to unlock chat features</p>
-              </div>
-            </div>
-          </div>
-        )}
-
-
-
-        <div className={`flex bg-neutral-900/60 ring-1 ring-neutral-800 transition-all duration-300 rounded-2xl w-full h-full ${
-          showSidebar ? "flex" : "w-full"
-        }`}>
-        
-        {/* Chat History Sidebar - Smaller and Compact */}
-        {showSidebar && (
-          <div className="w-72 bg-neutral-900/95 border-r border-neutral-800 rounded-l-2xl overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-neutral-800">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-lg font-medium text-neutral-100">History</h2>
-                <button 
-                  onClick={() => setShowSidebar(false)}
-                  className="text-neutral-400 hover:text-neutral-200 p-1 rounded-lg hover:bg-neutral-800 transition-colors"
-                >
-                  <Minimize2 size={18} />
-                </button>
-              </div>
-              <button
-                onClick={handleNewChat}
-                className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm font-medium text-neutral-200 transition-colors"
-              >
-                <Plus size={16} />
-                New Chat
-              </button>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-4 space-y-2">
-              {chatSessions.slice(1).map((chat) => ( // Skip first chat (current new chat)
-                <div key={chat.id} className={`group rounded-lg p-3 cursor-pointer transition-colors ${
-                  chat.id === currentChatId 
-                    ? "bg-neutral-800 ring-1 ring-neutral-700" 
-                    : "hover:bg-neutral-800/50"
-                }`}>
-                  <div onClick={() => switchToChat(chat.id)} className="flex-1">
-                    {editingChatId === chat.id ? (
-                      <input
-                        type="text"
-                        value={editingName}
-                        onChange={(e) => setEditingName(e.target.value)}
-                        onBlur={() => handleRenameChat(chat.id, editingName)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleRenameChat(chat.id, editingName)}
-                        className="w-full bg-transparent border-none outline-none text-sm font-medium text-neutral-200"
-                        autoFocus
-                      />
-                    ) : (
-                      <h3 className="text-sm font-medium text-neutral-200 truncate mb-1">{chat.name}</h3>
-                    )}
-                    <p className="text-xs text-neutral-500">
-                      {chat.lastMessageAt.toLocaleDateString()} • {chat.messages.length} msgs
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity mt-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingChatId(chat.id);
-                        setEditingName(chat.name);
-                      }}
-                      className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-neutral-200 transition-colors"
-                    >
-                      <Edit3 size={14} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteChat(chat.id);
-                      }}
-                      className="p-1 hover:bg-neutral-700 rounded text-neutral-400 hover:text-red-400 transition-colors"
-                    >
-                      <Trash2 size={14} />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        
-        {/* Main Chat Area */}
-        <div className={`flex flex-col ${showSidebar ? "flex-1" : "w-full"} h-full`}>
-          {/* Fixed Header */}
-          <div className="flex items-center justify-between p-4 border-b border-neutral-800 flex-shrink-0">
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={() => setShowSidebar(!showSidebar)}
-                className="rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-300 hover:bg-neutral-900 transition-colors"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Sidebar size={16} /> {showSidebar ? 'Hide' : 'History'}
-                </span>
-              </button>
-              <div className="flex items-center gap-3">
+        <div className="flex bg-neutral-900/60 ring-1 ring-neutral-800 transition-all duration-300 rounded-2xl w-full h-full">
+          <div className="flex flex-col w-full h-full">
+            {/* Header with Service Toggle */}
+            <div className="flex items-center justify-between p-4 border-b border-neutral-800 flex-shrink-0">
+              <div className="flex items-center gap-6">
                 <div className="text-lg font-medium text-neutral-200">
                   {(() => {
                     const firstName = getFirstName(user);
-                    if (firstName && (currentChat?.name === "New Chat" || !currentChat?.name)) {
+                    if (firstName) {
                       return `Welcome ${firstName}!`;
                     }
-                    return currentChat?.name || "New Chat";
+                    return "AI Assistant";
                   })()}
                 </div>
                 
-                {/* AI Service Toggle */}
-                <div className="flex items-center gap-2 px-3 py-1 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-                  <button
-                    onClick={() => setAiService('clado')}
-                    className={`px-2 py-1 text-xs rounded ${
-                      aiService === 'clado' 
-                        ? 'bg-blue-600 text-white' 
-                        : 'text-neutral-400 hover:text-neutral-200'
-                    } transition-colors`}
+                {/* Service Toggle */}
+                <div className="flex items-center gap-2 p-1 bg-neutral-800 rounded-lg">
+                  <Button
+                    variant={currentService === 'ai' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => handleServiceToggle('ai')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
+                      currentService === 'ai' 
+                        ? 'bg-blue-600 text-white shadow-sm' 
+                        : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700'
+                    }`}
                   >
-                    Clado
-                  </button>
-                  <button
-                    onClick={() => setAiService('openai')}
-                    className={`px-2 py-1 text-xs rounded ${
-                      aiService === 'openai' 
-                        ? 'bg-green-600 text-white' 
-                        : 'text-neutral-400 hover:text-neutral-200'
-                    } transition-colors`}
+                    <Brain size={14} />
+                    AI Assistant
+                  </Button>
+                  <Button
+                    variant={currentService === 'clado' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => handleServiceToggle('clado')}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-md transition-all ${
+                      currentService === 'clado' 
+                        ? 'bg-blue-600 text-white shadow-sm' 
+                        : 'text-neutral-400 hover:text-neutral-200 hover:bg-neutral-700'
+                    }`}
                   >
-                    OpenAI
-                  </button>
+                    <Users size={14} />
+                    Clado (LinkedIn)
+                  </Button>
                 </div>
-
-                {/* Reasoning Mode Toggle - Only for OpenAI */}
-                {aiService === 'openai' && (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-                    <Brain size={14} className="text-blue-400" />
-                    <button
-                      onClick={() => setReasoningMode(!reasoningMode)}
-                      className={`px-2 py-1 text-xs rounded ${
-                        reasoningMode 
-                          ? 'bg-blue-600 text-white' 
-                          : 'text-neutral-400 hover:text-neutral-200'
-                      } transition-colors`}
-                    >
-                      Thinking
-                    </button>
-                  </div>
-                )}
-
-                {/* Transcript Integration Button */}
-                {transcriptData && Object.keys(transcriptData.completedCourses || {}).length > 0 && (
-                  <div className="flex items-center gap-2 px-3 py-1 bg-neutral-800/50 border border-neutral-700 rounded-lg">
-                    <FileText size={14} className={transcriptIntegrated ? "text-green-400" : "text-orange-400"} />
-                    <button
-                      onClick={handleTranscriptIntegration}
-                      disabled={isIntegratingTranscript || transcriptIntegrated}
-                      className={`px-2 py-1 text-xs rounded transition-colors ${
-                        transcriptIntegrated
-                          ? 'bg-green-600 text-white cursor-default'
-                          : isIntegratingTranscript
-                          ? 'bg-neutral-600 text-neutral-300 cursor-not-allowed'
-                          : 'bg-orange-600 text-white hover:bg-orange-500'
-                      }`}
-                    >
-                      {isIntegratingTranscript ? (
-                        <div className="flex items-center gap-1">
-                          <div className="w-3 h-3 border border-neutral-300 border-t-transparent rounded-full animate-spin"></div>
-                          <span>Integrating...</span>
-                        </div>
-                      ) : transcriptIntegrated ? (
-                        'Integrated'
-                      ) : (
-                        'Integrate Transcript'
-                      )}
-                    </button>
-                  </div>
-                )}
                 
-                {aiService === 'clado' && (
-                  <div className="flex items-center gap-1 px-2 py-1 bg-blue-900/30 border border-blue-700/50 rounded-md">
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                    <span className="text-xs text-blue-300 font-medium">LinkedIn Search</span>
+                {/* Status Indicator */}
+                {hasValidAPIConfig && (
+                  <div className="flex items-center gap-1 px-2 py-1 bg-green-900/30 border border-green-700/50 rounded-md">
+                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                    <span className="text-xs text-green-300 font-medium">
+                      {currentService === 'clado' ? 'LinkedIn Search Active' : 'AI Active'}
+                    </span>
                   </div>
                 )}
               </div>
-            </div>
-          </div>
-          
-          {/* Scrollable Messages Area */}
-          <div className="flex-1 overflow-y-auto p-4 min-h-0" onScroll={handleScroll}>
-            <div className="space-y-4 pb-4">
-              {messages.map((m) => (
-                <div key={m.id}>
-                  {/* User message */}
-                  {m.role === "user" && (
-                    <div className="flex justify-end">
-                      <div className="max-w-[75%] rounded-xl px-4 py-3 text-sm bg-neutral-200 text-neutral-900">
-                        <div className="leading-relaxed whitespace-pre-wrap">{m.content}</div>
-                        <div className="text-xs opacity-50 mt-2">
-                          {m.timestamp.toLocaleTimeString()}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* AI message with thinking support */}
-                  {m.role === "assistant" && (
-                    <div className="flex justify-start">
-                      <div className="max-w-[85%] w-full">
-                        {/* Show thinking message if it has reasoning */}
-                        {m.isThinking && m.reasoning ? (
-                          <ThinkingMessage 
-                            message={m} 
-                            onComplete={() => {
-                              // Thinking animation complete
-                              console.log('Reasoning animation completed');
-                            }}
-                          />
-                        ) : m.isThinking ? (
-                          /* Simple thinking indicator for non-reasoning modes */
-                          <div className="bg-neutral-950/60 text-neutral-200 ring-1 ring-neutral-800 rounded-xl px-4 py-3 text-sm">
-                            <div className="flex items-center gap-2 text-neutral-400">
-                              <div className="flex gap-1">
-                                <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{animationDelay: '0ms'}}></div>
-                                <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{animationDelay: '150ms'}}></div>
-                                <div className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" style={{animationDelay: '300ms'}}></div>
-                              </div>
-                              <span className="text-xs">AI is thinking...</span>
-                            </div>
-                          </div>
-                        ) : (
-                          /* Regular AI response with RLHF feedback */
-                          <div className="bg-neutral-950/60 text-neutral-200 ring-1 ring-neutral-800 rounded-xl px-4 py-3 text-sm">
-                            <div className="leading-relaxed whitespace-pre-wrap">{m.content}</div>
-                            <div className="flex items-center justify-between mt-2">
-                              <div className="text-xs opacity-50">
-                                {m.timestamp.toLocaleTimeString()}
-                              </div>
-                              {m.metadata?.confidence_score && (
-                                <div className="text-xs text-blue-400">
-                                  {Math.round(m.metadata.confidence_score * 100)}% confidence
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Simple ELO Rating */}
-                            {!m.isThinking && (() => {
-                              // Find the user message that triggered this AI response
-                              const messageIndex = messages.findIndex(msg => msg.id === m.id);
-                              const triggeringQuery = messageIndex > 0 && messages[messageIndex - 1]?.role === 'user'
-                                ? messages[messageIndex - 1].content
-                                : 'Unknown query';
-                              
-                              return (
-                                <div>
-                                  <SimpleEloRating
-                                    messageId={m.id}
-                                    query={triggeringQuery}
-                                    response={m.content}
-                                    context={{
-                                      hasTranscript: transcriptData !== null,
-                                      aiService: aiService,
-                                      reasoningMode: reasoningMode,
-                                      sessionId: currentChatId,
-                                      userLevel: user?.id ? 'authenticated' : 'anonymous',
-                                      messageTimestamp: m.timestamp,
-                                      conversationLength: messages.length,
-                                      transcriptIntegrated: transcriptIntegrated,
-                                      enhancedContext: unifiedChatService.getEnhancedContext() !== null
-                                    }}
-                                    userId={user?.id || 'anonymous'}
-                                    onRatingSubmitted={(rating) => {
-                                      console.log(`📊 ELO Rating: ${rating} for query: "${triggeringQuery.substring(0, 50)}..." (Session: ${currentChatId})`);
-                                      
-                                      // Log comprehensive analytics for debugging
-                                      const analytics = eloTrackingService.getComprehensiveAnalytics(
-                                        user?.id || 'anonymous', 
-                                        currentChatId || undefined
-                                      );
-                                      console.log('📈 Comprehensive Analytics:', analytics);
-                                    }}
-                                  />
-                                  
-                                  {/* Thinking Summary Display - DeepSeek style subdued */}
-                                  {m.metadata?.thinkingSummary && (
-                                    <div className="mt-2 pt-2 border-t border-neutral-800/30">
-                                      <div className="text-xs text-neutral-600 italic opacity-70">
-                                        {m.metadata.thinkingSummary}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-          
-          {/* Fixed Input Area */}
-          <div className="border-t border-neutral-800 p-4 flex-shrink-0 bg-neutral-900/80 backdrop-blur-sm">
-            <div className="flex items-center gap-3 mb-3">
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask about courses, professors, or plans…"
-                className="flex-1 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-200 outline-none placeholder:text-neutral-500 focus:border-neutral-600 transition-colors disabled:opacity-50"
-                onKeyPress={(e) => e.key === "Enter" && !isLoading && handleSendMessage()}
-                disabled={isLoading}
-              />
-              <button
-                onClick={handleSendMessage}
-                className="rounded-xl px-6 py-3 text-sm font-medium text-neutral-900 disabled:opacity-50 hover:opacity-90 transition-opacity min-w-[80px] flex items-center justify-center"
-                style={{ background: isLoading ? "#9ca3af" : PURDUE_GOLD }}
-                disabled={!input.trim() || isLoading}
-              >
-                {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-neutral-700 border-t-transparent rounded-full animate-spin"></div>
-                ) : (
-                  "Send"
-                )}
-              </button>
+              
+              <div className="flex items-center gap-2">
+                <Link to="/settings">
+                  <Button variant="ghost" size="sm">
+                    <Settings size={16} />
+                  </Button>
+                </Link>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setMessages([])}
+                  disabled={messages.length === 0}
+                >
+                  Clear Chat
+                </Button>
+              </div>
             </div>
             
-            {isApiKeyValid && (
-              <div className="flex flex-wrap gap-2 text-xs">
-                {loadingSuggestions ? (
-                  <div className="text-neutral-500 text-xs">Generating personalized suggestions...</div>
-                ) : suggestions.length > 0 ? (
-                  suggestions.map((q) => (
-                    <button 
-                      key={q} 
-                      onClick={() => setInput(q)} 
-                      className="rounded-full border border-neutral-800 px-3 py-2 text-neutral-300 hover:bg-neutral-900/70 transition-colors"
-                      disabled={isLoading}
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 min-h-0">
+              {messages.length === 0 ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center max-w-md">
+                    <div className="mb-4">
+                      {currentService === 'clado' ? (
+                        <Users size={48} className="text-blue-400 mx-auto mb-4" />
+                      ) : (
+                        <Brain size={48} className="text-neutral-600 mx-auto mb-4" />
+                      )}
+                      <h3 className="text-lg font-medium text-neutral-300 mb-2">
+                        {currentService === 'clado' ? 'LinkedIn Search' : 'AI Assistant'}
+                      </h3>
+                      <p className="text-sm text-neutral-500">
+                        {currentService === 'clado' 
+                          ? "Search for professionals, alumni, and connections on LinkedIn to help with networking and career guidance."
+                          : hasValidAPIConfig 
+                            ? "Ready to help with your academic journey at Purdue! Ask me anything about courses, requirements, or planning."
+                            : "Please configure your API key in Settings to start using the AI assistant."
+                        }
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="text-xs text-neutral-600 bg-neutral-800/50 rounded-lg p-3">
+                        <p className="font-medium mb-2">Try asking:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {getSuggestions().map((suggestion, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setInput(suggestion)}
+                              className="text-left bg-neutral-700 hover:bg-neutral-600 px-2 py-1 rounded text-xs transition-colors"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div
+                      key={message.id}
+                      className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                     >
-                      {q}
-                    </button>
-                  ))
-                ) : (
-                  <div className="text-neutral-500 text-xs">AI suggestions will appear here based on your academic context</div>
-                )}
+                      <Card className={`max-w-[80%] ${
+                        message.role === 'user' 
+                          ? 'bg-blue-600 text-white' 
+                          : 'bg-neutral-800 text-neutral-100'
+                      }`}>
+                        <CardContent className="p-3">
+                          <div className="whitespace-pre-wrap break-words">
+                            {message.content}
+                          </div>
+                          {message.role === 'assistant' && (message.provider || message.service) && (
+                            <div className="mt-2 text-xs opacity-70 flex items-center gap-2">
+                              {message.service === 'clado' && (
+                                <span className="bg-blue-700 px-2 py-1 rounded flex items-center gap-1">
+                                  <Search size={10} />
+                                  LinkedIn Search
+                                </span>
+                              )}
+                              {message.provider && message.service !== 'clado' && (
+                                <span className="bg-neutral-700 px-2 py-1 rounded">
+                                  {message.provider}
+                                </span>
+                              )}
+                              {message.model && (
+                                <span className="bg-neutral-700 px-2 py-1 rounded">
+                                  {message.model}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            
+            {/* Input Area */}
+            <div className="border-t border-neutral-800 p-4 flex-shrink-0 bg-neutral-900/80 backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <input
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    currentService === 'clado' 
+                      ? "Search for professionals, alumni, or connections..."
+                      : hasValidAPIConfig 
+                        ? "Ask about courses, professors, or plans…" 
+                        : "Configure API key in Settings first…"
+                  }
+                  className="flex-1 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-200 outline-none placeholder:text-neutral-500 focus:border-neutral-600 transition-colors disabled:opacity-50"
+                  onKeyPress={(e) => e.key === "Enter" && !isLoading && hasValidAPIConfig && handleSendMessage()}
+                  disabled={isLoading || !hasValidAPIConfig}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!input.trim() || isLoading || !hasValidAPIConfig}
+                  className="rounded-xl px-6 py-3"
+                  style={{ 
+                    background: (!input.trim() || isLoading || !hasValidAPIConfig) ? "#9ca3af" : PURDUE_GOLD,
+                    color: "#000"
+                  }}
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-neutral-700 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <Send size={16} />
+                  )}
+                </Button>
               </div>
-            )}
+              
+              {!hasValidAPIConfig && (
+                <div className="mt-3 text-xs text-neutral-500 text-center">
+                  <Link to="/settings" className="text-blue-400 hover:underline">
+                    Configure your API key in Settings
+                  </Link> to start using the assistant
+                </div>
+              )}
+            </div>
           </div>
-        </div>
         </div>
       </div>
     </div>

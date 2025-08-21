@@ -1,0 +1,96 @@
+--- /dev/null
++++ b/backend/src/services/structuredRouterService.js
+@@ -0,0 +1,89 @@
++/**
++ * Structured Router Service - Bridge to Python API Gateway
++ * Replaces generic chat with structured T2SQL and planner routing
++ */
++
++const { logger } = require('../utils/logger');
++
++// Intent classification keywords (mirrors Python router/intent.py)
++const KEYWORDS_PLANNER = /(plan|schedule|semester|term|graduate|finish by|target.*term|what if|switch track)/i;
++const KEYWORDS_COURSE_FACTS = /(prereq|prerequisite|credits?|offered|term pattern|tell me about|description|outcomes?|campus|schedule types?|track|electives?|cs \d+|[a-z]{2,4}\s*\d{3})/i;
++
++/**
++ * Classify user intent based on question content
++ * Mirrors the Python intent classifier but in Node.js
++ * @param {string} question - User question
++ * @returns {string} - Intent: 'planner_query', 'course_facts', or 'unknown'
++ */
++function classifyIntent(question) {
++  if (!question || typeof question !== 'string') {
++    return 'unknown';
++  }
++
++  const q = question.toLowerCase().trim();
++  
++  // Check for planning-related keywords
++  if (KEYWORDS_PLANNER.test(q)) {
++    return 'planner_query';
++  }
++  
++  // Check for course facts keywords  
++  if (KEYWORDS_COURSE_FACTS.test(q)) {
++    return 'course_facts';
++  }
++  
++  // Check for specific course patterns (CS 180, CS180, etc.)
++  if (/\b[a-z]{2,4}\s*\d{3,4}\b/i.test(q)) {
++    return 'course_facts';
++  }
++  
++  // Default to course_facts for academic questions
++  // (This mirrors the Python behavior: return "course_facts" as default)
++  if (/course|class|major|degree|program|academic|study|learn/i.test(q)) {
++    return 'course_facts';
++  }
++  
++  return 'unknown';
++}
++
++/**
++ * Route intent to appropriate handler service
++ * @param {string} intent - Classified intent
++ * @param {string} question - Original question
++ * @returns {string} - Handler: 'planner', 't2sql', or 'unknown'
++ */
++function routeToHandler(intent, question) {
++  switch (intent) {
++    case 'planner_query':
++      return 'planner';
++    case 'course_facts':
++      return 't2sql';
++    default:
++      return 'unknown';
++  }
++}
++
++/**
++ * Main routing function that combines classification and routing
++ * @param {string} question - User question
++ * @returns {Object} - Routing decision with metadata
++ */
++function routeToStructuredService(question) {
++  const intent = classifyIntent(question);
++  const handler = routeToHandler(intent, question);
++  
++  logger.info('Structured routing decision', {
++    question: question.substring(0, 100),
++    intent,
++    handler,
++    timestamp: new Date().toISOString()
++  });
++  
++  return {
++    intent,
++    handler,
++    isSupported: handler !== 'unknown'
++  };
++}
++
++module.exports = {
++  classifyIntent,
++  routeToHandler, 
++  routeToStructuredService
++};

@@ -1,13 +1,12 @@
-// Unified chat service that abstracts between OpenAI and Gemini
+// Simple unified chat service for OpenAI and Gemini API keys
 import { openaiChatService } from './openaiChatService';
 import { geminiChatService } from './geminiChatService';
-import { backendChatService } from './backendChatService';
 import { TranscriptData } from '@/types';
 import { AIReasoningResponse } from '@/types/thinking';
 import { logger } from '@/utils/logger';
 import type { StudentProfile, DataContainer } from '@/types/common';
 
-type AIProvider = 'openai' | 'gemini' | 'backend';
+type AIProvider = 'openai' | 'gemini';
 
 interface EnhancedContext {
   studentProfile: StudentProfile | null;
@@ -24,19 +23,15 @@ class UnifiedChatService {
   }
 
   private initializeProvider(): void {
-    // Check which providers are available and select the best one
+    // Simple provider selection - check which providers are available
     const validationStatus = JSON.parse(localStorage.getItem('api_key_validation_status') || '{"openai": false, "gemini": false}');
     
-    // PREFER BACKEND ROUTING to fix Gemini API communication issues
-    if (backendChatService.isAvailable()) {
-      this.selectedProvider = 'backend';
-      logger.info('Unified chat service initialized with backend-routed provider (fixes direct API call issues)', 'UNIFIED');
-    } else if (validationStatus.gemini && geminiChatService.isAvailable()) {
+    if (validationStatus.gemini && geminiChatService.isAvailable()) {
       this.selectedProvider = 'gemini';
-      logger.info('Unified chat service initialized with Gemini provider (direct API calls)', 'UNIFIED');
+      logger.info('Unified chat service initialized with Gemini provider', 'UNIFIED');
     } else if (validationStatus.openai && openaiChatService.isAvailable()) {
       this.selectedProvider = 'openai';
-      logger.info('Unified chat service initialized with OpenAI provider (direct API calls)', 'UNIFIED');
+      logger.info('Unified chat service initialized with OpenAI provider', 'UNIFIED');
     } else {
       this.selectedProvider = null;
       logger.warn('No AI providers available', 'UNIFIED');
@@ -44,9 +39,7 @@ class UnifiedChatService {
   }
 
   private getActiveService() {
-    if (this.selectedProvider === 'backend') {
-      return backendChatService;
-    } else if (this.selectedProvider === 'openai') {
+    if (this.selectedProvider === 'openai') {
       return openaiChatService;
     } else if (this.selectedProvider === 'gemini') {
       return geminiChatService;
@@ -57,12 +50,8 @@ class UnifiedChatService {
   private async tryFallbackProvider(message: string, userId: string, sessionId?: string): Promise<string> {
     logger.warn(`Primary provider (${this.selectedProvider}) failed, attempting fallback`, 'UNIFIED');
     
-    // Smart fallback strategy - try backend routing first, then direct API calls
-    if (this.selectedProvider !== 'backend' && backendChatService.isAvailable()) {
-      logger.info('Falling back to backend-routed provider', 'UNIFIED');
-      this.selectedProvider = 'backend';
-      return await backendChatService.sendMessage(message, userId, sessionId);
-    } else if (this.selectedProvider === 'openai' && geminiChatService.isAvailable()) {
+    // Simple fallback strategy between OpenAI and Gemini
+    if (this.selectedProvider === 'openai' && geminiChatService.isAvailable()) {
       logger.info('Falling back to Gemini provider', 'UNIFIED');
       this.selectedProvider = 'gemini';
       return await geminiChatService.sendMessage(message, userId, sessionId);
@@ -78,12 +67,8 @@ class UnifiedChatService {
   private async tryFallbackProviderWithReasoning(message: string, userId: string, sessionId?: string): Promise<AIReasoningResponse> {
     logger.warn(`Primary provider (${this.selectedProvider}) failed, attempting fallback for reasoning`, 'UNIFIED');
     
-    // Smart fallback strategy for reasoning - try backend routing first
-    if (this.selectedProvider !== 'backend' && backendChatService.isAvailable()) {
-      logger.info('Falling back to backend-routed provider for reasoning', 'UNIFIED');
-      this.selectedProvider = 'backend';
-      return await backendChatService.sendMessageWithReasoning(message, userId, sessionId);
-    } else if (this.selectedProvider === 'openai' && geminiChatService.isAvailable()) {
+    // Simple fallback strategy for reasoning
+    if (this.selectedProvider === 'openai' && geminiChatService.isAvailable()) {
       logger.info('Falling back to Gemini provider for reasoning', 'UNIFIED');
       this.selectedProvider = 'gemini';
       return await geminiChatService.sendMessageWithReasoning(message, userId, sessionId);
@@ -244,63 +229,63 @@ Provider status: ${this.selectedProvider} (primary) - failed`,
     return activeService ? await activeService.isApiAvailable() : false;
   }
 
-  // Context management - delegates to active service
+  // Simple context management
   setTranscriptContext(transcriptData: TranscriptData): void {
     const activeService = this.getActiveService();
-    if (activeService) {
+    if (activeService && activeService.setTranscriptContext) {
       activeService.setTranscriptContext(transcriptData);
     }
     
     // Also set on both services for seamless switching
-    openaiChatService.setTranscriptContext(transcriptData);
-    geminiChatService.setTranscriptContext(transcriptData);
+    if (openaiChatService.setTranscriptContext) openaiChatService.setTranscriptContext(transcriptData);
+    if (geminiChatService.setTranscriptContext) geminiChatService.setTranscriptContext(transcriptData);
   }
 
   setEnhancedContext(context: EnhancedContext): void {
     const activeService = this.getActiveService();
-    if (activeService) {
+    if (activeService && activeService.setEnhancedContext) {
       activeService.setEnhancedContext(context);
     }
     
     // Also set on both services for seamless switching
-    openaiChatService.setEnhancedContext(context);
-    geminiChatService.setEnhancedContext(context);
+    if (openaiChatService.setEnhancedContext) openaiChatService.setEnhancedContext(context);
+    if (geminiChatService.setEnhancedContext) geminiChatService.setEnhancedContext(context);
   }
 
   setContextualMemory(userId: string, sessionId: string): void {
     const activeService = this.getActiveService();
-    if (activeService) {
+    if (activeService && activeService.setContextualMemory) {
       activeService.setContextualMemory(userId, sessionId);
     }
     
     // Also set on both services for seamless switching
-    openaiChatService.setContextualMemory(userId, sessionId);
-    geminiChatService.setContextualMemory(userId, sessionId);
+    if (openaiChatService.setContextualMemory) openaiChatService.setContextualMemory(userId, sessionId);
+    if (geminiChatService.setContextualMemory) geminiChatService.setContextualMemory(userId, sessionId);
   }
 
   getEnhancedContext(): EnhancedContext | null {
     const activeService = this.getActiveService();
-    return activeService ? activeService.getEnhancedContext() : null;
+    return activeService && activeService.getEnhancedContext ? activeService.getEnhancedContext() : null;
   }
 
   clearEnhancedContext(): void {
     const activeService = this.getActiveService();
-    if (activeService) {
+    if (activeService && activeService.clearEnhancedContext) {
       activeService.clearEnhancedContext();
     }
     
     // Also clear on both services
-    openaiChatService.clearEnhancedContext();
-    geminiChatService.clearEnhancedContext();
+    if (openaiChatService.clearEnhancedContext) openaiChatService.clearEnhancedContext();
+    if (geminiChatService.clearEnhancedContext) geminiChatService.clearEnhancedContext();
   }
 
   // Reasoning mode controls
   setReasoningMode(enabled: boolean): void {
     this.reasoningMode = enabled;
     
-    // Set on both services
-    openaiChatService.setReasoningMode(enabled);
-    geminiChatService.setReasoningMode(enabled);
+    // Set on both services if they support it
+    if (openaiChatService.setReasoningMode) openaiChatService.setReasoningMode(enabled);
+    if (geminiChatService.setReasoningMode) geminiChatService.setReasoningMode(enabled);
   }
 
   getReasoningMode(): boolean {
@@ -311,9 +296,9 @@ Provider status: ${this.selectedProvider} (primary) - failed`,
   reinitialize(): void {
     this.initializeProvider();
     
-    // Force both services to reinitialize
-    (openaiChatService as any).initializeOpenAI?.();
-    (geminiChatService as any).initializeGemini?.();
+    // Force both services to reinitialize if they support it
+    if ((openaiChatService as any).initializeOpenAI) (openaiChatService as any).initializeOpenAI();
+    if ((geminiChatService as any).initializeGemini) (geminiChatService as any).initializeGemini();
     
     logger.info('Unified chat service reinitialized', 'UNIFIED');
   }

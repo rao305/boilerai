@@ -1,0 +1,16 @@
+{
+  "student": {"gpa": 3.6, "start_term": "F2025"},
+  "major": "CS",
+  "track_id": "machine_intelligence",
+  "completed": [
+    {"course_id":"MA16100","grade":"A","term":"F2024"},
+    {"course_id":"CS18000","grade":"A","term":"F2024"},
+    {"course_id":"CS18200","grade":"B","term":"S2025"},
+    {"course_id":"CS24000","grade":"B","term":"S2025"},
+    {"course_id":"CS25000","grade":"B","term":"F2025"},
+    {"course_id":"CS25100","grade":"A","term":"F2025"},
+    {"course_id":"CS25200","grade":"B","term":"S2026"}
+  ],
+  "in_progress": [],
+  "constraints": {"target_grad_term":"S2028","max_credits":16,"summer_ok":true,"pace":"normal"}
+}

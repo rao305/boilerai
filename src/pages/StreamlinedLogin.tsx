@@ -158,33 +158,6 @@ export default function StreamlinedLogin() {
               </div>
             </div>
 
-            {/* Security Features */}
-            <div className="bg-green-900/20 border border-green-800 p-4 rounded-lg">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-green-400 flex-shrink-0 mt-0.5" />
-                <div className="text-sm">
-                  <h4 className="font-medium text-green-200 mb-2">Secure Authentication</h4>
-                  <ul className="space-y-1 text-green-300">
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-3 h-3 text-green-400" />
-                      Official Purdue Microsoft accounts only
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-3 h-3 text-green-400" />
-                      No passwords stored locally
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-3 h-3 text-green-400" />
-                      Encrypted session management
-                    </li>
-                    <li className="flex items-center gap-2">
-                      <CheckCircle className="w-3 h-3 text-green-400" />
-                      Complete data isolation between users
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </div>
 
             {/* What happens next */}
             <div className="bg-blue-900/20 border border-blue-800 p-4 rounded-lg">
@@ -217,28 +190,6 @@ export default function StreamlinedLogin() {
           </p>
         </div>
 
-        {/* Development Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-6 p-4 rounded-xl bg-blue-950/40 border border-blue-800/50">
-            <div>
-              <p className="text-sm font-medium text-blue-300 mb-3 text-center">Development Mode</p>
-              <div className="space-y-2 text-sm text-blue-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-300">Authentication:</span>
-                  <span className="font-mono text-xs">Microsoft OAuth Active</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-300">Session Security:</span>
-                  <span className="font-mono text-xs">Encrypted + Isolated</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-blue-300">Remember Me:</span>
-                  <span className="font-mono text-xs">{rememberMe ? '30 days' : '24 hours'}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

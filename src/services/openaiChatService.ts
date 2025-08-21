@@ -6,7 +6,7 @@ import { pureAIFallback } from './pureAIFallback';
 import { rlhfService } from './rlhfService';
 import { aiConfig } from './aiConfig';
 import { knowledgeBaseService } from './knowledgeBaseService';
-import { codoevaluationService } from './codoevaluationService';
+import { codoEvaluationService } from './codoevaluationService';
 import { contextualMemoryService } from './contextualMemoryService';
 import { logger } from '@/utils/logger';
 import { smartCourseService, SmartCourseContext } from './smartCourseService';
@@ -682,10 +682,7 @@ ${completedCourses.slice(-2).map(semester =>
       }
 
       // Perform CODO evaluation
-      const evaluation = await codoevaluationService.evaluateCODOEligibility(
-        this.enhancedContext.studentProfile,
-        targetMajor
-      );
+      const evaluation = await codoEvaluationService.evaluateEligibility();
 
       // Format the evaluation results
       return this.formatCODOEvaluation(evaluation);

@@ -1,0 +1,60 @@
+id,title,credits,level
+CS18000,Problem Solving And Object-Oriented Programming,4,100
+CS18200,Foundations Of Computer Science,3,100
+CS24000,Programming In C,3,200
+CS25000,Computer Architecture,4,200
+CS25100,Data Structures And Algorithms,3,200
+CS25200,Systems Programming,4,200
+CS19300,Tools,1,100
+CS29100,Sophomore Development Seminar,1,200
+CS39100,Junior Resource Seminar,1,300
+CS17600,Programming Fundamentals,3,100
+CS24200,Programming In C++ (Alt Path),3,200
+STAT24200,Data Science Programming (Alt Path),3,200
+MA16100,Plane Analytic Geometry And Calculus I,3,100
+MA16300,Integrated Calculus And Analytic Geometry I,3,100
+MA16500,Analytic Geometry And Calculus I,3,100
+MA16700,Honors Calculus I,3,100
+MA22100,Calculus For Tech I,3,200
+MA22200,Calculus For Tech II,3,200
+MA22300,Calculus And Analytic Geometry I,3,200
+MA22400,Calculus And Analytic Geometry II,3,200
+MA16010,Applied Calculus I,3,100
+MA16020,Applied Calculus II,3,100
+MA16021,Applied Calculus,3,100
+MATH16500,Calculus I (Campus Variant),3,100
+CS37300,Data Mining And Machine Learning,3,300
+CS38100,Introduction To The Analysis Of Algorithms,3,300
+CS47100,Introduction To Artificial Intelligence,3,400
+CS47300,Web Information Search & Management,3,400
+STAT41600,Probability,3,400
+MA41600,Probability,3,400
+STAT51200,Applied Regression Analysis,3,500
+CS31100,Competitive Programming II,2,300
+CS41100,Competitive Programming III,2,400
+CS31400,Numerical Methods,3,300
+CS34800,Information Systems,3,300
+CS35200,Compilers: Principles And Practice,3,300
+CS44800,Introduction To Relational Database Systems,3,400
+CS45600,Programming Languages,3,400
+CS45800,Introduction to Robotics,3,400
+CS48300,Introduction To The Theory Of Computation,3,400
+CS43900,Introduction to Data Visualization,3,400
+CS44000,Large-Scale Data Analytics,3,400
+CS47500,Human-Computer Interaction,3,400
+CS57700,Natural Language Processing,3,500
+CS57800,Statistical Machine Learning,3,500
+CS25300,Data Structures And Algorithms (Honors/Alt),3,200
+ECE36800,Data Structures (ECE),3,300
+EE36800,Data Structures (EE),3,300
+ECE36900,Algorithms (ECE),3,300
+EE36900,Algorithms (EE),3,300
+STAT35000,Introductory Statistics,3,300
+STAT35500,Statistics,3,300
+STAT51100,Statistical Methods,3,500
+STAT41700,Statistical Theory,3,400
+MGMT30500,Business Statistics,3,300
+IE23000,Probability & Statistics in IE I,3,200
+IE33000,Probability & Statistics in IE II,3,300
+CS21100,Competitive Programming I,2,200
+

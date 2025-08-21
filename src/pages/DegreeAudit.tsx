@@ -30,14 +30,10 @@ import { comprehensiveDegreeRequirements } from "@/data/comprehensive_degree_req
 import { useAcademicPlan } from "@/contexts/AcademicPlanContext";
 import { useTheme } from "@/contexts/ThemeContext";
 
-// Available degree programs
+// Available degree programs - Computer Science only
 const availablePrograms = [
   { value: "computer_science", label: "Computer Science (BS)" },
-  { value: "data_science", label: "Data Science (BS)" },
-  { value: "artificial_intelligence", label: "Artificial Intelligence (BS)" },
-  { value: "computer_science_minor", label: "Computer Science Minor" },
-  { value: "data_science_minor", label: "Data Science Minor" },
-  { value: "artificial_intelligence_minor", label: "AI Minor" }
+  { value: "computer_science_minor", label: "Computer Science Minor" }
 ];
 
 // Course completion status interface
@@ -106,7 +102,7 @@ const convertToAuditFormat = (programKey: string, completions: CourseCompletion 
         grade: completions[courseCode]?.grade || ""
       })) || []
     };
-  } else if (programKey === "data_science") {
+  } else if (programKey === "computer_science_minor") {
     // Required Major Courses
     auditData["Required Major Courses"] = {
       required: program.required_major_courses?.courses?.length || 0,
@@ -142,7 +138,7 @@ const convertToAuditFormat = (programKey: string, completions: CourseCompletion 
         grade: completions[course.code]?.grade || ""
       })) || []
     };
-  } else if (programKey === "artificial_intelligence") {
+  } else if (!programKey.includes("minor")) {
     // Major Courses
     auditData["Major Courses"] = {
       required: program.major_courses?.required_courses?.length || 0,
@@ -237,8 +233,7 @@ export default function DegreeAudit() {
     ).length;
 
     // Simple heuristic for major detection
-    if (aiCourses >= 2) return 'artificial_intelligence';
-    if (dataScienceCourses >= 3 && csCourses >= 5) return 'data_science';
+    // Only Computer Science options available
     if (csCourses >= 4) return 'computer_science';
     
     return null;

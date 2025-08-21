@@ -1,0 +1,14 @@
+{"major_id":"CS","dst":"CS18000","kind":"oneof","expr":[["MA16100"],["MA16300"],["MA16500"],["MA16700"],["MA22100","MA22200"],["MA22300","MA22400"],["MA16010","MA16020"],["MA16021"],["MATH16500"]],"min_grade":"C"}
+
+{"major_id":"CS","dst":"CS18200","kind":"oneof","expr":[["CS17600"],["CS18000"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS18200","kind":"oneof","expr":[["MA16100"],["MA16300"],["MA16500"],["MA16700"],["MA22100","MA22200"],["MA16021"],["MA22300","MA22400"],["MA16010","MA16020"],["MATH16500"]],"min_grade":"C"}
+
+{"major_id":"CS","dst":"CS24000","kind":"allof","expr":["CS18000"],"min_grade":"C"}
+
+{"major_id":"CS","dst":"CS25000","kind":"allof","expr":["CS18200","CS24000"],"min_grade":"C"}
+
+{"major_id":"CS","dst":"CS25100","kind":"allof","expr":["CS18200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS25100","kind":"oneof","expr":[["CS24000"],["CS24200"],["STAT24200"]],"min_grade":"C"}
+
+{"major_id":"CS","dst":"CS25200","kind":"allof","expr":["CS25000","CS25100"],"min_grade":"C"}
+

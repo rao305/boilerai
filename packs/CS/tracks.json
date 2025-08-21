@@ -1,0 +1,24 @@
+{
+  "tracks": [
+    {
+      "id": "machine_intelligence",
+      "name": "Machine Intelligence",
+      "groups": [
+        { "key": "mi_req_ml_dm",    "need": 1, "from": ["CS37300"] },
+        { "key": "mi_req_alg",      "need": 1, "from": ["CS38100"] },
+        { "key": "mi_req_ai_or_ir", "need": 1, "from": ["CS47100","CS47300"] },
+        { "key": "mi_req_prob",     "need": 1, "from": ["STAT41600","MA41600","STAT51200"] },
+        { "key": "mi_electives",    "need": 2, "from": ["CS31100","CS41100","CS31400","CS34800","CS35200","CS44800","CS45600","CS45800","CS48300","CS43900","CS44000","CS47500","CS57700","CS57800"] }
+      ]
+    },
+    {
+      "id": "software_engineering",
+      "name": "Software Engineering",
+      "groups": [
+        { "key": "se_required",  "need": 0, "from": [] },
+        { "key": "se_electives", "need": 0, "from": [] }
+      ]
+    }
+  ]
+}
+

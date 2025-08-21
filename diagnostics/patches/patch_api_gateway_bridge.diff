@@ -1,0 +1,98 @@
+--- a/backend/src/routes/advisor.js
++++ b/backend/src/routes/advisor.js
+@@ -1,9 +1,11 @@
+ const express = require('express');
+ const router = express.Router();
++const axios = require('axios');
+ const { logger } = require('../utils/logger');
+ const { authenticateToken } = require('../middleware/auth');
+ const { requireLLMConfig, getLLMOptions } = require('../middleware/llmConfig');
+ const unifiedAIService = require('../services/unifiedAIService');
++const { classifyIntent, routeToStructuredService } = require('../services/structuredRouterService');
+ 
+ // Enhanced chat endpoint with per-request provider selection
+ router.post('/chat', requireLLMConfig, async (req, res) => {
+@@ -26,10 +28,44 @@ router.post('/chat', requireLLMConfig, async (req, res) => {
+       sessionId: sessionId || 'default'
+     });
+ 
+-    // Enhanced AI chat with provider selection support
+-    const response = await unifiedAIService.sendMessage(llmOptions);
++    // NEW: Route to proper structured service instead of generic chat
++    try {
++      // Step 1: Classify intent
++      const intent = classifyIntent(message);
++      logger.info(`Intent classified: ${intent}`, { userId: llmOptions.userId, message: message.substring(0, 50) });
++
++      // Step 2: Route to appropriate structured service
++      if (intent === 'course_facts') {
++        // Route to API gateway /qa endpoint for T2SQL processing
++        const qaResponse = await axios.post(process.env.API_GATEWAY_URL + '/qa', {
++          question: message,
++          profile_json: req.body.profile_json || null
++        });
++        
++        const structuredData = qaResponse.data;
++        return res.json({
++          success: true,
++          data: {
++            ...structuredData,
++            provider: req.llmConfig.provider,
++            model: req.llmConfig.model,
++            timestamp: new Date().toISOString(),
++            routing: { intent, service: 'api_gateway_qa', mode: structuredData.mode }
++          }
++        });
++      } else if (intent === 'planner_query') {
++        if (!req.body.profile_json) {
++          return res.status(400).json({
++            success: false,
++            error: 'Profile required for planning queries',
++            hint: 'Include profile_json with completed courses and major'
++          });
++        }
++        
++        // Route to planner service
++        const planResponse = await axios.post(process.env.API_GATEWAY_URL + '/plan/compute', {
++          profile_json: req.body.profile_json
++        });
++        
++        return res.json({
++          success: true,
++          data: {
++            mode: 'planner',
++            plan: planResponse.data,
++            provider: req.llmConfig.provider,
++            model: req.llmConfig.model,
++            timestamp: new Date().toISOString(),
++            routing: { intent, service: 'api_gateway_planner' }
++          }
++        });
++      } else {
++        // Unknown intent - fail closed instead of generating prose
++        return res.status(400).json({
++          success: false,
++          error: 'Query not modeled yet. Supported: course facts, academic planning.',
++          intent: intent,
++          examples: [
++            'Tell me about CS 180',
++            'Prerequisites for CS 381',
++            'Plan my next semester (requires profile)'
++          ]
++        });
++      }
++    } catch (apiError) {
++      logger.error('API Gateway error, falling back to structured error', apiError);
++      
++      // FAIL SAFE: Return structured error instead of generic prose
++      return res.status(503).json({
++        success: false,
++        error: 'Academic advisor service temporarily unavailable',
++        service: 'api_gateway',
++        fallback: false,  // No freeform fallback allowed
++        retry: true
++      });
++    }
+ 
+     logger.info(`Chat message processed`, {
+       provider: req.llmConfig.provider,

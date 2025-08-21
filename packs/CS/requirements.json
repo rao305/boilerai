@@ -1,0 +1,20 @@
+{
+  "version": "2025-26",
+  "groups": [
+    {
+      "key": "cs_core",
+      "need": 6,
+      "from": ["CS18000","CS18200","CS24000","CS25000","CS25100","CS25200"]
+    },
+    {
+      "key": "seminar_required",
+      "need": 1,
+      "from": ["CS19300"]
+    }
+  ],
+  "caps": {
+    "max_credits_per_term": 18,
+    "min_grade_default": "C"
+  }
+}
+

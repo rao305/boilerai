@@ -1,0 +1,7 @@
+{
+  "max_credits_per_term": 18,
+  "summer_allowed_default": true,
+  "min_grade_default": "C",
+  "overload_requires_approval": true
+}
+

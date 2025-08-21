@@ -1,0 +1,53 @@
+--- a/backend/src/routes/advisor.js
++++ b/backend/src/routes/advisor.js
+@@ -5,7 +5,7 @@ const { authenticateToken } = require('../middleware/auth');
+ const { requireLLMConfig, getLLMOptions } = require('../middleware/llmConfig');
+ const unifiedAIService = require('../services/unifiedAIService');
+ 
+-// Enhanced chat endpoint with per-request provider selection
++// Enhanced chat endpoint - should route to API gateway, not freeform chat
+ router.post('/chat', requireLLMConfig, async (req, res) => {
+   try {
+     const { message, userId, sessionId } = req.body;
+@@ -13,6 +13,19 @@ router.post('/chat', requireLLMConfig, async (req, res) => {
+     // Validate required fields
+     if (!message) {
+       return res.status(400).json({
++        success: false,
++        error: 'Message is required'
++      });
++    }
++
++    // FAIL CLOSED: Block generic chat, require structured processing
++    const isGenericQuestion = /tell me (more )?about|what (is|can you tell)|how (is|good)/i.test(message);
++    if (isGenericQuestion) {
++      return res.status(400).json({
++        success: false,
++        error: 'Not modeled yet. Generic questions require structured processing via /qa endpoint.',
++        hint: 'Use specific course queries like "CS 180 prerequisites" or planning queries.',
++        mode: 'structured_only'
++      });
++    }
++
++    // For now, reject all requests until proper API gateway integration
++    return res.status(501).json({
+         success: false,
+-        error: 'Message is required'
++        error: 'Chat endpoint deprecated. Use structured /qa endpoint with T2SQL or planner.',
++        expectedEndpoint: '/qa',
++        currentService: 'freeform_chat_deprecated'
+       });
+     }
+ 
+@@ -26,7 +39,10 @@ router.post('/chat', requireLLMConfig, async (req, res) => {
+       sessionId: sessionId || 'default'
+     });
+ 
+-    // Enhanced AI chat with provider selection support
++    // DEPRECATED: This bypasses T2SQL and planner entirely
++    // Should be: const response = await apiGateway.post('/qa', {question: message, profile_json});
++    logger.warn('Using deprecated freeform chat instead of structured processing');
++    
+     const response = await unifiedAIService.sendMessage(llmOptions);
+ 
+     logger.info(`Chat message processed`, {

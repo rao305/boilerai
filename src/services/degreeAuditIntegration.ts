@@ -106,71 +106,144 @@ export interface AcademicProgression {
   graduationPrediction: GraduationPrediction;
 }
 
-// Course classification mappings for Purdue CS degree
-const COURSE_MAPPINGS = {
-  // Foundation Courses
-  'CS 18000': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 18200': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 24000': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 25000': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 25100': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 25200': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 30700': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 34800': { category: 'Core Computer Science', classification: 'foundation', required: true },
-  'CS 38100': { category: 'Core Computer Science', classification: 'foundation', required: true },
+// Dynamic course classification mappings - loaded from database
+let COURSE_MAPPINGS: Record<string, any> = {};
 
-  // Mathematics Requirements
-  'MA 16100': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, equivalent: ['MA 16500'] },
-  'MA 16200': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, equivalent: ['MA 16600'] },
-  'MA 16500': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, equivalent: ['MA 16100'] },
-  'MA 16600': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, equivalent: ['MA 16200'] },
-  'MA 26100': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true },
-  'MA 26500': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true },
-  'MA 26600': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true },
-  'STAT 35000': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true },
+// Initialize course mappings from database or knowledge base
+async function initializeCourseMappings() {
+  try {
+    // Try to load from database/knowledge base
+    const courses = await loadCourseDataFromDatabase();
+    if (courses && courses.length > 0) {
+      courses.forEach(course => {
+        COURSE_MAPPINGS[course.course_code] = {
+          category: course.category,
+          classification: course.classification,
+          required: course.required,
+          credits: course.credits,
+          title: course.title,
+          equivalent: course.equivalent || []
+        };
+      });
+    } else {
+      // Fallback to minimal essential data with credits
+      COURSE_MAPPINGS = {
+        // Core CS Courses
+        'CS 18000': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 4, title: 'Problem Solving and Object-Oriented Programming' },
+        'CS 18200': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 3, title: 'Foundations of Computer Science' },
+        'CS 24000': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 3, title: 'Programming in C' },
+        'CS 25000': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 4, title: 'Computer Architecture' },
+        'CS 25100': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 3, title: 'Data Structures and Algorithms' },
+        'CS 25200': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 4, title: 'Systems Programming' },
+        'CS 30700': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 3, title: 'Software Engineering' },
+        'CS 34800': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 3, title: 'Information Systems' },
+        'CS 38100': { category: 'Core Computer Science', classification: 'foundation', required: true, credits: 3, title: 'Introduction to Analysis of Algorithms' },
 
-  // Science Requirements
-  'PHYS 17200': { category: 'Science Requirements', classification: 'science_requirement', required: true },
-  'PHYS 24100': { category: 'Science Requirements', classification: 'science_requirement', required: true },
-  'CHEM 11500': { category: 'Science Requirements', classification: 'science_requirement', required: false },
-  'BIOL 11000': { category: 'Science Requirements', classification: 'science_requirement', required: false },
+        // Math Requirements
+        'MA 16100': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 5, title: 'Plane Analytic Geometry and Calculus I', equivalent: ['MA 16500'] },
+        'MA 16200': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 5, title: 'Plane Analytic Geometry and Calculus II', equivalent: ['MA 16600'] },
+        'MA 16500': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 4, title: 'Analytic Geometry and Calculus I', equivalent: ['MA 16100'] },
+        'MA 16600': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 4, title: 'Analytic Geometry and Calculus II', equivalent: ['MA 16200'] },
+        'MA 26100': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 4, title: 'Multivariate Calculus' },
+        'MA 26500': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 3, title: 'Linear Algebra' },
+        'MA 26600': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 3, title: 'Ordinary Differential Equations' },
+        'STAT 35000': { category: 'Mathematics Foundation', classification: 'math_requirement', required: true, credits: 3, title: 'Introduction to Statistics' },
 
-  // General Education (UCC)
-  'ENGL 10600': { category: 'University Core Curriculum', classification: 'general_education', required: true },
-  'ENGL 42000': { category: 'University Core Curriculum', classification: 'general_education', required: false },
-  'COM 11400': { category: 'University Core Curriculum', classification: 'general_education', required: true },
-  'SCLA 10100': { category: 'University Core Curriculum', classification: 'general_education', required: true },
-  'SCLA 10200': { category: 'University Core Curriculum', classification: 'general_education', required: true },
+        // Science Requirements
+        'PHYS 17200': { category: 'Science Requirements', classification: 'science_requirement', required: true, credits: 4, title: 'Modern Mechanics' },
+        'PHYS 24100': { category: 'Science Requirements', classification: 'science_requirement', required: true, credits: 3, title: 'Electricity and Optics' },
+        'CHEM 11500': { category: 'Science Requirements', classification: 'science_requirement', required: false, credits: 4, title: 'General Chemistry' },
+        'BIOL 11000': { category: 'Science Requirements', classification: 'science_requirement', required: false, credits: 4, title: 'Fundamentals of Biology' },
 
-  // Machine Intelligence Concentration
-  'CS 37300': { category: 'Machine Intelligence Concentration', classification: 'concentration', required: false },
-  'CS 47100': { category: 'Machine Intelligence Concentration', classification: 'concentration', required: false },
-  'CS 49000': { category: 'Machine Intelligence Concentration', classification: 'concentration', required: false },
-  'STAT 41600': { category: 'Machine Intelligence Concentration', classification: 'concentration', required: false },
-
-  // Technical Electives
-  'CS 33400': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-  'CS 39000': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-  'CS 42200': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-  'CS 42600': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-  'CS 45600': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-  'CS 47300': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-  'CS 49700': { category: 'Technical Electives', classification: 'technical_elective', required: false },
-};
-
-// Credit hour requirements for Purdue CS degree
-const DEGREE_REQUIREMENTS = {
-  totalCreditsRequired: 128,
-  categories: {
-    'Core Computer Science': { required: 48, courses: 12 },
-    'Mathematics Foundation': { required: 18, courses: 6 },
-    'Science Requirements': { required: 8, courses: 2 },
-    'University Core Curriculum': { required: 32, courses: 8 },
-    'Machine Intelligence Concentration': { required: 18, courses: 6 },
-    'Technical Electives': { required: 18, courses: 6 },
-    'Free Electives': { required: 18, courses: 6 }
+        // General Education
+        'ENGL 10600': { category: 'University Core Curriculum', classification: 'general_education', required: true, credits: 4, title: 'First-Year Composition' },
+        'ENGL 10800': { category: 'University Core Curriculum', classification: 'general_education', required: false, credits: 3, title: 'Accelerated Composition' },
+        'COM 11400': { category: 'University Core Curriculum', classification: 'general_education', required: true, credits: 3, title: 'Fundamentals of Speech Communication' },
+        'SCLA 10100': { category: 'University Core Curriculum', classification: 'general_education', required: true, credits: 3, title: 'Critical Thinking and Communication' },
+        'SCLA 10200': { category: 'University Core Curriculum', classification: 'general_education', required: true, credits: 3, title: 'Critical Thinking and Communication II' }
+      };
+    }
+  } catch (error) {
+    console.error('Failed to initialize course mappings:', error);
   }
+}
+
+// Helper function to load course data from database
+async function loadCourseDataFromDatabase() {
+  // This should connect to your actual database/knowledge base
+  // Return null to use fallback data
+  return null;
+}
+
+// Dynamic degree requirements - loaded from database or configuration
+let DEGREE_REQUIREMENTS: any = {
+  totalCreditsRequired: 128,
+  categories: {}
 };
+
+// Initialize degree requirements from database
+async function initializeDegreeRequirements(major = 'Computer Science', track?: string) {
+  try {
+    const requirements = await loadDegreeRequirementsFromDatabase(major, track);
+    if (requirements) {
+      DEGREE_REQUIREMENTS = requirements;
+    } else {
+      // Fallback to CS requirements
+      DEGREE_REQUIREMENTS = {
+        totalCreditsRequired: 128,
+        categories: {
+          'Core Computer Science': { required: 48, courses: 12 },
+          'Mathematics Foundation': { required: 18, courses: 6 },
+          'Science Requirements': { required: 8, courses: 2 },
+          'University Core Curriculum': { required: 32, courses: 8 },
+          'Machine Intelligence Concentration': { required: 18, courses: 6 },
+          'Technical Electives': { required: 18, courses: 6 },
+          'Free Electives': { required: 18, courses: 6 }
+        }
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load degree requirements:', error);
+  }
+}
+
+// Helper to load degree requirements from database
+async function loadDegreeRequirementsFromDatabase(major: string, track?: string) {
+  // This should connect to your actual database/knowledge base
+  // Return null to use fallback data
+  return null;
+}
+
+// Helper function to safely get course credits with fallback
+export function getCourseCredits(courseCode: string): number {
+  if (!COURSE_MAPPINGS || Object.keys(COURSE_MAPPINGS).length === 0) {
+    console.warn('Course mappings not initialized, using default credits');
+    return 3; // Default credit value
+  }
+  
+  const course = COURSE_MAPPINGS[courseCode];
+  if (course && typeof course.credits === 'number') {
+    return course.credits;
+  }
+  
+  // Default credits based on course level
+  if (courseCode.includes('MA') && courseCode.includes('16')) return 4; // Calc courses
+  if (courseCode.includes('MA') && courseCode.includes('26')) return 4; // Advanced math
+  if (courseCode.includes('CS') && courseCode.endsWith('000')) return 4; // Architecture courses
+  if (courseCode.includes('PHYS')) return 4; // Physics courses
+  if (courseCode.includes('CHEM') || courseCode.includes('BIOL')) return 4; // Science courses
+  
+  return 3; // Default fallback
+}
+
+// Helper function to get course title with fallback
+export function getCourseTitle(courseCode: string): string {
+  const course = COURSE_MAPPINGS[courseCode];
+  return course?.title || courseCode;
+}
+
+// Initialize mappings on module load
+initializeCourseMappings().catch(console.error);
 
 /**
  * Maps transcript courses to degree audit requirements
