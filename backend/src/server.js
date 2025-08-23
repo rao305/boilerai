@@ -210,6 +210,7 @@ app.use(cors({
 const { sanitizeRequest } = require('./middleware/inputSanitization');
 const { enforceUserIsolation, validateUserParams } = require('./middleware/userIsolation');
 const { extractLLMConfig } = require('./middleware/llmConfig');
+const antiChattyMiddleware = require('./middleware/antiChatty');
 
 // Request logging middleware
 app.use(requestLogger);
@@ -249,6 +250,9 @@ app.use('/api', validateUserParams);
 
 // Extract LLM configuration from headers
 app.use('/api', extractLLMConfig);
+
+// Anti-chatty middleware - blocks generic LLM responses
+app.use('/api', antiChattyMiddleware);
 
 // CRITICAL SECURITY: Enhanced rate limiting with different tiers
 const generalLimiter = rateLimit({
@@ -297,12 +301,14 @@ app.use('/api/transcript', transcriptLimiter);
 
 // Routes
 app.use('/api/transcript', require('./routes/transcript'));
+app.use('/api/transcript-context', require('./routes/transcriptContext'));
 app.use('/api/courses', require('./routes/courses'));
 app.use('/api/planner', require('./routes/planner'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/settings', require('./routes/settings'));
 app.use('/api/advisor', require('./routes/advisor'));
 app.use('/api/rag', require('./routes/rag'));
+app.use('/api/intelligent-rag', require('./routes/intelligent_rag'));
 app.use('/api/migration', require('./routes/migration'));
 
 // Admin routes for email configuration

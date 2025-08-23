@@ -8,7 +8,8 @@ const { requireLLMConfig, getLLMOptions } = require('../middleware/llmConfig');
 const unifiedAIService = require('../services/unifiedAIService');
 
 const API_GATEWAY_URL = process.env.API_GATEWAY_URL || 'http://127.0.0.1:8001';
-const DISABLE_UNIFIED_AI_SERVICE = String(process.env.DISABLE_UNIFIED_AI_SERVICE || '1') === '1';
+const DISABLE_UNIFIED_AI_SERVICE = String(process.env.DISABLE_UNIFIED_AI_SERVICE || '0') === '1';
+const FORCE_STRUCTURED_QA = String(process.env.FORCE_STRUCTURED_QA || '1') === '1';
 
 function pickLLMHeaders(req) {
   // Pass-through BYO key/model; NEVER log these.
@@ -22,22 +23,57 @@ function pickLLMHeaders(req) {
   return h;
 }
 
-// Enhanced chat endpoint - now proxies to structured FastAPI gateway
+// Enhanced chat endpoint - ALWAYS proxies to structured FastAPI gateway
 router.post('/chat', requireLLMConfig, async (req, res) => {
   try {
-    const question = (req.body?.message || req.body?.question || '').trim();
+    const question = 
+      (typeof req.body?.question === 'string' && req.body.question.trim()) ||
+      (Array.isArray(req.body?.messages) && req.body.messages.at(-1)?.content?.trim()) ||
+      (typeof req.body?.message === 'string' && req.body.message.trim()) || '';
+    
     const { userId, sessionId, profile_json } = req.body;
 
     // Validate required fields
     if (!question) {
       return res.status(400).json({
         success: false,
-        error: 'Message is required'
+        error: 'Missing question'
       });
     }
 
-    // Fail-closed: always proxy to the structured gateway unless explicitly allowed.
-    if (DISABLE_UNIFIED_AI_SERVICE) {
+    // Use unified AI service if enabled, otherwise proxy to structured gateway
+    if (!DISABLE_UNIFIED_AI_SERVICE) {
+      // Use unified AI service directly
+      logger.info('Using unified AI service', {
+        questionLength: question.length,
+        userId: userId || 'anonymous',
+        hasProfile: !!profile_json
+      });
+
+      const llmConfig = getLLMOptions(req);
+      const response = await unifiedAIService.sendMessage({
+        message: question,
+        apiKey: llmConfig.apiKey,
+        provider: llmConfig.provider,
+        model: llmConfig.model,
+        userId,
+        sessionId: req.body.sessionId || 'default'
+      });
+
+      return res.json({
+        success: true,
+        data: {
+          content: response,
+          mode: 'unified_ai',
+          timestamp: new Date().toISOString(),
+          routing: {
+            service: 'unified_ai',
+            mode: 'direct'
+          }
+        }
+      });
+    } else {
+      // Proxy to structured gateway
       try {
         logger.info('Proxying to API Gateway', {
           gatewayUrl: API_GATEWAY_URL,
@@ -59,80 +95,69 @@ router.post('/chat', requireLLMConfig, async (req, res) => {
         });
         
         const structuredData = response.data;
-        
-        // Log successful structured response
-        logger.info('Structured response received', {
-          mode: structuredData.mode,
-          hasRows: !!(structuredData.rows && structuredData.rows.length > 0),
-          hasPlan: !!structuredData.plan,
-          userId: userId || 'anonymous'
-        });
-        
-        return res.json({
-          success: true,
-          data: {
-            ...structuredData,
-            provider: req.llmConfig?.provider,
-            model: req.llmConfig?.model,
-            timestamp: new Date().toISOString(),
-            routing: { 
-              service: 'api_gateway', 
-              mode: structuredData.mode,
-              endpoint: '/qa'
-            }
-          }
-        });
-      } catch (apiError) {
-        logger.error('API Gateway proxy error', {
-          error: apiError.message,
-          status: apiError.response?.status,
-          gatewayUrl: API_GATEWAY_URL,
-          userId: userId || 'anonymous'
-        });
-        
-        const status = apiError.response?.status || 502;
-        const errorData = apiError.response?.data;
-        
-        return res.status(status).json({
+      
+      // Guard: reject freeform responses lacking `mode`
+      if (!structuredData || !structuredData.mode) {
+        return res.status(502).json({ 
           success: false,
-          error: errorData?.error || 'Academic advisor service temporarily unavailable',
-          service: 'api_gateway',
-          fallback: false,  // No freeform fallback allowed
-          retry: status >= 500
+          error: 'Upstream returned non-structured payload', 
+          data: structuredData 
         });
       }
-    }
-
-    // Legacy path (optional): only if you re-enable it for experiments
-    logger.warn('Using deprecated freeform chat instead of structured processing');
-    
-    // Get LLM configuration from headers via middleware
-    const llmOptions = getLLMOptions(req, {
-      message: question,
-      userId: userId || req.user?.id || 'anonymous',
-      sessionId: sessionId || 'default'
-    });
-
-    // DEPRECATED: This bypasses T2SQL and planner entirely
-    const response = await unifiedAIService.sendMessage(llmOptions);
-
-    logger.info(`Chat message processed`, {
-      provider: req.llmConfig.provider,
-      userId: llmOptions.userId,
-      hasModel: !!req.llmConfig.model
-    });
-
-    res.json({
-      success: true,
-      data: {
-        response: response,
-        provider: req.llmConfig?.provider,
-        model: req.llmConfig?.model,
-        timestamp: new Date().toISOString(),
-        mode: 'legacy-chat',
-        warning: 'Using deprecated freeform chat - should use structured /qa endpoint'
+      
+      // Validate mode is one of our expected types
+      const validModes = ['t2sql', 'planner', 'general_chat'];
+      if (!validModes.includes(structuredData.mode)) {
+        return res.status(502).json({
+          success: false,
+          error: 'Upstream returned invalid mode',
+          mode: structuredData.mode,
+          expected: validModes
+        });
       }
-    });
+      
+      // Log successful structured response
+      logger.info('Structured response received', {
+        mode: structuredData.mode,
+        hasRows: !!(structuredData.rows && structuredData.rows.length > 0),
+        hasPlan: !!structuredData.plan,
+        userId: userId || 'anonymous'
+      });
+      
+      return res.json({
+        success: true,
+        data: {
+          ...structuredData,
+          provider: req.llmConfig?.provider,
+          model: req.llmConfig?.model,
+          timestamp: new Date().toISOString(),
+          routing: { 
+            service: 'api_gateway', 
+            mode: structuredData.mode,
+            endpoint: '/qa'
+          }
+        }
+      });
+    } catch (apiError) {
+      logger.error('API Gateway proxy error', {
+        error: apiError.message,
+        status: apiError.response?.status,
+        gatewayUrl: API_GATEWAY_URL,
+        userId: userId || 'anonymous'
+      });
+      
+      const status = apiError.response?.status || 502;
+      const errorData = apiError.response?.data;
+      
+      return res.status(status).json({
+        success: false,
+        error: errorData?.error || 'Academic advisor service temporarily unavailable',
+        service: 'api_gateway',
+        fallback: false,  // No freeform fallback allowed
+        retry: status >= 500
+      });
+    }
+    } // End of else block for DISABLE_UNIFIED_AI_SERVICE
 
   } catch (error) {
     logger.error('Chat endpoint error:', error);

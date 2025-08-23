@@ -1,0 +1,72 @@
+{
+  "timestamp": 1755878378.522397,
+  "summary": {
+    "total_tests": 7,
+    "successful_tests": 7,
+    "success_rate": 1.0,
+    "personalization_rate": 0.6666666666666666,
+    "average_performance_ms": 0.009031295776367188,
+    "implementation_complete": true
+  },
+  "detailed_results": {
+    "contextual_routing": [
+      {
+        "profile": "strong_student",
+        "query": "What elective courses should I choose next semeste...",
+        "handler": "plan_focused",
+        "confidence": 0.8,
+        "personalization_score": 0.6,
+        "success": true
+      },
+      {
+        "profile": "strong_student",
+        "query": "I'm struggling with my GPA - what courses should I...",
+        "handler": "personalized_advisor",
+        "confidence": 0.75,
+        "personalization_score": 0.6,
+        "success": true
+      },
+      {
+        "profile": "strong_student",
+        "query": "What courses should I take to prepare for graduati...",
+        "handler": "plan_focused",
+        "confidence": 0.8,
+        "personalization_score": 0.6,
+        "success": true
+      },
+      {
+        "profile": "struggling_student",
+        "query": "What elective courses should I choose next semeste...",
+        "handler": "personalized_advisor",
+        "confidence": 0.85,
+        "personalization_score": 0.7,
+        "success": true
+      },
+      {
+        "profile": "struggling_student",
+        "query": "I'm struggling with my GPA - what courses should I...",
+        "handler": "personalized_advisor",
+        "confidence": 0.9,
+        "personalization_score": 0.8,
+        "success": true
+      },
+      {
+        "profile": "struggling_student",
+        "query": "What courses should I take to prepare for graduati...",
+        "handler": "personalized_advisor",
+        "confidence": 0.85,
+        "personalization_score": 0.7,
+        "success": true
+      }
+    ],
+    "recommendation_evaluation": [],
+    "contextual_advisor": [],
+    "performance_benchmarks": {
+      "average_time_ms": 0.009031295776367188,
+      "max_time_ms": 0.03218650817871094,
+      "min_time_ms": 0.007152557373046875,
+      "performance_acceptable": true,
+      "success": true
+    }
+  }
+}

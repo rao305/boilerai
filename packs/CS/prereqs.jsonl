@@ -12,3 +12,23 @@
 
 {"major_id":"CS","dst":"CS25200","kind":"allof","expr":["CS25000","CS25100"],"min_grade":"C"}
 
+{"major_id":"CS","dst":"CS30700","kind":"oneof","expr":[["CS25100"],["CS25300"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS35200","kind":"allof","expr":["CS25100","CS25200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS35400","kind":"allof","expr":["CS25100","CS25200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS38100","kind":"oneof","expr":[["CS25100"],["CS25300"],["ECE36800"],["EE36800"],["ECE36900"],["EE36900"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS38100","kind":"oneof","expr":[["MA26100"],["MA17200"],["MA17400"],["MA18200"],["MA27101"],["MA26300"],["MA27100"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS40800","kind":"oneof","expr":[["CS25100"],["CS25300"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS40700","kind":"allof","expr":["CS30700"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS35100","kind":"allof","expr":["CS25200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS35300","kind":"allof","expr":["CS25100","CS25200","CS35200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS42200","kind":"allof","expr":["CS25100","CS25200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS42200","kind":"oneof","expr":[["CS35400"],["ECE46900"],["EE46900"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS42600","kind":"oneof","expr":[["CS25100","CS25200"],["ECE46900"],["EE46900"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS48900","kind":"allof","expr":["CS25000","CS25100","CS25200"],"min_grade":"C"}
+{"major_id":"CS","dst":"CS49000-DSO","kind":"oneof","expr":[["CS35200"],["CS35400"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS49000-SWS","kind":"oneof","expr":[["CS42600"],["CS42200"],["CS35200"],["CS35400"]],"min_grade":"C"}
+{"major_id":"CS","dst":"CS51000","kind":"oneof","expr":[["CS25100"]],"min_grade":"D-"}
+{"major_id":"CS","dst":"CS59000-SRS","kind":"oneof","expr":[["CS42600"],["CS35200"],["CS35400"]],"min_grade":"C"}
+{"major_id":"CS","dst":"EPCS41100","kind":"oneof","expr":[["JuniorStanding"]],"min_grade":"C"}
+{"major_id":"CS","dst":"EPCS41200","kind":"allof","expr":["EPCS41100"],"min_grade":"C"}
+

@@ -5,6 +5,10 @@ export interface ThinkingStep {
   content: string;
   status: 'pending' | 'processing' | 'completed';
   timestamp: Date;
+  reasoning_depth: 'surface' | 'deep' | 'critical';
+  confidence_level: number; // 0-1
+  context_used: string[]; // What context was considered
+  alternatives_considered?: string[]; // Alternative approaches
   metadata?: {
     // Retrieval step metadata
     retrieval_results?: any[];
@@ -48,6 +52,25 @@ export interface AIReasoningResponse {
   reasoning_time?: number;
   model_used?: string;
   thinkingSummary?: string;
+  reasoning_depth: 'quick' | 'standard' | 'deep' | 'critical';
+  context_awareness: {
+    student_profile_used: boolean;
+    transcript_data_used: boolean;
+    academic_rules_applied: boolean;
+    prerequisites_checked: boolean;
+    track_alignment_verified: boolean;
+  };
+  decision_factors: {
+    primary_factors: string[];
+    secondary_factors: string[];
+    ignored_factors: string[];
+  };
+  alternatives_explored: Array<{
+    option: string;
+    reasoning: string;
+    confidence: number;
+    rejected_because: string;
+  }>;
 }
 
 export interface EnhancedMessage {
@@ -109,4 +132,21 @@ export interface ThinkingConfig {
   animateSteps: boolean;
   stepDelay: number; // milliseconds between steps
   enableReasoningMode: boolean;
+  showAlternatives: boolean;
+  showContextualFactors: boolean;
+  showConfidenceLevels: boolean;
 }
+
+// Enhanced DeepThink mode - always enabled for best contextual reasoning
+export const DEEPTHINK_CONFIG = {
+  name: 'DeepThink',
+  description: 'Advanced contextual reasoning with transcript and plan integration',
+  step_count: 6, // Optimized based on SmartCourse research
+  depth_level: 'contextual' as const,
+  context_analysis: true,
+  alternative_exploration: true,
+  confidence_tracking: true,
+  transcript_integration: true,
+  plan_awareness: true,
+  prerequisite_checking: true
+};

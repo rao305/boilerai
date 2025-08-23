@@ -1,205 +1,205 @@
-# BoilerAI Freeform Response Diagnosis Report
+# BoilerAI Diagnosis Report
 
-**Timestamp:** 2025-08-21T08:00:00Z  
-**Analyst:** Claude Code Diagnostic Engine  
-**Issue:** System producing generic freeform prose instead of structured DB-backed responses  
+## Direct Provider Usage Audit
+### unifiedAIService usage:
+backend/test_rag_fix.js:6:const unifiedAIService = require('./src/services/unifiedAIService');
+backend/test_rag_fix.js:71:    const ragResult = await unifiedAIService.generateRAGResponse(
+backend/src/routes/advisor.js:8:const unifiedAIService = require('../services/unifiedAIService');
+backend/src/routes/advisor.js:128:      const response = await unifiedAIService.sendMessage(llmOptions);
+backend/src/routes/advisor.js:171:    const response = await unifiedAIService.sendMessage({
+backend/src/routes/courses.js:5:const unifiedAIService = require('../services/unifiedAIService');
+backend/src/routes/courses.js:12:    return await unifiedAIService.generateCourseData(filters, apiKey);
+backend/src/routes/courses.js:15:    return unifiedAIService.getStaticCourseData();
+backend/src/routes/courses.js:24:    return await unifiedAIService.searchCoursesWithAI(searchTerm, apiKey);
+backend/src/routes/advisor_diagnostic.js:7:const unifiedAIService = require('../services/unifiedAIService');
+backend/src/routes/advisor_diagnostic.js:71:        finalMode: 'unifiedAIService',
+backend/src/routes/advisor_diagnostic.js:94:    const response = await unifiedAIService.sendMessage(llmOptions);
+backend/src/routes/advisor_diagnostic.js:195:      currentRouter: 'unifiedAIService',
+backend/src/routes/rag.js:5:const unifiedAIService = require('../services/unifiedAIService');
+backend/src/routes/rag.js:12:    return await unifiedAIService.generateRAGResponse(query, context, filters, apiKey);
+backend/src/routes/rag.js:24:    return await unifiedAIService.generateKnowledgeSources(apiKey);
+backend/src/routes/rag.js:27:    return unifiedAIService.getStaticKnowledgeSources();
 
-## Executive Summary
+### @google/generative-ai usage:
+No @google/generative-ai found
 
-**ROOT CAUSE IDENTIFIED**: The frontend/backend is routing chat requests to a generic LLM service (`unifiedAIService`) instead of the structured T2SQL/Planner API gateway that contains the proper academic advisor logic.
+### OpenAI SDK usage:
+backend/node_modules/openai/beta/realtime/internal-base.js:24:            const error = new OpenAIRealtimeError(message +
+backend/node_modules/openai/beta/realtime/internal-base.js:31:        const error = new OpenAIRealtimeError(message, event);
+backend/node_modules/openai/beta/realtime/ws.mjs:7:        client ?? (client = new OpenAI());
+backend/node_modules/openai/beta/realtime/ws.mjs:47:        return new OpenAIRealtimeWS({ model: deploymentName, options: { headers: await getAzureHeaders(client) } }, client);
+backend/node_modules/openai/beta/realtime/internal-base.mjs:18:            const error = new OpenAIRealtimeError(message +
+backend/node_modules/openai/beta/realtime/internal-base.mjs:25:        const error = new OpenAIRealtimeError(message, event);
+backend/node_modules/openai/beta/realtime/websocket.mjs:12:            throw new OpenAIError("It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\n\nYou can avoid this error by creating an ephemeral session token:\nhttps://platform.openai.com/docs/api-reference/realtime-sessions\n");
+backend/node_modules/openai/beta/realtime/websocket.mjs:14:        client ?? (client = new OpenAI({ dangerouslyAllowBrowser }));
+backend/node_modules/openai/beta/realtime/websocket.mjs:76:        return new OpenAIRealtimeWebSocket({
+backend/node_modules/openai/beta/realtime/websocket.js:79:        return new OpenAIRealtimeWebSocket({
+backend/node_modules/openai/beta/realtime/ws.js:51:        return new OpenAIRealtimeWS({ model: deploymentName, options: { headers: await getAzureHeaders(client) } }, client);
+backend/node_modules/openai/client.js:86:            throw new Errors.OpenAIError("The OPENAI_API_KEY environment variable is missing or empty; either provide it, or instantiate the OpenAI client with an apiKey option, like new OpenAI({ apiKey: 'My API Key' }).");
+backend/node_modules/openai/client.js:97:            throw new Errors.OpenAIError("It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew OpenAI({ apiKey, dangerouslyAllowBrowser: true });\n\nhttps://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety\n");
+backend/node_modules/openai/core/pagination.mjs:25:            throw new OpenAIError('No next page expected; please check `.hasNextPage()` before calling `.getNextPage()`.');
+backend/node_modules/openai/core/streaming.mjs:23:                throw new OpenAIError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+backend/node_modules/openai/core/streaming.mjs:103:                throw new OpenAIError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+backend/node_modules/openai/core/streaming.mjs:193:            throw new OpenAIError(`The default react-native fetch implementation does not support streaming. Please use expo/fetch: https://docs.expo.dev/versions/latest/sdk/expo/#expofetch-api`);
+backend/node_modules/openai/core/streaming.mjs:195:        throw new OpenAIError(`Attempted to iterate over a response with no body`);
+backend/node_modules/openai/internal/utils/base64.mjs:16:    throw new OpenAIError('Cannot generate base64 string; Expected `Buffer` or `btoa` to be defined');
+backend/node_modules/openai/internal/utils/base64.mjs:31:    throw new OpenAIError('Cannot decode base64 string; Expected `Buffer` or `atob` to be defined');
+backend/node_modules/openai/internal/utils/values.mjs:34:        throw new OpenAIError(`Expected a value to be given but received ${value} instead.`);
+backend/node_modules/openai/internal/utils/values.mjs:40:        throw new OpenAIError(`${name} must be an integer`);
+backend/node_modules/openai/internal/utils/values.mjs:43:        throw new OpenAIError(`${name} must be a positive integer`);
+backend/node_modules/openai/internal/utils/values.mjs:52:    throw new OpenAIError(`Could not coerce ${value} (type: ${typeof value}) into a number`);
+backend/node_modules/openai/internal/utils/values.mjs:59:    throw new OpenAIError(`Could not coerce ${value} (type: ${typeof value}) into a number`);
+backend/node_modules/openai/internal/utils/path.mjs:64:        throw new OpenAIError(`Path parameters result in path with invalid segments:\n${invalidSegments
+backend/node_modules/openai/internal/shims.mjs:6:    throw new Error('`fetch` is not defined as a global; Either pass `fetch` to the client, `new OpenAI({ fetch })` or polyfill the global, `globalThis.fetch = fetch`');
+backend/node_modules/openai/internal/shims.js:13:    throw new Error('`fetch` is not defined as a global; Either pass `fetch` to the client, `new OpenAI({ fetch })` or polyfill the global, `globalThis.fetch = fetch`');
+backend/node_modules/openai/client.mjs:83:            throw new Errors.OpenAIError("The OPENAI_API_KEY environment variable is missing or empty; either provide it, or instantiate the OpenAI client with an apiKey option, like new OpenAI({ apiKey: 'My API Key' }).");
+backend/node_modules/openai/client.mjs:94:            throw new Errors.OpenAIError("It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew OpenAI({ apiKey, dangerouslyAllowBrowser: true });\n\nhttps://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety\n");
+backend/node_modules/openai/README.md:39:const client = new OpenAI({
+backend/node_modules/openai/README.md:57:const client = new OpenAI({
+backend/node_modules/openai/README.md:79:const client = new OpenAI();
+backend/node_modules/openai/README.md:105:const client = new OpenAI();
+backend/node_modules/openai/README.md:143:const client = new OpenAI({
+backend/node_modules/openai/README.md:183:const client = new OpenAI({
+backend/node_modules/openai/README.md:274:const rt = new OpenAIRealtimeWebSocket({ model: 'gpt-4o-realtime-preview-2024-12-17' });
+backend/node_modules/openai/README.md:319:const client = new OpenAI({
+backend/node_modules/openai/README.md:336:const client = new OpenAI({
+backend/node_modules/openai/README.md:411:const rt = new OpenAIRealtimeWebSocket({ model: 'gpt-4o-realtime-preview-2024-12-17' });
+backend/node_modules/openai/README.md:462:const client = new OpenAI();
+backend/node_modules/openai/README.md:495:const client = new OpenAI({
+backend/node_modules/openai/README.md:526:const client = new OpenAI({
+backend/node_modules/openai/README.md:591:const client = new OpenAI({ fetch });
+backend/node_modules/openai/README.md:601:const client = new OpenAI({
+backend/node_modules/openai/README.md:620:const client = new OpenAI({
+backend/node_modules/openai/README.md:632:const client = new OpenAI({
+backend/node_modules/openai/README.md:645:const client = new OpenAI({
+backend/node_modules/openai/lib/AssistantStream.mjs:331:        throw new OpenAIError(`stream has ended, this shouldn't happen`);
+backend/node_modules/openai/lib/AbstractChatCompletionRunner.mjs:51:            throw new OpenAIError('stream ended without producing a ChatCompletion');
+backend/node_modules/openai/lib/AbstractChatCompletionRunner.mjs:136:                    throw new OpenAIError('Tool given to `.runTools()` that does not have an associated function');
+backend/node_modules/openai/lib/AbstractChatCompletionRunner.mjs:183:                throw new OpenAIError(`missing message in ChatCompletion response`);
+backend/node_modules/openai/lib/AbstractChatCompletionRunner.mjs:243:    throw new OpenAIError('stream ended without producing a ChatCompletionMessage with role=assistant');
+backend/node_modules/openai/lib/AbstractChatCompletionRunner.mjs:280:        throw new OpenAIError('ChatCompletion convenience helpers only support n=1 at this time. To use n>1, please use chat.completions.create() directly.');
+backend/node_modules/openai/lib/ResponsesParser.mjs:139:            throw new OpenAIError(`Currently only \`function\` tool types support auto-parsing; Received \`${tool.type}\``);
+backend/node_modules/openai/lib/ResponsesParser.mjs:142:            throw new OpenAIError(`The \`${tool.function.name}\` tool is not marked with \`strict: true\`. Only strict function tools can be auto-parsed`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:224:            throw new OpenAIError(`stream has ended, this shouldn't happen`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:228:            throw new OpenAIError(`request ended without sending any chunks`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:403:                throw new OpenAIError(`missing finish_reason for choice ${index}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:408:                throw new OpenAIError(`missing role for choice ${index}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:413:                    throw new OpenAIError(`missing function_call.arguments for choice ${index}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:416:                    throw new OpenAIError(`missing function_call.name for choice ${index}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:446:                                throw new OpenAIError(`missing choices[${index}].tool_calls[${i}].id\n${str(snapshot)}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:449:                                throw new OpenAIError(`missing choices[${index}].tool_calls[${i}].type\n${str(snapshot)}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:452:                                throw new OpenAIError(`missing choices[${index}].tool_calls[${i}].function.name\n${str(snapshot)}`);
+backend/node_modules/openai/lib/ChatCompletionStream.mjs:455:                                throw new OpenAIError(`missing choices[${index}].tool_calls[${i}].function.arguments\n${str(snapshot)}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:67:                    throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:72:                        throw new OpenAIError(`missing content at index ${event.content_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:75:                        throw new OpenAIError(`expected content to be 'output_text', got ${content.type}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:87:                    throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:103:            throw new OpenAIError(`stream has ended, this shouldn't happen`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:107:            throw new OpenAIError(`request ended without sending any events`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:117:                throw new OpenAIError(`When snapshot hasn't been set yet, expected 'response.created' event, got ${event.type}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:130:                    throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:140:                    throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:145:                        throw new OpenAIError(`missing content at index ${event.content_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:148:                        throw new OpenAIError(`expected content to be 'output_text', got ${content.type}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:157:                    throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/lib/responses/ResponseStream.mjs:229:            throw new OpenAIError('stream ended without producing a ChatCompletion');
+backend/node_modules/openai/lib/parser.mjs:148:            throw new OpenAIError(`Currently only \`function\` tool calls are supported; Received \`${toolCall.type}\``);
+backend/node_modules/openai/lib/parser.mjs:155:            throw new OpenAIError(`Currently only \`function\` tool types support auto-parsing; Received \`${tool.type}\``);
+backend/node_modules/openai/lib/parser.mjs:158:            throw new OpenAIError(`The \`${tool.function.name}\` tool is not marked with \`strict: true\`. Only strict function tools can be auto-parsed`);
+backend/node_modules/openai/lib/EventStream.mjs:179:        const openAIError = new OpenAIError(error.message);
+backend/node_modules/openai/lib/EventStream.mjs:184:    return this._emit('error', new OpenAIError(String(error)));
+backend/node_modules/openai/src/beta/realtime/websocket.ts:45:      throw new OpenAIError(
+backend/node_modules/openai/src/beta/realtime/websocket.ts:50:    client ??= new OpenAI({ dangerouslyAllowBrowser });
+backend/node_modules/openai/src/beta/realtime/websocket.ts:118:    return new OpenAIRealtimeWebSocket(
+backend/node_modules/openai/src/beta/realtime/ws.ts:15:    client ??= new OpenAI();
+backend/node_modules/openai/src/beta/realtime/ws.ts:62:    return new OpenAIRealtimeWS(
+backend/node_modules/openai/src/beta/realtime/internal-base.ts:58:      const error = new OpenAIRealtimeError(
+backend/node_modules/openai/src/beta/realtime/internal-base.ts:69:    const error = new OpenAIRealtimeError(message, event);
+backend/node_modules/openai/src/core/streaming.ts:44:        throw new OpenAIError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+backend/node_modules/openai/src/core/streaming.ts:131:        throw new OpenAIError('Cannot iterate over a consumed stream, use `.tee()` to split the stream.');
+backend/node_modules/openai/src/core/streaming.ts:228:      throw new OpenAIError(
+backend/node_modules/openai/src/core/streaming.ts:232:    throw new OpenAIError(`Attempted to iterate over a response with no body`);
+backend/node_modules/openai/src/core/pagination.ts:40:      throw new OpenAIError(
+backend/node_modules/openai/src/internal/shims.ts:19:    '`fetch` is not defined as a global; Either pass `fetch` to the client, `new OpenAI({ fetch })` or polyfill the global, `globalThis.fetch = fetch`',
+backend/node_modules/openai/src/internal/utils/path.ts:75:      throw new OpenAIError(
+backend/node_modules/openai/src/internal/utils/values.ts:42:    throw new OpenAIError(`Expected a value to be given but received ${value} instead.`);
+backend/node_modules/openai/src/internal/utils/values.ts:50:    throw new OpenAIError(`${name} must be an integer`);
+backend/node_modules/openai/src/internal/utils/values.ts:53:    throw new OpenAIError(`${name} must be a positive integer`);
+backend/node_modules/openai/src/internal/utils/values.ts:62:  throw new OpenAIError(`Could not coerce ${value} (type: ${typeof value}) into a number`);
+backend/node_modules/openai/src/internal/utils/values.ts:69:  throw new OpenAIError(`Could not coerce ${value} (type: ${typeof value}) into a number`);
+backend/node_modules/openai/src/internal/utils/base64.ts:21:  throw new OpenAIError('Cannot generate base64 string; Expected `Buffer` or `btoa` to be defined');
+backend/node_modules/openai/src/internal/utils/base64.ts:39:  throw new OpenAIError('Cannot decode base64 string; Expected `Buffer` or `atob` to be defined');
+backend/node_modules/openai/src/client.ts:344:        "The OPENAI_API_KEY environment variable is missing or empty; either provide it, or instantiate the OpenAI client with an apiKey option, like new OpenAI({ apiKey: 'My API Key' }).",
+backend/node_modules/openai/src/client.ts:359:        "It looks like you're running in a browser-like environment.\n\nThis is disabled by default, as it risks exposing your secret API credentials to attackers.\nIf you understand the risks and have appropriate mitigations in place,\nyou can set the `dangerouslyAllowBrowser` option to `true`, e.g.,\n\nnew OpenAI({ apiKey, dangerouslyAllowBrowser: true });\n\nhttps://help.openai.com/en/articles/5112595-best-practices-for-api-key-safety\n",
+backend/node_modules/openai/src/lib/AbstractChatCompletionRunner.ts:81:    if (!completion) throw new OpenAIError('stream ended without producing a ChatCompletion');
+backend/node_modules/openai/src/lib/AbstractChatCompletionRunner.ts:112:    throw new OpenAIError('stream ended without producing a ChatCompletionMessage with role=assistant');
+backend/node_modules/openai/src/lib/AbstractChatCompletionRunner.ts:217:      throw new OpenAIError(
+backend/node_modules/openai/src/lib/AbstractChatCompletionRunner.ts:271:          throw new OpenAIError('Tool given to `.runTools()` that does not have an associated function');
+backend/node_modules/openai/src/lib/AbstractChatCompletionRunner.ts:331:        throw new OpenAIError(`missing message in ChatCompletion response`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:113:          throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:118:            throw new OpenAIError(`missing content at index ${event.content_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:121:            throw new OpenAIError(`expected content to be 'output_text', got ${content.type}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:134:          throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:152:      throw new OpenAIError(`stream has ended, this shouldn't happen`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:156:      throw new OpenAIError(`request ended without sending any events`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:207:        throw new OpenAIError(
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:223:          throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:233:          throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:238:            throw new OpenAIError(`missing content at index ${event.content_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:241:            throw new OpenAIError(`expected content to be 'output_text', got ${content.type}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:250:          throw new OpenAIError(`missing output at index ${event.output_index}`);
+backend/node_modules/openai/src/lib/responses/ResponseStream.ts:334:    if (!response) throw new OpenAIError('stream ended without producing a ChatCompletion');
+backend/node_modules/openai/src/lib/EventStream.ts:159:      const openAIError: OpenAIError = new OpenAIError(error.message);
+backend/node_modules/openai/src/lib/EventStream.ts:164:    return this._emit('error', new OpenAIError(String(error)));
+backend/node_modules/openai/src/lib/AssistantStream.ts:409:      throw new OpenAIError(`stream has ended, this shouldn't happen`);
+backend/node_modules/openai/src/lib/ResponsesParser.ts:237:      throw new OpenAIError(
+backend/node_modules/openai/src/lib/ResponsesParser.ts:243:      throw new OpenAIError(
+backend/node_modules/openai/src/lib/parser.ts:290:      throw new OpenAIError(
+backend/node_modules/openai/src/lib/parser.ts:300:      throw new OpenAIError(
+backend/node_modules/openai/src/lib/parser.ts:306:      throw new OpenAIError(
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:359:      throw new OpenAIError(`stream has ended, this shouldn't happen`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:363:      throw new OpenAIError(`request ended without sending any chunks`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:620:          throw new OpenAIError(`missing finish_reason for choice ${index}`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:626:          throw new OpenAIError(`missing role for choice ${index}`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:632:            throw new OpenAIError(`missing function_call.arguments for choice ${index}`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:636:            throw new OpenAIError(`missing function_call.name for choice ${index}`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:668:                  throw new OpenAIError(`missing choices[${index}].tool_calls[${i}].id\n${str(snapshot)}`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:671:                  throw new OpenAIError(`missing choices[${index}].tool_calls[${i}].type\n${str(snapshot)}`);
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:674:                  throw new OpenAIError(
+backend/node_modules/openai/src/lib/ChatCompletionStream.ts:679:                  throw new OpenAIError(
+backend/coverage/lcov-report/controllers/aiTranscriptController.js.html:2035:<span class="cstat-no" title="statement not covered" >      this.openaiClient = new OpenAI({</span>
+backend/coverage/controllers/aiTranscriptController.js.html:2035:<span class="cstat-no" title="statement not covered" >      this.openaiClient = new OpenAI({</span>
+backend/src/controllers/aiTranscriptController.js:180:      this.openaiClient = new OpenAI({
+No new OpenAI found
 
-**SEVERITY:** Critical - Complete bypass of intended architecture  
-**IMPACT:** Users receive marketing prose instead of data-driven academic guidance  
-**STATUS:** Reproducible and confirmed  
+### Actual OpenAI instantiation in source:
+backend/src/controllers/aiTranscriptController.js:180:      this.openaiClient = new OpenAI({
+No new OpenAI in source code found
 
-## Evidence Summary
+### /api/chat routes:
+No /api/chat routes found
 
-| Observation | Evidence | Root Cause | Impact | Fix Options |
-|-------------|----------|------------|---------|-------------|
-| **Wrong Service Used** | `/api/advisor/chat` → `unifiedAIService.js:84` | Backend routes to chat service, not QA gateway | 100% freeform responses | Route to API gateway `/qa` |
-| **Generic System Prompt** | `systemPrompt = 'You are a helpful AI assistant for Purdue University students.'` | No T2SQL or planner instructions | Marketing prose generation | Use structured prompts |
-| **API Gateway Offline** | `curl localhost:8000/healthz` → Connection refused | Python FastAPI gateway not running | No structured endpoint available | Start API gateway service |
-| **Database Disconnected** | PostgreSQL connection fails: `role "app" does not exist` | No DB access for T2SQL queries | Fallback to freeform chat | Configure database |
-| **Missing Router Logic** | No intent classification in Node.js backend | Questions bypass intent analysis | All queries treated as general chat | Implement router bridge |
+### /api/messages routes:
+No /api/messages routes found
 
-## Detailed Root Cause Analysis
+## Current Express Routes Registered:
+- /api/transcript
+- /api/courses
+- /api/planner
+- /api/auth
+- /api/settings
+- /api/advisor
+- /api/rag
+- /api/migration
+- /api/admin
 
-### 1. Architecture Mismatch (PRIMARY CAUSE)
+## Current Environment Configuration:
+- API_GATEWAY_URL=http://127.0.0.1:8001
+- DISABLE_UNIFIED_AI_SERVICE=1
+- FORCE_STRUCTURED_QA=1
 
-**File:** `/Users/rrao/Desktop/boilerai-master/backend/src/routes/advisor.js:29`
-
-```javascript
-// Current (WRONG): 
-const response = await unifiedAIService.sendMessage(llmOptions);
-
-// Expected (CORRECT):
-const response = await apiGateway.post('/qa', { question: message, profile_json: profile });
-```
-
-**Evidence:**
-- Backend uses `unifiedAIService` with generic chat prompt
-- No connection to API gateway with T2SQL/planner logic
-- No intent classification or routing decisions
-
-**Impact:** 100% of queries get generic LLM responses instead of structured academic data
-
-### 2. Generic System Prompt (SECONDARY CAUSE)
-
-**File:** `/Users/rrao/Desktop/boilerai-master/backend/src/services/unifiedAIService.js:84`
-
-```javascript
-const systemPrompt = 'You are a helpful AI assistant for Purdue University students.';
-```
-
-**Expected System Prompts:**
-```javascript
-// For T2SQL:
-const t2sqlPrompt = 'Generate STRICT JSON AST for SQL query based on course database schema...';
-
-// For Planner:  
-const plannerPrompt = 'Use CS degree requirements and student profile to generate academic plan...';
-```
-
-**Evidence:** Single generic prompt leads to marketing prose like "Purdue's CS program is highly regarded..."
-
-### 3. Missing Infrastructure (SUPPORTING CAUSE)
-
-**Components Not Running:**
-- FastAPI gateway (`api_gateway/main.py`) - Port 8000
-- PostgreSQL database with `app` role
-- T2SQL compiler and planner services
-
-**Evidence:**
-```bash
-$ curl localhost:8000/healthz
-curl: (7) Failed to connect to localhost port 8000: Connection refused
-
-$ psycopg2.connect('postgresql://app:app@localhost:5432/boilerai')
-psycopg2.OperationalError: FATAL: role "app" does not exist
-```
-
-### 4. UI Integration Issue (CONTRIBUTING FACTOR)
-
-**Current Flow (BROKEN):**
-```
-UI → Node.js backend:3001/api/advisor/chat → unifiedAIService → Generic LLM → Prose
-```
-
-**Expected Flow (CORRECT):**
-```
-UI → API Gateway:8000/qa → Intent Router → {T2SQL|Planner} → DB → Structured Response
-```
-
-## Request Tracing Evidence
-
-### Test Request Made:
-```bash
-curl -H "X-LLM-Provider: gemini" -H "X-LLM-Api-Key: test_key" \
-     -d '{"message":"so tell me more about the computer science program"}' \
-     http://localhost:3001/api/advisor/chat
-```
-
-### Actual Response Path:
-1. `advisor.js:29` → `unifiedAIService.sendMessage()`
-2. `unifiedAIService.js:84` → Generic system prompt applied
-3. `unifiedAIService.js:89` → Direct Gemini API call
-4. Response: Generic prose about "Purdue's computer science program"
-
-### Expected Response Path:
-1. API Gateway `/qa` endpoint
-2. `classify_intent()` → "course_facts" 
-3. `route_to_handler()` → "t2sql"
-4. `generate_ast()` → JSON AST
-5. `compile_ast_to_sql()` → SELECT statement
-6. `db_query()` → Structured course data
-7. Response: `{"mode":"t2sql","ast":...,"sql":...,"rows":...}`
-
-## Hypothesis Validation Results
-
-| Hypothesis | Status | Evidence |
-|------------|--------|----------|
-| **H1: UI bypasses backend** | ❌ REJECTED | UI correctly calls backend, backend is wrong service |
-| **H2: Router misclassification** | ✅ CONFIRMED | No router exists in Node.js backend |  
-| **H3: T2SQL not using strict JSON** | ✅ CONFIRMED | T2SQL not used at all |
-| **H4: Fallback emits prose** | ✅ CONFIRMED | Entire system is fallback mode |
-| **H5: Missing DB triggers generic** | ✅ CONFIRMED | No DB connection configured |
-| **H6: Provider config misread** | ❌ PARTIAL | Provider works, but wrong service entirely |
-
-## Failing Test Cases
-
-### Test: Generic Questions Should Be Structured
-```javascript
-// Current (FAILING):
-POST /api/advisor/chat {"message": "tell me about CS 180"}
-Response: "CS 180 is a foundational course in Purdue's Computer Science program..."
-
-// Expected (SHOULD PASS):
-POST /qa {"question": "tell me about CS 180"}  
-Response: {"mode":"t2sql", "rows":[{"id":"CS18000","title":"Problem Solving And Object-Oriented Programming",...}]}
-```
-
-### Test: Intent Classification 
-```javascript
-// Current (FAILING):
-No intent classification exists
-
-// Expected (SHOULD PASS):
-classify_intent("tell me about CS 180") → "course_facts"
-route_to_handler("course_facts", "...") → "t2sql"
-```
-
-## Fix Strategy Options
-
-### Option 1: Bridge Node.js Backend to API Gateway (RECOMMENDED)
-- **Effort:** Medium
-- **Risk:** Low  
-- **Files:** `backend/src/routes/advisor.js`, new bridge service
-- **Description:** Modify Node.js backend to proxy requests to Python API gateway
-
-### Option 2: Implement Router in Node.js (ALTERNATIVE)
-- **Effort:** High
-- **Risk:** Medium
-- **Files:** New router service, T2SQL port to Node.js
-- **Description:** Port Python router/T2SQL logic to Node.js
-
-### Option 3: Start Proper Services (IMMEDIATE)
-- **Effort:** Low
-- **Risk:** Low
-- **Files:** Infrastructure setup
-- **Description:** Start API gateway and database with proper configuration
-
-## Next Steps Required
-
-1. **IMMEDIATE:** Start API gateway and database services
-2. **SHORT-TERM:** Create bridge from Node.js to API gateway  
-3. **VALIDATION:** Create regression tests for structured responses
-4. **MONITORING:** Add logging for request routing decisions
-
-## Files Requiring Changes
-
-### Critical Path Fixes:
-- `backend/src/routes/advisor.js` - Route to API gateway instead of unifiedAIService
-- `api_gateway/main.py` - Ensure proper startup and configuration
-- Database setup scripts - Configure PostgreSQL with proper roles
-- Frontend API calls - Ensure pointing to correct endpoint
-
-### Supporting Infrastructure:
-- Environment configuration for service discovery
-- Error handling for service unavailability  
-- Logging and monitoring for request flow
-- Health checks for all services
-
-## Risk Assessment
-
-**PROBABILITY OF SUCCESS:** 95% - Clear root cause identified  
-**IMPLEMENTATION RISK:** Low - Well-defined architectural fix  
-**REGRESSION RISK:** Low - Current system is completely broken  
-**USER IMPACT:** High - Will fix core functionality  
-
-## Conclusion
-
-The diagnosis is complete and definitive: **BoilerAI is using the wrong service architecture entirely**. The Node.js backend bypasses the sophisticated T2SQL/planner system and routes all requests to a generic chat service. This is not a configuration issue or prompt engineering problem - it's a complete architectural disconnect.
-
-The fix requires routing requests from the Node.js backend to the proper Python API gateway that contains the academic advisor logic, database connections, and structured response generation.
-
-**RECOMMENDATION:** Proceed with Option 1 (Bridge to API Gateway) as the fastest path to restore proper functionality.
+## Issues Found:
+1. **CRITICAL**: Legacy fallback path in advisor.js:121-146 bypasses structured enforcement
+2. Multiple unifiedAIService imports still present
+3. OpenAI instantiation in aiTranscriptController.js:180
+4. Need frontend helper to prevent direct provider calls

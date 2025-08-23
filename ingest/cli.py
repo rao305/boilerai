@@ -42,8 +42,9 @@ def main(major_id: str, dir_path: str):
             cur.execute("INSERT INTO tracks(id,major_id,name) VALUES (%s,%s,%s) ON CONFLICT (id) DO UPDATE SET name=EXCLUDED.name",
                         (t["id"], major_id, t["name"]))
             for g in t.get("groups", []):
-                cur.execute("INSERT INTO track_groups(track_id,key,need,course_list) VALUES (%s,%s,%s,%s::jsonb)",
-                            (t["id"], g["key"], g["need"], json.dumps(g["from"])))
+                pair_rules = json.dumps(g.get("pair_rules", []))
+                cur.execute("INSERT INTO track_groups(track_id,key,need,course_list,pair_rules) VALUES (%s,%s,%s,%s::jsonb,%s::jsonb)",
+                            (t["id"], g["key"], g["need"], json.dumps(g["from"]), pair_rules))
     if exists("policies.json"):
         pj = _load_json(safe("policies.json"))
         cur.execute("""INSERT INTO policies(major_id,max_credits_per_term,summer_allowed_default,min_grade_default,overload_requires_approval)
@@ -78,6 +79,35 @@ def main(major_id: str, dir_path: str):
             raise SystemExit(2)
     else:
         print("✅ track_groups course_list validated")
+
+    # Integrity: pair_rules reference existing courses
+    missing_pairs = db_query("""
+      WITH pair_refs AS (
+        SELECT tg.track_id, tg.key,
+               jsonb_array_elements(tg.pair_rules) AS pair_array
+        FROM track_groups tg
+        WHERE jsonb_array_length(tg.pair_rules) > 0
+      ),
+      individual_refs AS (
+        SELECT pr.track_id, pr.key,
+               jsonb_array_elements_text(pr.pair_array) AS cid
+        FROM pair_refs pr
+      )
+      SELECT ir.track_id, ir.key, ir.cid
+      FROM individual_refs ir
+      LEFT JOIN courses c ON c.id = ir.cid
+      WHERE c.id IS NULL
+      ORDER BY ir.track_id, ir.key, ir.cid
+    """, [])
+    if missing_pairs:
+        print("❌ track_groups pair_rules references missing courses:")
+        for row in missing_pairs:
+            print(f"  - {row['track_id']} / {row['key']} -> {row['cid']}")
+        if os.getenv("STRICT_INGEST","0") == "1":
+            cur.close(); conn.close()
+            raise SystemExit(2)
+    else:
+        print("✅ track_groups pair_rules validated")
 
     # Integrity: prereq expr references existing courses
     missing2 = db_query("""

@@ -54,7 +54,7 @@ export const UserSessionControl: React.FC = () => {
           {user.name.charAt(0).toUpperCase()}
         </div>
         <div className="hidden md:block text-left">
-          <div className="text-sm font-medium text-gray-900">{user.name}</div>
+          <div className="text-sm font-medium" style={{ color: "#FFD700" }}>{user.name}</div>
           <div className="text-xs text-gray-500">{user.email}</div>
         </div>
         <svg
@@ -76,7 +76,7 @@ export const UserSessionControl: React.FC = () => {
                 {user.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                <div className="text-sm font-medium" style={{ color: "#FFD700" }}>{user.name}</div>
                 <div className="text-xs text-gray-500">{user.email}</div>
                 <div className="text-xs text-green-600 mt-1">✅ Secure Session Active</div>
               </div>

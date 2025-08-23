@@ -30,7 +30,9 @@ import {
   Lock,
   Globe,
   Bot,
-  Star
+  Star,
+  Brain,
+  Layers
 } from "lucide-react";
 
 type ApiProvider = 'openai' | 'gemini';
@@ -156,7 +158,7 @@ export default function Settings() {
     openai: { valid: false, testing: false },
     gemini: { valid: false, testing: false },
   });
-  const [selectedProvider, setSelectedProvider] = useState<ApiProvider>('gemini');
+  const [selectedProvider, setSelectedProvider] = useState<ApiProvider>('openai');
   const [detectedProvider, setDetectedProvider] = useState<ApiProvider | null>(null);
   const [profile, setProfile] = useState({
     firstName: user?.name?.split(' ')[0] || "",
@@ -570,18 +572,23 @@ export default function Settings() {
           {/* API Keys */}
           <Card title="AI Configuration (OpenAI or Gemini)" right={
             <div className="flex items-center gap-2">
-              <Badge className={(apiKeyStatus.openai.valid || apiKeyStatus.gemini.valid) ? "bg-green-800/20 text-green-300" : "bg-neutral-800 text-neutral-300"}>
-                {apiKeyStatus.openai.valid && 'OpenAI Connected'}
-                {apiKeyStatus.gemini.valid && 'Gemini Connected'}
-                {!apiKeyStatus.openai.valid && !apiKeyStatus.gemini.valid && 'Not Connected'}
+              <Badge className={`transition-all duration-300 ${(apiKeyStatus.openai.valid || apiKeyStatus.gemini.valid) ? "bg-gradient-to-r from-green-600/20 to-emerald-600/20 text-green-300 border border-green-500/30" : "bg-neutral-800/50 text-neutral-400 border border-neutral-700"}`}>
+                {apiKeyStatus.openai.valid && '✅ OpenAI Connected'}
+                {apiKeyStatus.gemini.valid && '✅ Gemini Connected'}
+                {!apiKeyStatus.openai.valid && !apiKeyStatus.gemini.valid && '🔑 Not Connected'}
               </Badge>
-              <PurdueButton size="small" onClick={handleSaveApiKeys} disabled={apiKeyStatus[selectedProvider].testing}>
+              <PurdueButton 
+                size="small" 
+                onClick={handleSaveApiKeys} 
+                disabled={apiKeyStatus[selectedProvider].testing}
+                className={`transition-all duration-300 ${apiKeyStatus[selectedProvider].testing ? 'animate-pulse' : 'hover:scale-105'}`}
+              >
                 {apiKeyStatus[selectedProvider].testing ? (
-                  <div className="animate-spin h-3 w-3 border border-neutral-600 rounded-full border-t-amber-500 mr-1"></div>
+                  <div className="animate-spin h-3 w-3 border border-neutral-600 rounded-full border-t-amber-500 mr-2"></div>
                 ) : (
-                  <Save size={14} className="mr-1" />
+                  <Save size={14} className="mr-2" />
                 )}
-                {apiKeyStatus[selectedProvider].testing ? 'Testing...' : 'Save & Test'}
+                {apiKeyStatus[selectedProvider].testing ? 'Testing...' : '💾 Save & Test'}
               </PurdueButton>
             </div>
           }>
@@ -610,39 +617,71 @@ export default function Settings() {
               {/* Provider Selection */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-neutral-300">Choose AI Provider</label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3 p-1 bg-neutral-900/50 rounded-lg border border-neutral-800">
                   <button
                     onClick={() => setSelectedProvider('gemini')}
-                    className={`p-3 rounded-lg border text-left transition-all ${
+                    className={`p-4 rounded-lg text-left transition-all duration-300 transform ${
                       selectedProvider === 'gemini' 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-border hover:border-primary/50'
+                        ? 'bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-yellow-500/50 shadow-lg scale-[1.02] ring-2 ring-yellow-500/30' 
+                        : 'bg-neutral-800/50 border border-neutral-700 hover:border-yellow-500/30 hover:bg-neutral-700/50 opacity-75'
                     }`}
                   >
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Star className="h-4 w-4" />
-                      <span className="font-medium">Gemini</span>
-                      {apiKeyStatus.gemini.valid && <CheckCircle className="h-4 w-4 text-green-500" />}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Star className={`h-5 w-5 transition-colors ${
+                          selectedProvider === 'gemini' ? 'text-yellow-400' : 'text-neutral-400'
+                        }`} />
+                        <span className={`font-semibold transition-colors ${
+                          selectedProvider === 'gemini' ? 'text-yellow-100' : 'text-neutral-400'
+                        }`}>Gemini</span>
+                      </div>
+                      {apiKeyStatus.gemini.valid && (
+                        <CheckCircle className="h-4 w-4 text-green-400 animate-pulse" />
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">Google's free AI model</p>
-                    <p className="text-xs text-green-400 mt-1">Completely free!</p>
+                    <p className={`text-xs mb-1 transition-colors ${
+                      selectedProvider === 'gemini' ? 'text-yellow-200/80' : 'text-neutral-500'
+                    }`}>Google's AI model</p>
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                      selectedProvider === 'gemini' 
+                        ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
+                        : 'bg-green-900/20 text-green-500/70'
+                    }`}>
+                      ✨ Free Forever!
+                    </div>
                   </button>
                   
                   <button
                     onClick={() => setSelectedProvider('openai')}
-                    className={`p-3 rounded-lg border text-left transition-all ${
+                    className={`p-4 rounded-lg text-left transition-all duration-300 transform ${
                       selectedProvider === 'openai' 
-                        ? 'border-primary bg-primary/10' 
-                        : 'border-border hover:border-primary/50'
+                        ? 'bg-gradient-to-br from-yellow-600/20 to-amber-600/20 border border-yellow-500/50 shadow-lg scale-[1.02] ring-2 ring-yellow-500/30' 
+                        : 'bg-neutral-800/50 border border-neutral-700 hover:border-yellow-500/30 hover:bg-neutral-700/50 opacity-75'
                     }`}
                   >
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Bot className="h-4 w-4" />
-                      <span className="font-medium">OpenAI</span>
-                      {apiKeyStatus.openai.valid && <CheckCircle className="h-4 w-4 text-green-500" />}
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <Bot className={`h-5 w-5 transition-colors ${
+                          selectedProvider === 'openai' ? 'text-yellow-400' : 'text-neutral-400'
+                        }`} />
+                        <span className={`font-semibold transition-colors ${
+                          selectedProvider === 'openai' ? 'text-yellow-100' : 'text-neutral-400'
+                        }`}>OpenAI</span>
+                      </div>
+                      {apiKeyStatus.openai.valid && (
+                        <CheckCircle className="h-4 w-4 text-green-400 animate-pulse" />
+                      )}
                     </div>
-                    <p className="text-xs text-muted-foreground">GPT-4 models</p>
-                    <p className="text-xs text-blue-400 mt-1">Pay-as-you-go</p>
+                    <p className={`text-xs mb-1 transition-colors ${
+                      selectedProvider === 'openai' ? 'text-yellow-200/80' : 'text-neutral-500'
+                    }`}>GPT-4 models</p>
+                    <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium transition-colors ${
+                      selectedProvider === 'openai' 
+                        ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30' 
+                        : 'bg-blue-900/20 text-blue-500/70'
+                    }`}>
+                      💳 Pay-as-you-go
+                    </div>
                   </button>
                 </div>
                 
@@ -744,6 +783,116 @@ export default function Settings() {
                   <Lock size={12} className="inline mr-1" />
                   🔒 <strong>FERPA & Security Compliant:</strong> Your API key is stored only in your browser's local storage and sent directly to the AI provider (OpenAI/Google) for processing. We never store API keys, transcript data, or personal information on our servers.
                 </p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Deep Thinking Configuration */}
+          <Card title="Deep Thinking & Reasoning" right={
+            <div className="flex items-center gap-2">
+              <Badge className="bg-purple-800/20 text-purple-300">
+                <Brain size={12} className="mr-1" />
+                Enhanced AI
+              </Badge>
+            </div>
+          }>
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg bg-purple-900/20 border border-purple-800">
+                <div className="flex items-center gap-3 mb-3">
+                  <Brain size={18} className="text-purple-400" />
+                  <span className="text-base font-medium text-purple-300">DeepThink Mode</span>
+                </div>
+                <p className="text-sm text-purple-200 mb-3">
+                  Enable advanced reasoning capabilities that show the AI's step-by-step thinking process, 
+                  contextual awareness, and decision-making rationale - similar to DeepSeek's DeepThink feature.
+                </p>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-neutral-200">Enable Deep Thinking</div>
+                      <div className="text-xs text-neutral-400">Show AI reasoning process and contextual analysis</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        defaultChecked={true}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-neutral-200">Show Reasoning Steps</div>
+                      <div className="text-xs text-neutral-400">Display step-by-step thinking process</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        defaultChecked={true}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-neutral-200">Show Contextual Factors</div>
+                      <div className="text-xs text-neutral-400">Display what context influenced the AI's reasoning</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        defaultChecked={false}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-sm font-medium text-neutral-200">Show Alternative Approaches</div>
+                      <div className="text-xs text-neutral-400">Display alternative solutions the AI considered</div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        defaultChecked={false}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-neutral-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="p-3 rounded-lg bg-neutral-900/70 border border-neutral-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Layers size={12} className="text-neutral-400" />
+                  <span className="text-xs font-medium text-neutral-300">Thinking Modes Available</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="p-2 rounded bg-yellow-900/20 border border-yellow-800/30">
+                    <div className="font-medium text-yellow-300">Quick (3 steps)</div>
+                    <div className="text-yellow-400/70">Fast responses</div>
+                  </div>
+                  <div className="p-2 rounded bg-green-900/20 border border-green-800/30">
+                    <div className="font-medium text-green-300">Standard (5 steps)</div>
+                    <div className="text-green-400/70">Balanced analysis</div>
+                  </div>
+                  <div className="p-2 rounded bg-blue-900/20 border border-blue-800/30">
+                    <div className="font-medium text-blue-300">Deep (8 steps)</div>
+                    <div className="text-blue-400/70">Comprehensive reasoning</div>
+                  </div>
+                  <div className="p-2 rounded bg-purple-900/20 border border-purple-800/30">
+                    <div className="font-medium text-purple-300">Critical (12 steps)</div>
+                    <div className="text-purple-400/70">Maximum analysis</div>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>

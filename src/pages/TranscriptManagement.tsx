@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PageHeader, 
   Card, 
@@ -11,6 +11,7 @@ import { CourseVerificationTable } from '@/components/CourseVerificationTable';
 import { useAcademicPlan } from '@/contexts/AcademicPlanContext';
 import { useNavigate } from 'react-router-dom';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import { personalizedAdvisorService } from '@/services/personalizedAdvisorService';
 import { 
   Upload, 
   FileText, 
@@ -20,13 +21,28 @@ import {
   BarChart3,
   Calendar,
   GraduationCap,
-  TrendingUp
+  TrendingUp,
+  Brain,
+  MessageSquare
 } from 'lucide-react';
 
 export default function TranscriptManagement() {
   const [activeTab, setActiveTab] = useState('upload');
   const { transcriptData } = useAcademicPlan();
   const navigate = useNavigate();
+  const [transcriptSaved, setTranscriptSaved] = useState(false);
+  const [savingToAI, setSavingToAI] = useState(false);
+
+  // Check if transcript is saved to AI on component mount
+  useEffect(() => {
+    const checkTranscriptStatus = async () => {
+      if (transcriptData) {
+        const status = await personalizedAdvisorService.getTranscriptStatus();
+        setTranscriptSaved(status.hasTranscript);
+      }
+    };
+    checkTranscriptStatus();
+  }, [transcriptData]);
 
   const handleUploadComplete = () => {
     setActiveTab('verification');
@@ -34,6 +50,26 @@ export default function TranscriptManagement() {
 
   const handleTransferToPlanner = () => {
     navigate('/planner');
+  };
+
+  const handleSendToAI = async () => {
+    if (!transcriptData) return;
+    
+    setSavingToAI(true);
+    try {
+      const success = await personalizedAdvisorService.saveTranscriptToAI(transcriptData);
+      if (success) {
+        setTranscriptSaved(true);
+        // Navigate to AI Assistant with transcript mode
+        navigate('/ai-assistant?mode=transcript');
+      } else {
+        console.error('Failed to save transcript to AI');
+      }
+    } catch (error) {
+      console.error('Error saving to AI:', error);
+    } finally {
+      setSavingToAI(false);
+    }
   };
 
   const renderUploadSection = () => (
@@ -332,6 +368,28 @@ export default function TranscriptManagement() {
           </div>
           
           <div className="flex flex-wrap gap-2">
+            {/* Send to AI Assistant Button */}
+            {transcriptData && (
+              <PurdueButton
+                onClick={handleSendToAI}
+                disabled={savingToAI}
+                variant="primary"
+                size="small"
+                className="flex items-center space-x-2 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0"
+              >
+                {savingToAI ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Brain className="h-4 w-4" />
+                    <MessageSquare className="h-3 w-3" />
+                  </>
+                )}
+                <span>{savingToAI ? 'Saving...' : 'Send to AI Assistant'}</span>
+                {transcriptSaved && <CheckCircle className="h-3 w-3 text-green-300" />}
+              </PurdueButton>
+            )}
+            
             <PurdueButton 
               variant={activeTab === 'upload' ? 'primary' : 'secondary'}
               onClick={() => {
@@ -384,13 +442,65 @@ export default function TranscriptManagement() {
         {activeTab === 'verification' && (
           <div className="space-y-6">
             <Card title="Course Verification" subtitle="Review AI-matched courses and transfer verified courses to your academic planner" right={
-              <PurdueButton onClick={handleTransferToPlanner}>
-                <Calendar className="h-4 w-4 mr-2" />
-                Go to Planner
-              </PurdueButton>
+              <div className="flex space-x-3">
+                <PurdueButton 
+                  onClick={handleSendToAI}
+                  disabled={savingToAI || !transcriptData}
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0"
+                >
+                  {savingToAI ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Saving...
+                    </>
+                  ) : transcriptSaved ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Saved to AI
+                    </>
+                  ) : (
+                    <>
+                      <Brain className="h-4 w-4 mr-2" />
+                      Send to AI Assistant
+                    </>
+                  )}
+                </PurdueButton>
+                <PurdueButton onClick={handleTransferToPlanner}>
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Go to Planner
+                </PurdueButton>
+              </div>
             }>
               <CourseVerificationTable onTransferToPlanner={handleTransferToPlanner} />
             </Card>
+            
+            {/* AI Assistant Status Card */}
+            {transcriptSaved && (
+              <Card title="🎉 Ready for Personalized AI Advice!" subtitle="Your transcript has been processed and is ready for personalized academic guidance">
+                <div className="bg-gradient-to-r from-purple-900/20 to-blue-900/20 border border-purple-500/20 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 rounded-full bg-purple-500/20">
+                        <Brain className="h-5 w-5 text-purple-400" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-neutral-200 mb-1">AI Assistant is now personalized</h4>
+                        <p className="text-sm text-neutral-400">
+                          Ask about your degree progress, course recommendations, or CODO eligibility
+                        </p>
+                      </div>
+                    </div>
+                    <PurdueButton 
+                      onClick={() => navigate('/ai-assistant?mode=transcript')}
+                      className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white border-0"
+                    >
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Start Chat
+                    </PurdueButton>
+                  </div>
+                </div>
+              </Card>
+            )}
           </div>
         )}
 

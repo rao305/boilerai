@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { BoilerAILogo } from "@/components/BoilerAILogo";
 
-// Purdue color scheme
-const PURDUE_GOLD = "#CFB991";
+// Purdue color scheme - using brighter gold for better visibility
+const PURDUE_GOLD = "#FFD700";
 
 // API Key Status Badge Component
 function ApiKeyStatusBadge() {
@@ -136,8 +136,8 @@ export function TopNavigation() {
               {/* API Key Status */}
               <ApiKeyStatusBadge />
               
-              <div className="text-sm text-neutral-400">
-                Welcome back, <span className="font-medium text-neutral-200">{user?.name}</span>
+              <div className="text-sm text-neutral-300">
+                Welcome back, <span className="font-semibold" style={{ color: PURDUE_GOLD }}>{user?.name}</span>
               </div>
               
               <DropdownMenu>
@@ -159,8 +159,8 @@ export function TopNavigation() {
                 <DropdownMenuContent className="w-56 bg-neutral-900 border-neutral-800" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none text-neutral-200">{user?.name}</p>
-                      <p className="text-xs leading-none text-neutral-400">{user?.email}</p>
+                      <p className="text-sm font-semibold leading-none" style={{ color: PURDUE_GOLD }}>{user?.name}</p>
+                      <p className="text-xs leading-none" style={{ color: PURDUE_GOLD }}>{user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-neutral-800" />

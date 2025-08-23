@@ -22,9 +22,10 @@ const PURDUE_GOLD = "#CFB991";
 const getSemesterGpaData = (transcriptData: any) => {
   if (transcriptData?.completedCourses && Object.keys(transcriptData.completedCourses).length > 0) {
     return Object.values(transcriptData.completedCourses)
-      .map((semester: any) => ({
+      .map((semester: any, index: number) => ({
         term: `${semester.semester.charAt(0)}${String(semester.year).slice(-2)}`,
-        gpa: Number(semester.semesterGpa.toFixed(2))
+        gpa: Number(semester.semesterGpa.toFixed(2)),
+        uniqueKey: `${semester.semester}-${semester.year}-${index}`
       }))
       .sort((a, b) => {
         const aYear = parseInt(`20${a.term.slice(1)}`);
@@ -170,7 +171,7 @@ export default function Dashboard() {
               <div className="relative h-full">
                 <div className="flex items-end justify-between h-full space-x-1">
                   {gpaData.map((semester, index) => (
-                    <div key={semester.term} className="flex flex-col items-center flex-1">
+                    <div key={semester.uniqueKey} className="flex flex-col items-center flex-1">
                       <div 
                         className="w-full rounded-t-sm transition-all duration-300 hover:opacity-80"
                         style={{ 

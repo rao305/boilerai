@@ -21,7 +21,14 @@ def _fallback_ast(question: str) -> Dict[str,Any] | None:
                 "where":[{"op":"=","left":"p.major_id","right":{"value":"CS"}},
                          {"op":"=","left":"p.dst_course","right":{"param":"course_id"}}],
                 "group_by":[],"order_by":[],"limit":100,"params":{"course_id":cid}}
-    if ("tell me about" in q or "description" in q or "more about" in q) and cid:
+    if ("tell me about" in q or "description" in q or "more about" in q or "what class" in q or "what course" in q or "what is" in q) and cid:
+        return {"select":["c.id","c.title","c.credits","cd.description"],
+                "from":"courses c",
+                "joins":[{"table":"course_details cd","on":"cd.course_id = c.id","type":"left"}],
+                "where":[{"op":"=","left":"c.id","right":{"param":"course_id"}}],
+                "group_by":[],"order_by":[],"limit":1,"params":{"course_id":cid}}
+    # Fallback for simple course code queries (e.g., "cs180", "cs240")
+    if cid and len(q.strip().split()) <= 2:  # Simple query with just course code or course code + modifier
         return {"select":["c.id","c.title","c.credits","cd.description"],
                 "from":"courses c",
                 "joins":[{"table":"course_details cd","on":"cd.course_id = c.id","type":"left"}],
@@ -29,14 +36,15 @@ def _fallback_ast(question: str) -> Dict[str,Any] | None:
                 "group_by":[],"order_by":[],"limit":1,"params":{"course_id":cid}}
     return None
 
-def generate_ast(question: str) -> Dict[str,Any]:
-    provider = os.getenv("LLM_PROVIDER","none").lower()
+def generate_ast(question: str, provider: str = None, api_key: str = None, model: str = None) -> Dict[str,Any]:
+    # Use provided parameters or fall back to environment variables
+    provider = (provider or os.getenv("LLM_PROVIDER", "none")).lower()
     if provider == "none":
         ast = _fallback_ast(question)
         if ast: return ast
         raise RuntimeError("t2sql_fallback_exhausted_and_no_llm")
     try:
-        return call_llm(SYSTEM_T2SQL, question, FEWSHOTS)
+        return call_llm(SYSTEM_T2SQL, question, FEWSHOTS, model, provider, api_key)
     except Exception:
         ast = _fallback_ast(question)
         if ast: return ast

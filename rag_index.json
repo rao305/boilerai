@@ -1,0 +1,2685 @@
+{
+  "documents": [
+    {
+      "id": "doc_0",
+      "source": "packs/CS/docs/track_mi.md",
+      "uri": "file://packs/CS/docs/track_mi.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": null,
+      "section": "track_info"
+    },
+    {
+      "id": "doc_1",
+      "source": "packs/CS/docs/cs_core.md",
+      "uri": "file://packs/CS/docs/cs_core.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": null,
+      "section": "core"
+    },
+    {
+      "id": "doc_2",
+      "source": "packs/CS/docs/track_se.md",
+      "uri": "file://packs/CS/docs/track_se.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": null,
+      "section": "track_info"
+    },
+    {
+      "id": "doc_3",
+      "source": "packs/CS/docs/advising_policies.md",
+      "uri": "file://packs/CS/docs/advising_policies.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": null,
+      "section": "policies"
+    },
+    {
+      "id": "doc_4",
+      "source": "packs/CS/docs/course_pages/CS45600.md",
+      "uri": "file://packs/CS/docs/course_pages/CS45600.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS45600",
+      "section": null
+    },
+    {
+      "id": "doc_5",
+      "source": "packs/CS/docs/course_pages/cs38100.md",
+      "uri": "file://packs/CS/docs/course_pages/cs38100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS38100",
+      "section": null
+    },
+    {
+      "id": "doc_6",
+      "source": "packs/CS/docs/course_pages/CS44000.md",
+      "uri": "file://packs/CS/docs/course_pages/CS44000.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS44000",
+      "section": null
+    },
+    {
+      "id": "doc_7",
+      "source": "packs/CS/docs/course_pages/CS49000-SWS.md",
+      "uri": "file://packs/CS/docs/course_pages/CS49000-SWS.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS49000",
+      "section": null
+    },
+    {
+      "id": "doc_8",
+      "source": "packs/CS/docs/course_pages/CS48300.md",
+      "uri": "file://packs/CS/docs/course_pages/CS48300.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS48300",
+      "section": null
+    },
+    {
+      "id": "doc_9",
+      "source": "packs/CS/docs/course_pages/EPCS41200.md",
+      "uri": "file://packs/CS/docs/course_pages/EPCS41200.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "EPCS41200",
+      "section": null
+    },
+    {
+      "id": "doc_10",
+      "source": "packs/CS/docs/course_pages/CS25000.md",
+      "uri": "file://packs/CS/docs/course_pages/CS25000.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS25000",
+      "section": null
+    },
+    {
+      "id": "doc_11",
+      "source": "packs/CS/docs/course_pages/CS18000.md",
+      "uri": "file://packs/CS/docs/course_pages/CS18000.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS18000",
+      "section": null
+    },
+    {
+      "id": "doc_12",
+      "source": "packs/CS/docs/course_pages/CS35400.md",
+      "uri": "file://packs/CS/docs/course_pages/CS35400.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS35400",
+      "section": null
+    },
+    {
+      "id": "doc_13",
+      "source": "packs/CS/docs/course_pages/STAT51200.md",
+      "uri": "file://packs/CS/docs/course_pages/STAT51200.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "STAT51200",
+      "section": null
+    },
+    {
+      "id": "doc_14",
+      "source": "packs/CS/docs/course_pages/CS31400.md",
+      "uri": "file://packs/CS/docs/course_pages/CS31400.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS31400",
+      "section": null
+    },
+    {
+      "id": "doc_15",
+      "source": "packs/CS/docs/course_pages/STAT41600.md",
+      "uri": "file://packs/CS/docs/course_pages/STAT41600.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "STAT41600",
+      "section": null
+    },
+    {
+      "id": "doc_16",
+      "source": "packs/CS/docs/course_pages/CS25100.md",
+      "uri": "file://packs/CS/docs/course_pages/CS25100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS25100",
+      "section": null
+    },
+    {
+      "id": "doc_17",
+      "source": "packs/CS/docs/course_pages/CS34800.md",
+      "uri": "file://packs/CS/docs/course_pages/CS34800.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS34800",
+      "section": null
+    },
+    {
+      "id": "doc_18",
+      "source": "packs/CS/docs/course_pages/CS48900.md",
+      "uri": "file://packs/CS/docs/course_pages/CS48900.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS48900",
+      "section": null
+    },
+    {
+      "id": "doc_19",
+      "source": "packs/CS/docs/course_pages/CS40700.md",
+      "uri": "file://packs/CS/docs/course_pages/CS40700.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS40700",
+      "section": null
+    },
+    {
+      "id": "doc_20",
+      "source": "packs/CS/docs/course_pages/CS41100.md",
+      "uri": "file://packs/CS/docs/course_pages/CS41100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS41100",
+      "section": null
+    },
+    {
+      "id": "doc_21",
+      "source": "packs/CS/docs/course_pages/CS57800.md",
+      "uri": "file://packs/CS/docs/course_pages/CS57800.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS57800",
+      "section": null
+    },
+    {
+      "id": "doc_22",
+      "source": "packs/CS/docs/course_pages/CS24000.md",
+      "uri": "file://packs/CS/docs/course_pages/CS24000.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS24000",
+      "section": null
+    },
+    {
+      "id": "doc_23",
+      "source": "packs/CS/docs/course_pages/CS35200.md",
+      "uri": "file://packs/CS/docs/course_pages/CS35200.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS35200",
+      "section": null
+    },
+    {
+      "id": "doc_24",
+      "source": "packs/CS/docs/course_pages/CS35300.md",
+      "uri": "file://packs/CS/docs/course_pages/CS35300.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS35300",
+      "section": null
+    },
+    {
+      "id": "doc_25",
+      "source": "packs/CS/docs/course_pages/MA41600.md",
+      "uri": "file://packs/CS/docs/course_pages/MA41600.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "MA41600",
+      "section": null
+    },
+    {
+      "id": "doc_26",
+      "source": "packs/CS/docs/course_pages/CS42600.md",
+      "uri": "file://packs/CS/docs/course_pages/CS42600.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS42600",
+      "section": null
+    },
+    {
+      "id": "doc_27",
+      "source": "packs/CS/docs/course_pages/CS47100.md",
+      "uri": "file://packs/CS/docs/course_pages/CS47100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS47100",
+      "section": null
+    },
+    {
+      "id": "doc_28",
+      "source": "packs/CS/docs/course_pages/cs37300.md",
+      "uri": "file://packs/CS/docs/course_pages/cs37300.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS37300",
+      "section": null
+    },
+    {
+      "id": "doc_29",
+      "source": "packs/CS/docs/course_pages/CS44800.md",
+      "uri": "file://packs/CS/docs/course_pages/CS44800.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS44800",
+      "section": null
+    },
+    {
+      "id": "doc_30",
+      "source": "packs/CS/docs/course_pages/CS30700.md",
+      "uri": "file://packs/CS/docs/course_pages/CS30700.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS30700",
+      "section": null
+    },
+    {
+      "id": "doc_31",
+      "source": "packs/CS/docs/course_pages/CS59000-SRS.md",
+      "uri": "file://packs/CS/docs/course_pages/CS59000-SRS.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS59000",
+      "section": null
+    },
+    {
+      "id": "doc_32",
+      "source": "packs/CS/docs/course_pages/CS31100.md",
+      "uri": "file://packs/CS/docs/course_pages/CS31100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS31100",
+      "section": null
+    },
+    {
+      "id": "doc_33",
+      "source": "packs/CS/docs/course_pages/CS19300.md",
+      "uri": "file://packs/CS/docs/course_pages/CS19300.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS19300",
+      "section": null
+    },
+    {
+      "id": "doc_34",
+      "source": "packs/CS/docs/course_pages/CS35100.md",
+      "uri": "file://packs/CS/docs/course_pages/CS35100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS35100",
+      "section": null
+    },
+    {
+      "id": "doc_35",
+      "source": "packs/CS/docs/course_pages/CS40800.md",
+      "uri": "file://packs/CS/docs/course_pages/CS40800.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS40800",
+      "section": null
+    },
+    {
+      "id": "doc_36",
+      "source": "packs/CS/docs/course_pages/CS57700.md",
+      "uri": "file://packs/CS/docs/course_pages/CS57700.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS57700",
+      "section": null
+    },
+    {
+      "id": "doc_37",
+      "source": "packs/CS/docs/course_pages/CS47300.md",
+      "uri": "file://packs/CS/docs/course_pages/CS47300.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS47300",
+      "section": null
+    },
+    {
+      "id": "doc_38",
+      "source": "packs/CS/docs/course_pages/CS18200.md",
+      "uri": "file://packs/CS/docs/course_pages/CS18200.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS18200",
+      "section": null
+    },
+    {
+      "id": "doc_39",
+      "source": "packs/CS/docs/course_pages/CS25200.md",
+      "uri": "file://packs/CS/docs/course_pages/CS25200.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS25200",
+      "section": null
+    },
+    {
+      "id": "doc_40",
+      "source": "packs/CS/docs/course_pages/CS43900.md",
+      "uri": "file://packs/CS/docs/course_pages/CS43900.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS43900",
+      "section": null
+    },
+    {
+      "id": "doc_41",
+      "source": "packs/CS/docs/course_pages/CS45800.md",
+      "uri": "file://packs/CS/docs/course_pages/CS45800.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS45800",
+      "section": null
+    },
+    {
+      "id": "doc_42",
+      "source": "packs/CS/docs/course_pages/CS49000-DSO.md",
+      "uri": "file://packs/CS/docs/course_pages/CS49000-DSO.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS49000",
+      "section": null
+    },
+    {
+      "id": "doc_43",
+      "source": "packs/CS/docs/course_pages/CS47500.md",
+      "uri": "file://packs/CS/docs/course_pages/CS47500.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS47500",
+      "section": null
+    },
+    {
+      "id": "doc_44",
+      "source": "packs/CS/docs/course_pages/CS42200.md",
+      "uri": "file://packs/CS/docs/course_pages/CS42200.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS42200",
+      "section": null
+    },
+    {
+      "id": "doc_45",
+      "source": "packs/CS/docs/course_pages/CS51000.md",
+      "uri": "file://packs/CS/docs/course_pages/CS51000.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "CS51000",
+      "section": null
+    },
+    {
+      "id": "doc_46",
+      "source": "packs/CS/docs/course_pages/EPCS41100.md",
+      "uri": "file://packs/CS/docs/course_pages/EPCS41100.md",
+      "major_id": "CS",
+      "track_id": null,
+      "course_id": "EPCS41100",
+      "section": null
+    }
+  ],
+  "chunks": [
+    {
+      "doc_id": "doc_0",
+      "ord": 0,
+      "text": "Machine Intelligence (MI) Track\n\n# Machine Intelligence (MI) Track",
+      "token_count": 14,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Machine Intelligence (MI) Track",
+        "doc_id": "doc_0",
+        "section_level": 1,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_0",
+      "ord": 1,
+      "text": "Objectives\n\n## Objectives\nPrepare students to work in data-driven fields: machine learning, AI, information retrieval, and data mining. Emphasis on representation, search, learning, and reasoning with data.",
+      "token_count": 42,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Objectives",
+        "doc_id": "doc_0",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_0",
+      "ord": 2,
+      "text": "Requirements\n\n## Requirements\nAll courses counting toward MI require **grade C or better**.",
+      "token_count": 18,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Requirements",
+        "doc_id": "doc_0",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_0",
+      "ord": 3,
+      "text": "Required Buckets (4 total)\n\n### Required Buckets (4 total)\n1. **ML / Data Mining:** [CS 37300](./course_pages/CS37300.md)\n2. **Algorithms:** [CS 38100](./course_pages/CS38100.md)\n3. **AI or IR:** one of [CS 47100](./course_pages/CS47100.md) or [CS 47300](./course_pages/CS47300.md)\n4. **Probability / Regression:** one of [STAT 41600](./course_pages/STAT41600.md), [MA 41600](./course_pages/MA41600.md), or [STAT 51200](./course_pages/STAT51200.md)",
+      "token_count": 154,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Required Buckets (4 total)",
+        "doc_id": "doc_0",
+        "section_level": 3,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_0",
+      "ord": 4,
+      "text": "Electives (pick **any 2**)\n\n### Electives (pick **any 2**)\n[CS 31100](./course_pages/CS31100.md), [CS 41100](./course_pages/CS41100.md), [CS 31400](./course_pages/CS31400.md), [CS 34800](./course_pages/CS34800.md), [CS 35200](./course_pages/CS35200.md), [CS 44800](./course_pages/CS44800.md), [CS 45600](./course_pages/CS45600.md), [CS 45800](./course_pages/CS45800.md), [CS 48300](./course_pages/CS48300.md), [CS 43900](./course_pages/CS43900.md), [CS 44000](./course_pages/CS44000.md), [CS 47500](./course_pages/CS47500.md), [CS 57700](./course_pages/CS57700.md), [CS 57800](./course_pages/CS57800.md)\n\n> Note: No double-counting between buckets/electives.",
+      "token_count": 244,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Electives (pick **any 2**)",
+        "doc_id": "doc_0",
+        "section_level": 3,
+        "chunk_ord": 4
+      }
+    },
+    {
+      "doc_id": "doc_1",
+      "ord": 0,
+      "text": "Computer Science Core (Freshman/Sophomore)\n\n# Computer Science Core (Freshman/Sophomore)",
+      "token_count": 21,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Computer Science Core (Freshman/Sophomore)",
+        "doc_id": "doc_1",
+        "section_level": 1,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_1",
+      "ord": 1,
+      "text": "Overview\n\n## Overview\nThe CS core builds foundations in programming, discrete math, hardware, data structures, and systems. Students typically finish the six-course core across the first four semesters (plus CS 19300 Tools).\n\n- **Courses:** [CS 18000](./course_pages/CS18000.md), [CS 18200](./course_pages/CS18200.md), [CS 24000](./course_pages/CS24000.md), [CS 25000](./course_pages/CS25000.md), [CS 25100](./course_pages/CS25100.md), [CS 25200](./course_pages/CS25200.md)  \n- **Seminar:** [CS 19300](./course_pages/CS19300.md) (1 cr, first semester)",
+      "token_count": 167,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Overview",
+        "doc_id": "doc_1",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_1",
+      "ord": 2,
+      "text": "Track Declaration\n\n## Track Declaration\nStudents **must declare a track by the term they take CS 25200** (Systems Programming). The two supported tracks are:\n- [Machine Intelligence (MI)](./track_mi.md)\n- [Software Engineering (SE)](./track_se.md)",
+      "token_count": 59,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Track Declaration",
+        "doc_id": "doc_1",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_1",
+      "ord": 3,
+      "text": "Grade & Counting Policy\n\n## Grade & Counting Policy\n- All major required courses, track requirements, and track selectives (and their prerequisites) must be completed with **grade C or better** to count toward the degree.\n- No double-counting across requirement buckets.\n\nSee also: [Advising Policies](./advising_policies.md).",
+      "token_count": 73,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Grade & Counting Policy",
+        "doc_id": "doc_1",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_2",
+      "ord": 0,
+      "text": "Software Engineering (SE) Track\n\n# Software Engineering (SE) Track",
+      "token_count": 14,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Software Engineering (SE) Track",
+        "doc_id": "doc_2",
+        "section_level": 1,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_2",
+      "ord": 1,
+      "text": "Objectives\n\n## Objectives\nPrepare students to design, build, test, and maintain large software systems; use modern tools and processes; communicate and collaborate effectively.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Objectives",
+        "doc_id": "doc_2",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_2",
+      "ord": 2,
+      "text": "Requirements\n\n## Requirements\nAll courses counting toward SE require **grade C or better**.",
+      "token_count": 18,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Requirements",
+        "doc_id": "doc_2",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_2",
+      "ord": 3,
+      "text": "Required (5)\n\n### Required (5)\n- [CS 30700](./course_pages/CS30700.md) \u2014 Software Engineering I  \n- **One of:** [CS 35200](./course_pages/CS35200.md) (Compilers) **or** [CS 35400](./course_pages/CS35400.md) (Operating Systems)  \n- [CS 38100](./course_pages/CS38100.md) \u2014 Analysis of Algorithms  \n- [CS 40800](./course_pages/CS40800.md) \u2014 Software Testing  \n- [CS 40700](./course_pages/CS40700.md) \u2014 SE Senior Project  \n  - *Substitution:* [EPCS 41100](./course_pages/EPCS41100.md) + [EPCS 41200](./course_pages/EPCS41200.md) with approval.",
+      "token_count": 181,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Required (5)",
+        "doc_id": "doc_2",
+        "section_level": 3,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_2",
+      "ord": 4,
+      "text": "Electives (pick **1**)\n\n### Electives (pick **1**)\n- **Pair counts as one:** [CS 31100](./course_pages/CS31100.md) + [CS 41100](./course_pages/CS41100.md)  \n- Or one from: [CS 34800](./course_pages/CS34800.md), [CS 35100](./course_pages/CS35100.md), [CS 35200](./course_pages/CS35200.md), [CS 35300](./course_pages/CS35300.md), [CS 35400](./course_pages/CS35400.md), [CS 37300](./course_pages/CS37300.md), [CS 42200](./course_pages/CS42200.md), [CS 42600](./course_pages/CS42600.md), [CS 44800](./course_pages/CS44800.md), [CS 45600](./course_pages/CS45600.md), [CS 47100](./course_pages/CS47100.md), [CS 47300](./course_pages/CS47300.md), [CS 48900](./course_pages/CS48900.md), [CS 49000-DSO](./course_pages/CS49000-DSO.md), [CS 49000-SWS](./course_pages/CS49000-SWS.md), [CS 51000](./course_pages/CS51000.md), [CS 59000-SRS](./course_pages/CS59000-SRS.md)",
+      "token_count": 330,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Electives (pick **1**)",
+        "doc_id": "doc_2",
+        "section_level": 3,
+        "chunk_ord": 4
+      }
+    },
+    {
+      "doc_id": "doc_3",
+      "ord": 0,
+      "text": "Advising Policies (CS)\n\n# Advising Policies (CS)",
+      "token_count": 14,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Advising Policies (CS)",
+        "doc_id": "doc_3",
+        "section_level": 1,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_3",
+      "ord": 1,
+      "text": "Global Course Policy\n\n## Global Course Policy\n- **Minimum grade:** A course only **counts** toward CS degree/track requirements if the earned grade is **C or better**. (Prereq gates may list C\u2013; counting rules remain C or higher.)\n- **No double counting:** A single course cannot satisfy multiple buckets simultaneously.\n- **Offerings & load:** Respect term offerings and max credits per term (default cap: 18; overload requires approval).\n- **Track declaration:** Must declare a track by the term containing **CS 25200**.",
+      "token_count": 115,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Global Course Policy",
+        "doc_id": "doc_3",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_3",
+      "ord": 2,
+      "text": "Substitutions / Notes\n\n## Substitutions / Notes\n- **SE Capstone substitution:** [EPCS 41100](./course_pages/EPCS41100.md) + [EPCS 41200](./course_pages/EPCS41200.md) may substitute for **CS 40700** with track-chair approval.\n- **Pair rule:** In SE, **CS 31100 + CS 41100** together satisfy **one** elective.\n- **Graduate courses:** SE electives include graduate options (e.g., CS 51000, CS 59000-SRS) where allowed by standing/restrictions.",
+      "token_count": 127,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Substitutions / Notes",
+        "doc_id": "doc_3",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_3",
+      "ord": 3,
+      "text": "Transcript & Evaluation\n\n## Transcript & Evaluation\n- Transfer/ap credit is recognized when mapped to an existing course ID or approved equivalency.\n- Repeats: the highest eligible grade counts for requirement satisfaction.",
+      "token_count": 41,
+      "metadata": {
+        "major_id": "CS",
+        "section": "Transcript & Evaluation",
+        "doc_id": "doc_3",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_4",
+      "ord": 0,
+      "text": "---\ncourse_id: CS45600\ntitle: Programming Languages\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS45600",
+        "doc_id": "doc_4",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_4",
+      "ord": 1,
+      "text": "Description\n\n## Description\nOO, functional, logic/rule-based paradigms; types and type checking; exceptions; concurrency and synchronization; modularity and interfaces; inheritance and polymorphism; dynamic binding; subtyping; unification.",
+      "token_count": 47,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS45600",
+        "doc_id": "doc_4",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_4",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 35200 (may be concurrent) \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS45600",
+        "doc_id": "doc_4",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_5",
+      "ord": 0,
+      "text": "---\ncourse_id: CS38100\ntitle: Introduction to the Analysis of Algorithms\ncredits: 3\nlevel: Upper Division\ndepartments: [Computer Science]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 46,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS38100",
+        "doc_id": "doc_5",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_5",
+      "ord": 1,
+      "text": "Description\n\n## Description\nAsymptotic analysis; recurrences; classic problems (sorting, searching, pattern matching, graphs); intro to intractability (NP-hard).",
+      "token_count": 35,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS38100",
+        "doc_id": "doc_5",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_5",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Use big-O/\u03a9/\u0398; solve common recurrences; analyze time-space tradeoffs.",
+      "token_count": 31,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS38100",
+        "doc_id": "doc_5",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_5",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300, ECE/EE 36800/36900 \u2014 **min grade C**  \n- And one of: MA 26100, MA 17200, MA 17400, MA 18200, MA 26300, MA 27100/27101 \u2014 **min grade C**.",
+      "token_count": 82,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS38100",
+        "doc_id": "doc_5",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_6",
+      "ord": 0,
+      "text": "---\ncourse_id: CS44000\ntitle: Large-Scale Data Analytics\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 31,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS44000",
+        "doc_id": "doc_6",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_6",
+      "ord": 1,
+      "text": "Description\n\n## Description\nAlgorithmic concepts for big-data analytics; distributed/parallel computing paradigms; advanced analytics; scalability and limitations.",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS44000",
+        "doc_id": "doc_6",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_6",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 37300 and STAT 41700 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS44000",
+        "doc_id": "doc_6",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_7",
+      "ord": 0,
+      "text": "---\ncourse_id: CS49000-SWS\ntitle: Topics in CS \u2014 Software Security\ncredits: 1-5\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 36,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS49000",
+        "doc_id": "doc_7",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_7",
+      "ord": 1,
+      "text": "Description\n\n## Description\nVariable-title course focused on software security topics; directed study; instructor permission required.",
+      "token_count": 21,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS49000",
+        "doc_id": "doc_7",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_8",
+      "ord": 0,
+      "text": "---\ncourse_id: CS48300\ntitle: Introduction to the Theory of Computation\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS48300",
+        "doc_id": "doc_8",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_8",
+      "ord": 1,
+      "text": "Description\n\n## Description\nTuring machines; decidability; halting; reductions; complexity classes (P, NP, NP-complete, PSPACE, NL); hierarchy theorems; randomness; applications.",
+      "token_count": 41,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS48300",
+        "doc_id": "doc_8",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_8",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 38100 \u2014 **min grade C**.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS48300",
+        "doc_id": "doc_8",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_9",
+      "ord": 0,
+      "text": "---\ncourse_id: EPCS41200\ntitle: EPICS Senior Design II\ncredits: 2-3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 34,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "EPCS41200",
+        "doc_id": "doc_9",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_9",
+      "ord": 1,
+      "text": "Description\n\n## Description\nEPICS senior design sequence, part II. Together with EPCS 41100 may substitute for CS 40700 with approval.",
+      "token_count": 31,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "EPCS41200",
+        "doc_id": "doc_9",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_10",
+      "ord": 0,
+      "text": "---\ncourse_id: CS25000\ntitle: Computer Architecture\ncredits: 4\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nschedule_types: [Distance Learning, Laboratory, Lecture]\ncampuses: [Indianapolis, West Lafayette]\nsection: description\n---",
+      "token_count": 63,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25000",
+        "doc_id": "doc_10",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_10",
+      "ord": 1,
+      "text": "Description\n\n## Description\nDigital logic; registers and ALU; data representation; Von Neumann architecture; instruction sets (RISC/CISC); pipelines and stalls; memory hierarchy, virtual memory, caches; buses, interrupts, DMA; assembly and low-level optimizations; parallelism.",
+      "token_count": 56,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25000",
+        "doc_id": "doc_10",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_10",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Understand core hardware components and interactions.",
+      "token_count": 17,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25000",
+        "doc_id": "doc_10",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_10",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 18200 and CS 24000 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25000",
+        "doc_id": "doc_10",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_11",
+      "ord": 0,
+      "text": "---\ncourse_id: CS18000\ntitle: Problem Solving and Object-Oriented Programming\ncredits: 4\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nschedule_types: [Distance Learning, Laboratory, Lecture, Recitation]\ncampuses: [Indianapolis, West Lafayette]\nsection: description\n---",
+      "token_count": 73,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18000",
+        "doc_id": "doc_11",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_11",
+      "ord": 1,
+      "text": "Description\n\n## Description\nProblem solving and algorithms; implementation in a high-level language; conditionals; iteration and debugging; collections; searching and sorting; decomposition; object-oriented design; subclassing; exceptions; GUIs; file I/O; ADTs; preview of later CS topics. Credit not given for CS 18000 and 15600/15800/15900. Not open to students with credit in CS 24000.",
+      "token_count": 88,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18000",
+        "doc_id": "doc_11",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_11",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Analyze problems, design algorithms, and implement solutions.",
+      "token_count": 21,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18000",
+        "doc_id": "doc_11",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_11",
+      "ord": 3,
+      "text": "Prerequisites (for entry)\n\n## Prerequisites (for entry)\n- One of: MA 16100, MA 16300, MA 16500, MA 16700, (MA 22100 + MA 22200), (MA 22300 + MA 22400), (MA 16010 + MA 16020), MA 16021, MATH 16500 \u2014 **min grade C**.",
+      "token_count": 87,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18000",
+        "doc_id": "doc_11",
+        "section": "Prerequisites (for entry)",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_11",
+      "ord": 4,
+      "text": "Notes\n\n## Notes\n- Counts toward CS core.",
+      "token_count": 11,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18000",
+        "doc_id": "doc_11",
+        "section": "Notes",
+        "section_level": 2,
+        "chunk_ord": 4
+      }
+    },
+    {
+      "doc_id": "doc_12",
+      "ord": 0,
+      "text": "---\ncourse_id: CS35400\ntitle: Operating Systems\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35400",
+        "doc_id": "doc_12",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_12",
+      "ord": 1,
+      "text": "Description\n\n## Description\nOS architectures; processes and IPC; synchronization and deadlocks; memory hierarchy and virtual memory; CPU scheduling; file systems; I/O; security.",
+      "token_count": 34,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35400",
+        "doc_id": "doc_12",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_12",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25100 and CS 25200 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35400",
+        "doc_id": "doc_12",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_12",
+      "ord": 3,
+      "text": "Note\n\n## Note\n- Should not be taken concurrently with CS 35200.",
+      "token_count": 17,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35400",
+        "doc_id": "doc_12",
+        "section": "Note",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_13",
+      "ord": 0,
+      "text": "---\ncourse_id: STAT51200\ntitle: Applied Regression Analysis\ncredits: 3\nlevel: Upper Division\ndepartments: [Statistics]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 42,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "STAT51200",
+        "doc_id": "doc_13",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_13",
+      "ord": 1,
+      "text": "Description\n\n## Description\nSimple/multiple regression; residuals; transformations; polynomial; model building; nonlinear regression; ANOVA/ANCOVA; software use.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "STAT51200",
+        "doc_id": "doc_13",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_13",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: STAT 50300, 51100, 51700, 35000, 41700, 35500, MGMT 30500, IE 23000/33000 (see catalog). **Counting requires C or better**.",
+      "token_count": 62,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "STAT51200",
+        "doc_id": "doc_13",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_14",
+      "ord": 0,
+      "text": "---\ncourse_id: CS31400\ntitle: Numerical Methods\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31400",
+        "doc_id": "doc_14",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_14",
+      "ord": 1,
+      "text": "Description\n\n## Description\nIterative methods for nonlinear equations; linear systems (direct/iterative); approximation of functions/derivatives/integrals; error analysis.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31400",
+        "doc_id": "doc_14",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_14",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 18000/17700/15800/15900 **and** one of: MA 26200/MATH 26200/MA 26500/MA 35000/MA 35100 \u2014 **min grade C**.",
+      "token_count": 61,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31400",
+        "doc_id": "doc_14",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_15",
+      "ord": 0,
+      "text": "---\ncourse_id: STAT41600\ntitle: Probability\ncredits: 3\nlevel: Upper Division\ndepartments: [Statistics]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 40,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "STAT41600",
+        "doc_id": "doc_15",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_15",
+      "ord": 1,
+      "text": "Description\n\n## Description\nProbability rules; conditional probability and Bayes; discrete/continuous random variables; MGFs; joint/conditional distributions; standard distributions; LLN, CLT.",
+      "token_count": 38,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "STAT41600",
+        "doc_id": "doc_15",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_15",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: MA 26100, MA 26300, MA 17400, MATH 26100, MA 18200, MA 27100/27101, MA 17200 \u2014 min grade typically C\u2013 for entry; **counting requires C or better**.",
+      "token_count": 67,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "STAT41600",
+        "doc_id": "doc_15",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_16",
+      "ord": 0,
+      "text": "---\ncourse_id: CS25100\ntitle: Data Structures and Algorithms\ncredits: 3\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nschedule_types: [Distance Learning, Lecture, Practice Study Observation]\ncampuses: [Indianapolis, West Lafayette]\nsection: description\n---",
+      "token_count": 67,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25100",
+        "doc_id": "doc_16",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_16",
+      "ord": 1,
+      "text": "Description\n\n## Description\nRunning-time analysis; arrays/lists; trees and heaps; sorting; BSTs; hashing; graphs and shortest paths; directed/weighted graphs; additional topics.",
+      "token_count": 36,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25100",
+        "doc_id": "doc_16",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_16",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Master fundamental data structures and their algorithmic use.",
+      "token_count": 20,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25100",
+        "doc_id": "doc_16",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_16",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 18200 \u2014 **min grade C**  \n- And one of: CS 24000, CS 24200, STAT 24200 \u2014 **min grade C**.",
+      "token_count": 45,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25100",
+        "doc_id": "doc_16",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_17",
+      "ord": 0,
+      "text": "---\ncourse_id: CS34800\ntitle: Information Systems\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS34800",
+        "doc_id": "doc_17",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_17",
+      "ord": 1,
+      "text": "Description\n\n## Description\nFile/index structures; OO DB languages; relational model and SQL; hierarchical/network models; data warehousing/mining; distributed DB; client/server; middleware (ODBC/JDBC/CORBA/MOM); transactions and concurrency; OLTP vs OLAP.",
+      "token_count": 56,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS34800",
+        "doc_id": "doc_17",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_17",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300, ECE/EE 36800 \u2014 **min grade C**.",
+      "token_count": 35,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS34800",
+        "doc_id": "doc_17",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_18",
+      "ord": 0,
+      "text": "---\ncourse_id: CS48900\ntitle: Embedded Systems\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS48900",
+        "doc_id": "doc_18",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_18",
+      "ord": 1,
+      "text": "Description\n\n## Description\nProgramming under resource constraints; models (sync/async/concurrent); FSMs; embedded hardware; serial I/O; GPIO; relays/servos; low-power design; batteries; IoT/cloud connectivity; calibration; team project.",
+      "token_count": 51,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS48900",
+        "doc_id": "doc_18",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_18",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25000, CS 25100, CS 25200 \u2014 **min grade C**.",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS48900",
+        "doc_id": "doc_18",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_19",
+      "ord": 0,
+      "text": "---\ncourse_id: CS40700\ntitle: Software Engineering Senior Project\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 30,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40700",
+        "doc_id": "doc_19",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_19",
+      "ord": 1,
+      "text": "Description\n\n## Description\nTeam-based capstone (4\u20136 students). Project charter in week 1; sprint reviews; rubrics similar to CS 30700. Must be taken in last or next-to-last semester.",
+      "token_count": 45,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40700",
+        "doc_id": "doc_19",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_19",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 30700 (and other SE core as advised).",
+      "token_count": 20,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40700",
+        "doc_id": "doc_19",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_19",
+      "ord": 3,
+      "text": "Substitution\n\n## Substitution\n- With approval, **EPCS 41100 + EPCS 41200** may substitute.",
+      "token_count": 27,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40700",
+        "doc_id": "doc_19",
+        "section": "Substitution",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_20",
+      "ord": 0,
+      "text": "---\ncourse_id: CS41100\ntitle: Competitive Programming III\ncredits: 2\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS41100",
+        "doc_id": "doc_20",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_20",
+      "ord": 1,
+      "text": "Description\n\n## Description\nNetwork flow; computational geometry; graph matching; NP-hard problems. Contest simulation; teamwork and communication.",
+      "token_count": 25,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS41100",
+        "doc_id": "doc_20",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_20",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 31100 \u2014 **min grade C**.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS41100",
+        "doc_id": "doc_20",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_20",
+      "ord": 3,
+      "text": "Note (SE track)\n\n## Note (SE track)\n- Pair with CS 31100 for one elective credit.",
+      "token_count": 23,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS41100",
+        "doc_id": "doc_20",
+        "section": "Note (SE track)",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_21",
+      "ord": 0,
+      "text": "---\ncourse_id: CS57800\ntitle: Statistical Machine Learning\ncredits: 3\nlevel: Graduate\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS57800",
+        "doc_id": "doc_21",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_21",
+      "ord": 1,
+      "text": "Description\n\n## Description\nClassical supervised/unsupervised methods and probabilistic inference (VB/EP/GPs); hands-on implementations and analysis.",
+      "token_count": 30,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS57800",
+        "doc_id": "doc_21",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_21",
+      "ord": 2,
+      "text": "Restrictions\n\n## Restrictions\n- Graduate standing (CS-MS/PhD recommended).",
+      "token_count": 18,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS57800",
+        "doc_id": "doc_21",
+        "section": "Restrictions",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_22",
+      "ord": 0,
+      "text": "---\ncourse_id: CS24000\ntitle: Programming in C\ncredits: 3\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nschedule_types: [Distance Learning, Laboratory, Lecture]\ncampuses: [Indianapolis, West Lafayette]\nsection: description\n---",
+      "token_count": 64,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS24000",
+        "doc_id": "doc_22",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_22",
+      "ord": 1,
+      "text": "Description\n\n## Description\nUNIX environment; C development cycle; data representation; operators; recursion; macros and preprocessor; pointers and addresses; dynamic memory; structs/unions/typedef; bit-fields; file I/O (UNIX abstraction, low-level I/O); concurrency concepts.",
+      "token_count": 55,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS24000",
+        "doc_id": "doc_22",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_22",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Demonstrate programming principles and techniques in C.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS24000",
+        "doc_id": "doc_22",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_22",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 18000 \u2014 **min grade C**.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS24000",
+        "doc_id": "doc_22",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_23",
+      "ord": 0,
+      "text": "---\ncourse_id: CS35200\ntitle: Compilers: Principles and Practice\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 32,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35200",
+        "doc_id": "doc_23",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_23",
+      "ord": 1,
+      "text": "Description\n\n## Description\nTranslation and runtime systems; lexing/parsing/semantics; IR; instruction selection; register allocation; classic optimizations; memory hierarchy considerations.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35200",
+        "doc_id": "doc_23",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_23",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25100 and CS 25200 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35200",
+        "doc_id": "doc_23",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_23",
+      "ord": 3,
+      "text": "Note\n\n## Note\n- Should not be taken concurrently with CS 35400.",
+      "token_count": 17,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35200",
+        "doc_id": "doc_23",
+        "section": "Note",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_24",
+      "ord": 0,
+      "text": "---\ncourse_id: CS35300\ntitle: Principles of Concurrency and Parallelism\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35300",
+        "doc_id": "doc_24",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_24",
+      "ord": 1,
+      "text": "Description\n\n## Description\nThreads, events, co-routines, continuations; shared-memory and message-passing abstractions; relaxed memory; deadlock/livelock; lock-free algorithms; races/atomicity; scheduling; software transactions; process calculi.",
+      "token_count": 51,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35300",
+        "doc_id": "doc_24",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_24",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25100, CS 25200, CS 35200 \u2014 **min grade C**.",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35300",
+        "doc_id": "doc_24",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_25",
+      "ord": 0,
+      "text": "---\ncourse_id: MA41600\ntitle: Probability\ncredits: 3\nlevel: Upper Division\ndepartments: [Mathematics]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 41,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "MA41600",
+        "doc_id": "doc_25",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_25",
+      "ord": 1,
+      "text": "Description\n\n## Description\nSame core as STAT 41600 (probability for actuarial/statistical modeling): conditional probability, Bayes, RVs, MGFs, LLN, CLT.",
+      "token_count": 41,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "MA41600",
+        "doc_id": "doc_25",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_25",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- Multivariate calculus options similar to STAT 41600 (see catalog).",
+      "token_count": 22,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "MA41600",
+        "doc_id": "doc_25",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_26",
+      "ord": 0,
+      "text": "---\ncourse_id: CS42600\ntitle: Computer Security\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS42600",
+        "doc_id": "doc_26",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_26",
+      "ord": 1,
+      "text": "Description\n\n## Description\nThreats, vulnerabilities, and countermeasures; authorization and access control; authentication; malware and defenses; networked environment threats; web application security; legal/privacy issues.",
+      "token_count": 41,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS42600",
+        "doc_id": "doc_26",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_26",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- (CS 25100 and CS 25200 [may be concurrent]) or ECE/EE 46900 \u2014 **min grade C**.",
+      "token_count": 38,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS42600",
+        "doc_id": "doc_26",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_27",
+      "ord": 0,
+      "text": "---\ncourse_id: CS47100\ntitle: Introduction to Artificial Intelligence\ncredits: 3\nlevel: Upper Division\ndepartments: [Computer Science]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 44,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47100",
+        "doc_id": "doc_27",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_27",
+      "ord": 1,
+      "text": "Description\n\n## Description\nHeuristic search; knowledge representation; expert systems; uncertainty; planning; ML; vision; practice in Lisp/Prolog.",
+      "token_count": 30,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47100",
+        "doc_id": "doc_27",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_27",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Recognize AI-applicable problems; implement and evaluate basic AI techniques.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47100",
+        "doc_id": "doc_27",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_27",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300, ECE 36800 \u2014 **min grade C**.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47100",
+        "doc_id": "doc_27",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_28",
+      "ord": 0,
+      "text": "---\ncourse_id: CS37300\ntitle: Data Mining and Machine Learning\ncredits: 3\nlevel: Upper Division\ndepartments: [Computer Science]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 45,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS37300",
+        "doc_id": "doc_28",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_28",
+      "ord": 1,
+      "text": "Description\n\n## Description\nIntro to ML/DM across exploratory analysis, predictive and descriptive modeling, and evaluation. Emphasis on algorithms that discover patterns and learn models from large datasets.",
+      "token_count": 37,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS37300",
+        "doc_id": "doc_28",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_28",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Identify ML/DM algorithmic elements; choose and evaluate algorithms; implement supervised/unsupervised methods.",
+      "token_count": 31,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS37300",
+        "doc_id": "doc_28",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_28",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 18200 **and** (CS 25100 or CS 25300) **and** one of STAT 35000/35500/51100 \u2014 **min grade C**.",
+      "token_count": 48,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS37300",
+        "doc_id": "doc_28",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_29",
+      "ord": 0,
+      "text": "---\ncourse_id: CS44800\ntitle: Introduction to Relational Database Systems\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 32,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS44800",
+        "doc_id": "doc_29",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_29",
+      "ord": 1,
+      "text": "Description\n\n## Description\nER modeling; relational algebra/calculus; SQL DDL/DML; schema/view management; query processing/optimization; transactions; privacy/security; warehousing/OLAP; distributed and NoSQL topics.",
+      "token_count": 46,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS44800",
+        "doc_id": "doc_29",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_29",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300 \u2014 **min grade C**.",
+      "token_count": 27,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS44800",
+        "doc_id": "doc_29",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_30",
+      "ord": 0,
+      "text": "---\ncourse_id: CS30700\ntitle: Software Engineering I\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS30700",
+        "doc_id": "doc_30",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_30",
+      "ord": 1,
+      "text": "Description\n\n## Description\nMethods and tools of software engineering; lifecycle models; specification and design; testing; cost/effort estimation; labs with design/testing/tooling.",
+      "token_count": 34,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS30700",
+        "doc_id": "doc_30",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_30",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Architect/design quality software; evaluate lifecycle models; use modern SE toolchains; collaborate effectively.",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS30700",
+        "doc_id": "doc_30",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_30",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25100 or CS 25300 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS30700",
+        "doc_id": "doc_30",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_31",
+      "ord": 0,
+      "text": "---\ncourse_id: CS59000-SRS\ntitle: Topics in CS \u2014 Software Reliability and Security\ncredits: 1-5\nlevel: Graduate\nsection: description\n---",
+      "token_count": 38,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS59000",
+        "doc_id": "doc_31",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_31",
+      "ord": 1,
+      "text": "Description\n\n## Description\nDirected study on software reliability/security. Instructor permission; graduate standing required.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS59000",
+        "doc_id": "doc_31",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_32",
+      "ord": 0,
+      "text": "---\ncourse_id: CS31100\ntitle: Competitive Programming II\ncredits: 2\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31100",
+        "doc_id": "doc_32",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_32",
+      "ord": 1,
+      "text": "Description\n\n## Description\nAdvanced algorithms for interview/contest problems: shortest paths, topo sort, MST, union-find, range queries; advanced DP/backtracking; trees/DAGs; strings.",
+      "token_count": 39,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31100",
+        "doc_id": "doc_32",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_32",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 21100 **or** CS 38100 \u2014 **min grade C**.",
+      "token_count": 26,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31100",
+        "doc_id": "doc_32",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_32",
+      "ord": 3,
+      "text": "Note (SE track)\n\n## Note (SE track)\n- In SE, **CS31100 + CS41100 together** count as one elective.",
+      "token_count": 30,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS31100",
+        "doc_id": "doc_32",
+        "section": "Note (SE track)",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_33",
+      "ord": 0,
+      "text": "---\ncourse_id: CS19300\ntitle: Tools\ncredits: 1\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 41,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS19300",
+        "doc_id": "doc_33",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_33",
+      "ord": 1,
+      "text": "Description\n\n## Description\nOne-credit seminar covering core tooling (editors, version control, build systems, testing harnesses). Taken in the first semester by CS majors.",
+      "token_count": 36,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS19300",
+        "doc_id": "doc_33",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_34",
+      "ord": 0,
+      "text": "---\ncourse_id: CS35100\ntitle: Cloud Computing\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35100",
+        "doc_id": "doc_34",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_34",
+      "ord": 1,
+      "text": "Description\n\n## Description\nData center infrastructure; virtualization; virtual networks and storage; scale-out; containers and orchestration; microservices/serverless; edge/fog; security; programming models.",
+      "token_count": 39,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35100",
+        "doc_id": "doc_34",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_34",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Describe cloud facilities and virtualization; design and deploy containerized software; orchestrate microservices.",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35100",
+        "doc_id": "doc_34",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_34",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25200 \u2014 **min grade C**.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS35100",
+        "doc_id": "doc_34",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_35",
+      "ord": 0,
+      "text": "---\ncourse_id: CS40800\ntitle: Software Testing\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40800",
+        "doc_id": "doc_35",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_35",
+      "ord": 1,
+      "text": "Description\n\n## Description\nErrors/testing; quality, requirements, behavior, correctness; CFGs/dominators; test selection (requirements, FSMs, combinatorial); regression testing/minimization; adequacy criteria (control/data flow, mutation); tools.",
+      "token_count": 51,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40800",
+        "doc_id": "doc_35",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_35",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Apply black-box generation; select adequacy criteria; use tools effectively.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40800",
+        "doc_id": "doc_35",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_35",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25100 or CS 25300 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS40800",
+        "doc_id": "doc_35",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_36",
+      "ord": 0,
+      "text": "---\ncourse_id: CS57700\ntitle: Natural Language Processing\ncredits: 3\nlevel: Graduate\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS57700",
+        "doc_id": "doc_36",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_36",
+      "ord": 1,
+      "text": "Description\n\n## Description\nModern NLP tasks (sentiment, IE, syntax/semantics) with ML focus; implementation and rigorous evaluation; research critique.",
+      "token_count": 32,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS57700",
+        "doc_id": "doc_36",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_36",
+      "ord": 2,
+      "text": "Restrictions\n\n## Restrictions\n- Graduate standing (CS-MS/PhD recommended).",
+      "token_count": 18,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS57700",
+        "doc_id": "doc_36",
+        "section": "Restrictions",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_37",
+      "ord": 0,
+      "text": "---\ncourse_id: CS47300\ntitle: Web Information Search and Management\ncredits: 3\nlevel: Upper Division\ndepartments: [Computer Science]\noffered_by: College of Science\nsection: description\n---",
+      "token_count": 45,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47300",
+        "doc_id": "doc_37",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_37",
+      "ord": 1,
+      "text": "Description\n\n## Description\nInformation retrieval for unstructured text; stemming, indexing, vector space model, feedback; applications: web search, text categorization, recommendation.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47300",
+        "doc_id": "doc_37",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_37",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Understand core IR concepts and apply them to real applications.",
+      "token_count": 21,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47300",
+        "doc_id": "doc_37",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_37",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300, ECE 36800 \u2014 **min grade C**.",
+      "token_count": 33,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47300",
+        "doc_id": "doc_37",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_38",
+      "ord": 0,
+      "text": "---\ncourse_id: CS18200\ntitle: Foundations of Computer Science\ncredits: 3\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nschedule_types: [Distance Learning, Lecture, Practice Study Observation]\ncampuses: [Indianapolis, West Lafayette]\nsection: description\n---",
+      "token_count": 67,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18200",
+        "doc_id": "doc_38",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_38",
+      "ord": 1,
+      "text": "Description\n\n## Description\nLogic and proofs; sets, functions, relations; sequences and summations; number representations; counting; algorithm analysis fundamentals; graphs and trees; recursion; Boolean logic; finite automata; pushdown automata; computability and undecidability.",
+      "token_count": 55,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18200",
+        "doc_id": "doc_38",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_38",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Apply discrete mathematical tools and reasoning relevant to CS.",
+      "token_count": 20,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18200",
+        "doc_id": "doc_38",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_38",
+      "ord": 3,
+      "text": "Prerequisites (for entry)\n\n## Prerequisites (for entry)\n- One of: CS 17600 **or** CS 18000 \u2014 **min grade C**  \n- And one of the Calculus groups listed for CS 18000 \u2014 **min grade C**.",
+      "token_count": 56,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18200",
+        "doc_id": "doc_38",
+        "section": "Prerequisites (for entry)",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_38",
+      "ord": 4,
+      "text": "Notes\n\n## Notes\n- Core course; prerequisite for many 200/300-level CS courses.",
+      "token_count": 20,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS18200",
+        "doc_id": "doc_38",
+        "section": "Notes",
+        "section_level": 2,
+        "chunk_ord": 4
+      }
+    },
+    {
+      "doc_id": "doc_39",
+      "ord": 0,
+      "text": "---\ncourse_id: CS25200\ntitle: Systems Programming\ncredits: 4\nlevel: Lower Division\ndepartments: [Computer Science]\noffered_by: College of Science\nschedule_types: [Distance Learning, Laboratory, Lecture, Recitation]\ncampuses: [Indianapolis, West Lafayette]\nsection: description\n---",
+      "token_count": 66,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25200",
+        "doc_id": "doc_39",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_39",
+      "ord": 1,
+      "text": "Description\n\n## Description\nLow-level programming; addresses, pointers, memory layout; processes/threads; system calls; sockets; make; shell scripts; Unix tools; version control; object/executable formats; function pointers; directories and DNS; embedded programming.",
+      "token_count": 51,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25200",
+        "doc_id": "doc_39",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_39",
+      "ord": 2,
+      "text": "Learning Outcomes\n\n## Learning Outcomes\n- Build and debug systems-level software.",
+      "token_count": 17,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25200",
+        "doc_id": "doc_39",
+        "section": "Learning Outcomes",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_39",
+      "ord": 3,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25000 and CS 25100 \u2014 **min grade C**.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25200",
+        "doc_id": "doc_39",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 3
+      }
+    },
+    {
+      "doc_id": "doc_39",
+      "ord": 4,
+      "text": "Track Declaration\n\n## Track Declaration\nYou must declare a track (MI or SE) **by the term you take CS 25200**.",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS25200",
+        "doc_id": "doc_39",
+        "section": "Track Declaration",
+        "section_level": 2,
+        "chunk_ord": 4
+      }
+    },
+    {
+      "doc_id": "doc_40",
+      "ord": 0,
+      "text": "---\ncourse_id: CS43900\ntitle: Introduction to Data Visualization\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 30,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS43900",
+        "doc_id": "doc_40",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_40",
+      "ord": 1,
+      "text": "Description\n\n## Description\nPrinciples, design strategies, and techniques for visual analysis of data (tables, graphs, trees, text, time series); interactive web visualizations.",
+      "token_count": 36,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS43900",
+        "doc_id": "doc_40",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_40",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300 \u2014 **min grade C**.",
+      "token_count": 27,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS43900",
+        "doc_id": "doc_40",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_41",
+      "ord": 0,
+      "text": "---\ncourse_id: CS45800\ntitle: Introduction to Robotics\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS45800",
+        "doc_id": "doc_41",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_41",
+      "ord": 1,
+      "text": "Description\n\n## Description\nPerception (localization/mapping from 3D data); planning (A*, RRT*, trajectory optimization); control (PID); brief ML for robot decision-making; applications to manipulators and autonomous vehicles.",
+      "token_count": 47,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS45800",
+        "doc_id": "doc_41",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_41",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 25100 \u2014 **min grade C**.",
+      "token_count": 19,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS45800",
+        "doc_id": "doc_41",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_42",
+      "ord": 0,
+      "text": "---\ncourse_id: CS49000-DSO\ntitle: Topics in CS \u2014 Distributed Systems\ncredits: 1-5\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 37,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS49000",
+        "doc_id": "doc_42",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_42",
+      "ord": 1,
+      "text": "Description\n\n## Description\nVariable-title course focused on distributed systems. Supervised reading and project work. Instructor permission required.",
+      "token_count": 24,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS49000",
+        "doc_id": "doc_42",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_43",
+      "ord": 0,
+      "text": "---\ncourse_id: CS47500\ntitle: Human-Computer Interaction\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 30,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47500",
+        "doc_id": "doc_43",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_43",
+      "ord": 1,
+      "text": "Description\n\n## Description\nUser-centered design lifecycle: need finding, prototyping, usability evaluation, heuristics; project-based; brief focus on HCI for AI systems.",
+      "token_count": 34,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47500",
+        "doc_id": "doc_43",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_43",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- One of: CS 25100, CS 25300 \u2014 **min grade C**.",
+      "token_count": 27,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS47500",
+        "doc_id": "doc_43",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_44",
+      "ord": 0,
+      "text": "---\ncourse_id: CS42200\ntitle: Computer Networks\ncredits: 3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 28,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS42200",
+        "doc_id": "doc_44",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_44",
+      "ord": 1,
+      "text": "Description\n\n## Description\nMedia, signals, encoding; LAN/WAN; wireless; switching/bridging; IP, ARP, fragmentation; UDP/TCP; ICMP; network applications (DNS, HTTP, RPC, middleware); management.",
+      "token_count": 47,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS42200",
+        "doc_id": "doc_44",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_44",
+      "ord": 2,
+      "text": "Prerequisites\n\n## Prerequisites\n- CS 35400 (may be concurrent) or ECE/EE 46900 **and** CS 25100 **and** CS 25200 \u2014 **min grade C**.",
+      "token_count": 46,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS42200",
+        "doc_id": "doc_44",
+        "section": "Prerequisites",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_45",
+      "ord": 0,
+      "text": "---\ncourse_id: CS51000\ntitle: Software Engineering\ncredits: 3\nlevel: Graduate\nsection: description\n---",
+      "token_count": 27,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS51000",
+        "doc_id": "doc_45",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_45",
+      "ord": 1,
+      "text": "Description\n\n## Description\nSE life cycles; requirements engineering; software architecture and distributed design; verification/validation; process metrics and models; research methods.",
+      "token_count": 29,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS51000",
+        "doc_id": "doc_45",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    },
+    {
+      "doc_id": "doc_45",
+      "ord": 2,
+      "text": "Restrictions\n\n## Restrictions\n- Graduate standing; see catalog for prerequisite equivalencies.",
+      "token_count": 17,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "CS51000",
+        "doc_id": "doc_45",
+        "section": "Restrictions",
+        "section_level": 2,
+        "chunk_ord": 2
+      }
+    },
+    {
+      "doc_id": "doc_46",
+      "ord": 0,
+      "text": "---\ncourse_id: EPCS41100\ntitle: EPICS Senior Design I\ncredits: 2-3\nlevel: Upper Division\nsection: description\n---",
+      "token_count": 34,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "EPCS41100",
+        "doc_id": "doc_46",
+        "section": "",
+        "section_level": 0,
+        "chunk_ord": 0
+      }
+    },
+    {
+      "doc_id": "doc_46",
+      "ord": 1,
+      "text": "Description\n\n## Description\nEngineering Projects In Community Service (EPICS) senior design sequence, part I. May substitute for CS 40700 with approval when paired with EPCS 41200.",
+      "token_count": 39,
+      "metadata": {
+        "major_id": "CS",
+        "course_id": "EPCS41100",
+        "doc_id": "doc_46",
+        "section": "Description",
+        "section_level": 2,
+        "chunk_ord": 1
+      }
+    }
+  ],
+  "stats": {
+    "total_documents": 47,
+    "total_chunks": 162,
+    "total_tokens": 6714,
+    "avg_tokens_per_chunk": 41.44444444444444
+  }
+}

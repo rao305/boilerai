@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Brain, CheckCircle, Clock, Lightbulb, Search, Users, Shield, BarChart3, Target, AlertTriangle } from 'lucide-react';
-import { ThinkingStep, EnhancedMessage } from '@/types/thinking';
+import { Brain, CheckCircle, Clock, Lightbulb, Search, Users, Shield, BarChart3, Target, AlertTriangle, TreePine, GitBranch, Layers } from 'lucide-react';
+import { ThinkingStep, EnhancedMessage, DEEPTHINK_CONFIG } from '@/types/thinking';
 import CitationChip, { CitationGroup } from './CitationChip';
 import ViolationBadge, { ViolationList } from './ViolationBadge';
 import { PrivacyStatus } from './PrivacyConsentToggle';
@@ -8,11 +8,22 @@ import { PrivacyStatus } from './PrivacyConsentToggle';
 interface ThinkingMessageProps {
   message: EnhancedMessage;
   onComplete?: () => void;
+  showDetailedReasoning?: boolean;
+  thinkingMode?: string;
 }
 
-const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message, onComplete }) => {
+const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ 
+  message, 
+  onComplete, 
+  showDetailedReasoning = true,
+  thinkingMode = 'contextual'
+}) => {
   const [visibleSteps, setVisibleSteps] = useState<number>(0);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showAlternatives, setShowAlternatives] = useState(false);
+  const [showContextFactors, setShowContextFactors] = useState(false);
+  
+  const currentMode = DEEPTHINK_CONFIG;
 
   // Animate thinking steps appearing one by one
   useEffect(() => {
@@ -111,18 +122,19 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message, onComplete }
             <div className="text-xs font-medium text-neutral-400">
               {message.reasoning.isComplete ? 'SmartCourse Analysis Complete' : 'SmartCourse Reasoning...'}
             </div>
-            <div className="text-xs text-neutral-500">
+            {/* Hidden timing for cleaner UX */}
+            {/*<div className="text-xs text-neutral-500">
               {message.metadata?.reasoning_time ? `${message.metadata.reasoning_time}ms` : `${Math.floor(Math.random() * 5) + 3}s`}
-            </div>
+            </div>*/}
           </div>
           
-          {/* Confidence and quality indicators */}
           <div className="flex items-center gap-1">
-            {message.metadata?.confidence_score && (
+            {/* Technical metadata hidden for cleaner user experience */}
+            {/*message.metadata?.confidence_score && (
               <div className="px-1.5 py-0.5 rounded text-xs text-neutral-500 bg-neutral-800/30">
                 {Math.round(message.metadata.confidence_score * 100)}% confidence
               </div>
-            )}
+            )*/}
             
             {message.metadata?.retrieval_hit_rate && (
               <div className="px-1.5 py-0.5 rounded text-xs text-neutral-500 bg-neutral-800/30">
@@ -298,11 +310,12 @@ const ThinkingMessage: React.FC<ThinkingMessageProps> = ({ message, onComplete }
                 Complete
               </span>
             </div>
-            {message.metadata?.reasoning_time && (
+            {/* Hidden timing metadata for cleaner UX */}
+            {/*message.metadata?.reasoning_time && (
               <span className="text-xs text-neutral-600">
                 {message.metadata.reasoning_time}ms
               </span>
-            )}
+            )*/}
           </div>
           
           {/* Privacy status */}

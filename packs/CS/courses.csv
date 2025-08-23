@@ -35,6 +35,7 @@ CS41100,Competitive Programming III,2,400
 CS31400,Numerical Methods,3,300
 CS34800,Information Systems,3,300
 CS35200,Compilers: Principles And Practice,3,300
+CS35400,Operating Systems,3,300
 CS44800,Introduction To Relational Database Systems,3,400
 CS45600,Programming Languages,3,400
 CS45800,Introduction to Robotics,3,400
@@ -57,4 +58,18 @@ MGMT30500,Business Statistics,3,300
 IE23000,Probability & Statistics in IE I,3,200
 IE33000,Probability & Statistics in IE II,3,300
 CS21100,Competitive Programming I,2,200
+CS30700,Software Engineering I,3,300
+CS35100,Cloud Computing,3,300
+CS35300,Principles Of Concurrency And Parallelism,3,300
+CS40800,Software Testing,3,400
+CS40700,Software Engineering Senior Project,3,400
+CS42200,Computer Networks,3,400
+CS42600,Computer Security,3,400
+CS48900,Embedded Systems,3,400
+CS49000-DSO,Topics: Distributed Systems,3,400
+CS49000-SWS,Topics: Software Security,3,400
+CS51000,Software Engineering,3,500
+CS59000-SRS,Topics: Software Reliability and Security,3,500
+EPCS41100,EPICS Senior Design I,2,400
+EPCS41200,EPICS Senior Design II,2,400
 

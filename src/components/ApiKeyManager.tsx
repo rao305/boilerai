@@ -18,7 +18,7 @@ const ApiKeyManager: React.FC<ApiKeyManagerProps> = ({
   showWarning = false,
   requiredFor = "AI features"
 }) => {
-  const [selectedProvider, setSelectedProvider] = useState<ApiProvider>('gemini');
+  const [selectedProvider, setSelectedProvider] = useState<ApiProvider>('openai');
   const [apiKeys, setApiKeys] = useState({
     openai: '',
     gemini: ''

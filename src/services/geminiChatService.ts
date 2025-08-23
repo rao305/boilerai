@@ -10,6 +10,8 @@ import { codoEvaluationService } from './codoevaluationService';
 import { contextualMemoryService } from './contextualMemoryService';
 import { logger } from '@/utils/logger';
 import { smartCourseService, SmartCourseContext } from './smartCourseService';
+import { rateLimitManager } from './rateLimitManager';
+import { errorMessageHelper } from './errorMessageHelper';
 import type { 
   StudentProfile, 
   DataContainer, 
@@ -33,8 +35,8 @@ class GeminiChatService {
   private transcriptContext: string = '';
   private enhancedContext: EnhancedContext | null = null;
   private reasoningMode: boolean = false; // Disable reasoning by default for performance and rate limit management
-  private primaryModel: string = 'gemini-1.5-flash'; // Primary model for most conversations  
-  private complexModel: string = 'gemini-1.5-pro'; // Use pro model for complex tasks
+  private primaryModel: string = 'gemini-2.0-flash-exp'; // Primary model for most conversations  
+  private complexModel: string = 'gemini-2.0-flash-exp'; // Use Gemini 2.0 Flash for better rate limits (1M tokens/min)
 
   constructor() {
     this.initializeGemini();
@@ -71,13 +73,12 @@ class GeminiChatService {
       }
     }
     
-    // Fallback to legacy storage and env
+    // Fallback to legacy storage only (no shared env key)
     if (!apiKey) {
       const legacyKey = localStorage.getItem('gemini_api_key');
-      const envKey = import.meta.env.VITE_GEMINI_API_KEY;
       console.log('🔍 [DEBUG] Legacy key:', legacyKey ? `Found (${legacyKey.substring(0, 8)}...)` : 'Not found');
-      console.log('🔍 [DEBUG] Env key:', envKey ? `Found (${envKey.substring(0, 8)}...)` : 'Not found');
-      apiKey = legacyKey || envKey || '';
+      console.log('🔍 [DEBUG] Env key fallback removed to prevent quota sharing');
+      apiKey = legacyKey || '';
     }
     
     console.log('🔍 [DEBUG] Final Gemini API key result:', apiKey ? `Found (${apiKey.substring(0, 8)}...)` : 'Not found');
@@ -90,9 +91,9 @@ class GeminiChatService {
       // Get API key using centralized logic
       const apiKey = this.getUserApiKey();
       
-      if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey.length < 10) {
-        console.log('❌ [DEBUG] No valid Gemini API key found:', { hasKey: !!apiKey, length: apiKey?.length });
-        logger.warn('No valid Gemini API key found', 'GEMINI');
+      if (!apiKey || apiKey === 'your_gemini_api_key_here' || apiKey === 'test_key_for_testing' || apiKey.length < 10) {
+        console.log('❌ [DEBUG] No valid user Gemini API key found:', { hasKey: !!apiKey, length: apiKey?.length, isTestKey: apiKey === 'test_key_for_testing' });
+        logger.warn('No valid user Gemini API key found - users must provide their own keys to avoid quota conflicts', 'GEMINI');
         return false;
       }
       
@@ -148,6 +149,16 @@ class GeminiChatService {
   // Check if API is available
   async isApiAvailable(): Promise<boolean> {
     return !!this.geminiClient;
+  }
+
+  // Estimate token usage for rate limiting
+  private estimateTokens(text: string): number {
+    // Rough estimation: 1 token ≈ 4 characters for English text
+    // Add some buffer for prompt engineering and model overhead
+    const baseTokens = Math.ceil(text.length / 4);
+    const promptOverhead = 500; // System prompt and formatting overhead
+    const responseBuffer = 1000; // Expected response tokens
+    return baseTokens + promptOverhead + responseBuffer;
   }
 
   async sendMessage(message: string, userId: string, sessionId?: string): Promise<string> {
@@ -210,14 +221,34 @@ class GeminiChatService {
 
     const startTime = Date.now();
 
+    // Estimate tokens for rate limiting
+    const estimatedTokens = this.estimateTokens(message);
+    
+    return await rateLimitManager.executeWithRetry(
+      'gemini',
+      async () => {
+        return await this.executeReasoningRequest(message, userId, currentSessionId, startTime);
+      },
+      estimatedTokens
+    );
+  }
+
+  private async executeReasoningRequest(message: string, userId: string, sessionId: string, startTime: number): Promise<AIReasoningResponse> {
     try {
       // Get RLHF-optimized prompt or fall back to default
       const optimizedPrompt = rlhfService.getOptimizedPrompt('reasoning');
-      const reasoningPrompt = optimizedPrompt || `You are a personable academic advisor for Purdue University students. For every query, you MUST follow this exact structured reasoning process:
+      const reasoningPrompt = optimizedPrompt || `You are a personable academic advisor for Purdue University students. 
 
-1. ANALYZE: Break down the user's query into key components and identify what they're really asking for.
-2. REASON: Think step-by-step through the problem, considering all relevant factors, constraints, and context.
-3. VALIDATE: Check your reasoning for accuracy and completeness, ensuring all important aspects are covered.
+KNOWLEDGE BASE BOUNDARIES (STRICTLY ENFORCED):
+You can ONLY help with: Computer Science (2 tracks: Machine Intelligence, Software Engineering), Data Science (standalone), Artificial Intelligence (standalone), related minors, and CODO requirements for these three majors. 
+
+If asked about other majors, tracks, or programs, politely redirect to the closest supported option and explain why it's relevant.
+
+For every query, you MUST follow this exact structured reasoning process:
+
+1. ANALYZE: Break down the user's query and check if it falls within your knowledge boundaries.
+2. REASON: Think step-by-step through the problem using only your supported knowledge areas.
+3. VALIDATE: Ensure your response stays within knowledge boundaries and is accurate.
 4. SYNTHESIZE: Combine your analysis into a coherent, actionable response.
 
 Format your response EXACTLY like this:
@@ -235,13 +266,15 @@ SYNTHESIZE
 
 COMMUNICATION RULES FOR FINAL RESPONSE:
 - Use natural, conversational language like you're speaking with a student face-to-face
-- Never use markdown formatting (no bold, italics, or headers)
+- Never use markdown formatting (no ** bold **, no * italics *, no ## headers)
 - Be personable and approachable while maintaining professionalism
 - Sound like a knowledgeable advisor who genuinely cares about the student's success
-- Use plain text only - no special characters for emphasis`;
+- Use plain text only - no special characters for emphasis
+- Keep responses concise and accurate without unnecessary technical details
+- Don't mention confidence levels, reasoning processes, or analysis steps to the user`;
 
       // Get contextual memory and build enhanced context
-      const contextualPrompt = contextualMemoryService.generateContextualPrompt(userId, currentSessionId, message);
+      const contextualPrompt = contextualMemoryService.generateContextualPrompt(userId, sessionId, message);
       
       // Build enhanced context if available, otherwise fall back to basic transcript context
       let contextString = '';
@@ -284,10 +317,11 @@ User Query: ${message}`;
       const reasoningResponse = this.parseReasoningResponse(reply);
       reasoningResponse.reasoning_time = Date.now() - startTime;
       reasoningResponse.model_used = selectedModel;
-      reasoningResponse.thinkingSummary = `Applied structured reasoning: analyzed query → retrieved knowledge → validated against Purdue policies → synthesized personalized guidance with ${this.transcriptContext ? 'your academic context' : 'general academic knowledge'}`;
+      // Remove verbose technical summary for cleaner user experience
+      // reasoningResponse.thinkingSummary = `Applied structured reasoning: analyzed query → retrieved knowledge → validated against Purdue policies → synthesized personalized guidance with ${this.transcriptContext ? 'your academic context' : 'general academic knowledge'}`;
 
       // Update contextual memory
-      contextualMemoryService.updateContext(userId, currentSessionId, message, reasoningResponse.final_response, {
+      contextualMemoryService.updateContext(userId, sessionId, message, reasoningResponse.final_response, {
         confidence: reasoningResponse.confidence_score,
         reasoningTime: reasoningResponse.reasoning_time,
         model: reasoningResponse.model_used
@@ -297,50 +331,19 @@ User Query: ${message}`;
     } catch (error: any) {
       console.error('Gemini reasoning error:', error);
       
-      // Handle different types of Gemini errors with specific user guidance
-      let errorMessage = '';
-      let errorType = 'technical';
-      
-      if (error.message?.includes('API_KEY_INVALID')) {
-        errorType = 'auth';
-        errorMessage = `Your Gemini API key appears to be invalid. Please check your API key in the settings.`;
-      } else if (error.message?.includes('QUOTA_EXCEEDED')) {
-        errorType = 'quota';
-        errorMessage = `Your Gemini API quota has been exceeded. Please check your usage at https://console.cloud.google.com/apis/api/generativeai.googleapis.com`;
-      } else if (error.message?.includes('RATE_LIMIT_EXCEEDED')) {
-        errorType = 'rate_limit';
-        errorMessage = `You're sending requests too quickly. Please wait a moment (about 60 seconds) and try again. Try refreshing the page if the issue persists.`;
-      } else {
-        errorMessage = `There was a technical issue communicating with Gemini AI. Please try again in a moment.`;
-      }
+      // Use enhanced error analysis
+      const errorAnalysis = errorMessageHelper.analyzeError(error, 'gemini');
+      const errorResponse = errorMessageHelper.generateErrorResponse(error, 'gemini');
       
       return {
         thinking_steps: [{
           id: 'error-fallback',
           title: 'analyze',
-          content: `Gemini AI Error (${errorType}): ${errorMessage}`,
+          content: `Gemini AI Error (${errorAnalysis.type}): ${errorAnalysis.userMessage}`,
           status: 'completed',
           timestamp: new Date()
         }],
-        final_response: `${errorMessage}
-
-${errorType === 'quota' ? `
-💡 To resolve this:
-1. Visit https://console.cloud.google.com/apis/api/generativeai.googleapis.com to check your usage
-2. Gemini API is free with generous limits - make sure you're using a valid API key
-3. If you're hitting limits, wait a few minutes and try again
-
-Gemini API provides free access with high rate limits.` : 
-errorType === 'auth' ? `
-💡 To fix this:
-1. Go to Settings in this app
-2. Enter a valid Gemini API key
-3. You can get a free API key from https://aistudio.google.com/app/apikey` :
-`
-💡 While we resolve this:
-- For course planning questions, check the Purdue Course Catalog
-- For academic policies, visit Purdue Academic Regulations  
-- For urgent matters, contact your academic advisor directly`}`,
+        final_response: errorResponse,
         reasoning_time: Date.now() - startTime,
         model_used: 'error-fallback'
       };
@@ -358,12 +361,25 @@ errorType === 'auth' ? `
       }
     }
 
+    // Estimate tokens for rate limiting
+    const estimatedTokens = this.estimateTokens(message);
+    
+    return await rateLimitManager.executeWithRetry(
+      'gemini',
+      async () => {
+        return await this.executeDirectRequest(message, userId, currentSessionId);
+      },
+      estimatedTokens
+    );
+  }
+
+  private async executeDirectRequest(message: string, userId: string, sessionId: string): Promise<string> {
     try {
       // Check if this is a CODO query and handle it specially
       const codoevaluation = await this.handleCODOQuery(message);
       if (codoevaluation) {
         // For CODO queries, append the evaluation to the AI response
-        const systemPrompt = await this.buildDynamicSystemPrompt(message, userId, currentSessionId);
+        const systemPrompt = await this.buildDynamicSystemPrompt(message, userId, sessionId);
         const enhancedPrompt = `${systemPrompt}
 
 SPECIAL INSTRUCTIONS: The user is asking about CODO (Change of Degree Objective). I have performed a detailed evaluation of their transcript against the target major requirements. Use this evaluation data to provide comprehensive guidance and answer their question thoroughly.
@@ -383,14 +399,14 @@ User Query: ${message}`;
         const reply = response.text() || codoevaluation;
         
         // Update contextual memory
-        contextualMemoryService.updateContext(userId, currentSessionId, message, reply, {
+        contextualMemoryService.updateContext(userId, sessionId, message, reply, {
           codoEvaluation: true
         });
         
         return reply;
       }
 
-      const systemPrompt = await this.buildDynamicSystemPrompt(message, userId, currentSessionId);
+      const systemPrompt = await this.buildDynamicSystemPrompt(message, userId, sessionId);
       const fullPrompt = `${systemPrompt}
 
 User Query: ${message}`;
@@ -407,41 +423,14 @@ User Query: ${message}`;
       }
 
       // Update contextual memory
-      contextualMemoryService.updateContext(userId, currentSessionId, message, reply);
+      contextualMemoryService.updateContext(userId, sessionId, message, reply);
 
       return reply;
     } catch (error: any) {
       console.error('Gemini chat error:', error);
       
-      // Handle different types of Gemini errors with specific user guidance
-      if (error.message?.includes('RATE_LIMIT_EXCEEDED')) {
-        return `You're sending requests too quickly. Please wait a moment and try again.`;
-      } else if (error.message?.includes('API_KEY_INVALID')) {
-        return `Your Gemini API key appears to be invalid. 
-
-💡 To fix this:
-1. Go to Settings in this app
-2. Enter a valid Gemini API key
-3. You can get a free API key from https://aistudio.google.com/app/apikey`;
-      } else if (error.message?.includes('QUOTA_EXCEEDED')) {
-        return `Your Gemini API quota has been exceeded. 
-
-💡 To resolve this:
-1. Visit https://console.cloud.google.com/apis/api/generativeai.googleapis.com to check your usage
-2. Gemini API is free with generous limits
-3. Wait a few minutes and try again
-
-Gemini provides free access with high rate limits.`;
-      }
-      
-      return `There was a technical issue communicating with Gemini AI. Please try again in a moment.
-
-💡 While we resolve this:
-- For course information, check the Purdue Course Catalog
-- For academic policies, visit the Purdue Academic Regulations page
-- For immediate assistance, contact your academic advisor
-
-Thanks for your patience!`;
+      // Use enhanced error analysis for direct messages
+      return errorMessageHelper.generateErrorResponse(error, 'gemini');
     }
   }
 
@@ -722,20 +711,49 @@ COMMUNICATION GUIDELINES:
 - Focus on actionable guidance based on the student's specific academic situation
 - Avoid robotic or template-like responses
 
-INTELLIGENT CONTEXT AWARENESS:
+INTELLIGENT CONTEXT AWARENESS & KNOWLEDGE BOUNDARIES:
 - Leverage available student data (major, year, completed courses) for personalized advice
 - When student asks about course planning, reference their specific degree requirements
 - Stay STRICTLY within your knowledge base - never suggest unsupported majors, tracks, or concentrations
-- If asked about areas outside your knowledge base (like cybersecurity, databases), redirect to supported options
-- Use degree progression data instead of asking what courses they've taken
+
+WHAT YOU CAN HELP WITH:
+✅ Computer Science major (Machine Intelligence Track, Software Engineering Track only)
+✅ Data Science major (standalone - no tracks, no concentrations)
+✅ Artificial Intelligence major (standalone - no tracks, no concentrations)
+✅ Minors in CS, Data Science, or AI
+✅ CODO requirements and evaluation for these three majors only
+✅ Core courses, prerequisites, and graduation planning for supported majors
+✅ General academic planning, study strategies, and Purdue policies
+
+WHAT YOU CANNOT HELP WITH (redirect intelligently):
+❌ Cybersecurity major/track (say: "Computer Science has no cybersecurity track, but the Software Engineering track covers security principles")
+❌ Database major/track (say: "Database topics are covered in CS core courses and electives within both CS tracks")
+❌ Engineering majors outside of CS (redirect to appropriate advisors)
+❌ Business, Liberal Arts, or other non-Science school majors
+❌ Graduate programs (MS/PhD) - focus on undergraduate only
+❌ Specific professor recommendations or course scheduling
+❌ Non-academic advice (housing, financial aid, etc.)
+
+INTELLIGENT REDIRECTION STRATEGY:
+- When asked about unsupported areas, acknowledge the question and redirect to closest supported option
+- Always explain why the alternative you're suggesting is relevant to their interests
+- Be honest about knowledge limitations while staying helpful
+
+EXAMPLE REDIRECTIONS:
+• "Cybersecurity isn't a separate major, but if you're interested in security, the Computer Science Software Engineering track covers cybersecurity principles, secure coding, and system security."
+• "There's no database major, but database concepts are core to both CS tracks. You'll take database courses like CS 34800 and can choose database-focused electives."
+• "I specialize in CS, Data Science, and AI programs. For engineering majors outside of Computer Science, I'd recommend contacting the engineering advising office."
+• "For graduate programs, you'd want to speak with graduate advisors. I focus on undergraduate planning for CS, Data Science, and AI majors."
 
 COMMUNICATION STYLE:
 - Use natural, conversational language like you're speaking with a real student
-- Never use markdown formatting (no **bold** or *italics* or ## headers)
+- Never use markdown formatting (no ** bold ** or * italics * or ## headers)
 - Be personable and approachable while maintaining professionalism
 - Sound like a knowledgeable advisor who genuinely cares about the student's success
 - Use plain text formatting only - no special characters for emphasis
 - Avoid robotic or template-like responses
+- Keep responses concise and precise without unnecessary technical details
+- Don't mention confidence levels, analysis processes, or reasoning steps to the user
 
 REASONING METHODOLOGY:
 You must analyze each query through a structured reasoning process:

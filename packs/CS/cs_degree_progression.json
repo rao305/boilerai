@@ -1,0 +1,632 @@
+{
+  "degree_info": {
+    "institution": "Purdue University",
+    "campus": "West Lafayette Campus",
+    "college": "College of Science",
+    "degree": "Computer Science, BS",
+    "catalog_year": "Fall 2024",
+    "total_credits_required": 120,
+    "minimum_gpa_required": 2.0,
+    "minimum_major_gpa_required": 2.0,
+    "minimum_grade_core_courses": "C"
+  },
+
+  "academic_progression": {
+    "fall_1st_year": {
+      "semester": "Fall 1st Year",
+      "typical_credits": "14-16",
+      "courses": [
+        {
+          "course_id": "CS18000",
+          "title": "Problem Solving And Object-Oriented Programming",
+          "credits": 4,
+          "requirement_type": "cs_core",
+          "satisfies_core": ["Computing", "Teambuilding and Collaboration"],
+          "critical_course": true,
+          "notes": "Must achieve C or better for CS progression"
+        },
+        {
+          "course_id": "MA16100",
+          "title": "Plane Analytic Geometry And Calculus I",
+          "credits": 3,
+          "requirement_type": "math_required",
+          "alternatives": ["MA16500"],
+          "satisfies_core": ["Quantitative Reasoning"],
+          "critical_course": true,
+          "notes": "Must achieve C or better to meet CS18200 prerequisite"
+        },
+        {
+          "course_id": "ENGL10600",
+          "title": "First-Year Composition",
+          "credits": 3,
+          "requirement_type": "communication",
+          "alternatives": ["ENGL10800", "HONR19903", "SCLA10100"],
+          "satisfies_core": ["Written Communication", "Information Literacy"]
+        },
+        {
+          "course_id": "CS19300",
+          "title": "Tools",
+          "credits": 1,
+          "requirement_type": "freshman_seminar",
+          "notes": "Required corequisite with CS18000, not degree requirement"
+        },
+        {
+          "course_id": "CS19100", 
+          "title": "Freshman Resources Seminar",
+          "credits": 1,
+          "requirement_type": "freshman_seminar",
+          "notes": "Required corequisite with CS18000, not degree requirement"
+        }
+      ]
+    },
+
+    "spring_1st_year": {
+      "semester": "Spring 1st Year", 
+      "typical_credits": "14-16",
+      "courses": [
+        {
+          "course_id": "CS18200",
+          "title": "Foundations Of Computer Science",
+          "credits": 3,
+          "requirement_type": "cs_core",
+          "prerequisites": ["CS18000", "MA16100"],
+          "critical_course": true,
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "CS24000",
+          "title": "Programming In C", 
+          "credits": 3,
+          "requirement_type": "cs_core",
+          "prerequisites": ["CS18000"],
+          "critical_course": true,
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "MA16200",
+          "title": "Plane Analytic Geometry And Calculus II",
+          "credits": 4,
+          "requirement_type": "math_required",
+          "alternatives": ["MA16600"],
+          "satisfies_core": ["Quantitative Reasoning"]
+        },
+        {
+          "course_id": "COM21700",
+          "title": "Science Writing And Presentation",
+          "credits": 3,
+          "requirement_type": "communication",
+          "satisfies_core": ["Technical Writing", "Technical Presenting"],
+          "alternatives": ["Language Level II"]
+        }
+      ]
+    },
+
+    "fall_2nd_year": {
+      "semester": "Fall 2nd Year",
+      "typical_credits": "15-17", 
+      "courses": [
+        {
+          "course_id": "CS25000",
+          "title": "Computer Architecture",
+          "credits": 4,
+          "requirement_type": "cs_core",
+          "prerequisites": ["CS18200", "CS24000"],
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "CS25100",
+          "title": "Data Structures And Algorithms",
+          "credits": 3,
+          "requirement_type": "cs_core", 
+          "prerequisites": ["CS18200"],
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "MA26100",
+          "title": "Multivariate Calculus",
+          "credits": 4,
+          "requirement_type": "math_required",
+          "alternatives": ["MA27101"],
+          "prerequisites": ["MA16200"]
+        },
+        {
+          "course_id": "CS29100",
+          "title": "Sophomore Development Seminar",
+          "credits": 1,
+          "requirement_type": "elective",
+          "notes": "Optional but recommended"
+        }
+      ]
+    },
+
+    "spring_2nd_year": {
+      "semester": "Spring 2nd Year",
+      "typical_credits": "16",
+      "courses": [
+        {
+          "course_id": "CS25200", 
+          "title": "Systems Programming",
+          "credits": 4,
+          "requirement_type": "cs_core",
+          "prerequisites": ["CS25000", "CS25100"],
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "MA26500",
+          "title": "Linear Algebra",
+          "credits": 3,
+          "requirement_type": "math_required",
+          "alternatives": ["MA35100"],
+          "prerequisites": ["MA16200"]
+        },
+        {
+          "course_id": "COM21700",
+          "title": "Science Writing And Presentation",
+          "credits": 3,
+          "requirement_type": "communication",
+          "notes": "If not taken in Spring 1st Year"
+        }
+      ]
+    },
+
+    "fall_3rd_year": {
+      "semester": "Fall 3rd Year",
+      "typical_credits": "16",
+      "courses": [
+        {
+          "course_id": "STAT35000",
+          "title": "Introduction To Statistics", 
+          "credits": 3,
+          "requirement_type": "statistics",
+          "alternatives": ["STAT51100"],
+          "satisfies_core": ["Statistics"]
+        },
+        {
+          "course_id": "CS39100",
+          "title": "Junior Resources Seminar",
+          "credits": 1,
+          "requirement_type": "elective",
+          "notes": "Optional but recommended"
+        },
+        {
+          "course_id": "TRACK_REQUIREMENT_1",
+          "title": "CS Track Required Course",
+          "credits": 3,
+          "requirement_type": "track_required",
+          "track_specific": true,
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "TRACK_REQUIREMENT_2", 
+          "title": "CS Track Required Course",
+          "credits": 3,
+          "requirement_type": "track_required",
+          "track_specific": true,
+          "notes": "Must achieve C or better"
+        }
+      ]
+    },
+
+    "spring_3rd_year": {
+      "semester": "Spring 3rd Year",
+      "typical_credits": "15",
+      "courses": [
+        {
+          "course_id": "TRACK_REQ_ELECTIVE_1",
+          "title": "CS Track Required/Elective Course",
+          "credits": 3,
+          "requirement_type": "track_req_elective",
+          "track_specific": true,
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "TRACK_ELECTIVE_1",
+          "title": "CS Track Elective Course", 
+          "credits": 3,
+          "requirement_type": "track_elective",
+          "track_specific": true,
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "GREAT_ISSUES",
+          "title": "Great Issues Course",
+          "credits": 3,
+          "requirement_type": "core_general_education",
+          "satisfies_core": ["Great Issues"]
+        },
+        {
+          "course_id": "GENERAL_ED_II",
+          "title": "General Education II",
+          "credits": 3,
+          "requirement_type": "core_general_education",
+          "satisfies_core": ["Human Culture Humanities", "Behavioral/Social Science"]
+        }
+      ]
+    },
+
+    "fall_4th_year": {
+      "semester": "Fall 4th Year", 
+      "typical_credits": "15-16",
+      "courses": [
+        {
+          "course_id": "TRACK_ELECTIVE_2",
+          "title": "CS Track Elective Course",
+          "credits": 3,
+          "requirement_type": "track_elective",
+          "track_specific": true,
+          "notes": "Must achieve C or better"
+        },
+        {
+          "course_id": "LAB_SCIENCE_I",
+          "title": "Lab Science I",
+          "credits": "3-4",
+          "requirement_type": "lab_science",
+          "satisfies_core": ["Science"]
+        },
+        {
+          "course_id": "MULTIDISCIPLINARY_EXP",
+          "title": "Multidisciplinary Experience",
+          "credits": 3,
+          "requirement_type": "core_general_education",
+          "satisfies_core": ["Science, Technology and Society"]
+        },
+        {
+          "course_id": "GENERAL_ED_III",
+          "title": "General Education III",
+          "credits": 3,
+          "requirement_type": "core_general_education"
+        }
+      ]
+    },
+
+    "spring_4th_year": {
+      "semester": "Spring 4th Year",
+      "typical_credits": "15-16", 
+      "courses": [
+        {
+          "course_id": "TRACK_ELECTIVE_3",
+          "title": "CS Track Elective Course",
+          "credits": 3,
+          "requirement_type": "track_elective", 
+          "track_specific": true,
+          "notes": "Must achieve C or better, may be 7th elective for some tracks"
+        },
+        {
+          "course_id": "LAB_SCIENCE_II",
+          "title": "Lab Science II",
+          "credits": "3-4",
+          "requirement_type": "lab_science",
+          "satisfies_core": ["Science"]
+        }
+      ]
+    }
+  },
+
+  "track_definitions": {
+    "machine_intelligence": {
+      "track_name": "Machine Intelligence",
+      "description": "Focus on artificial intelligence, machine learning, and data mining",
+      "total_track_credits": 18,
+      "required_courses": [
+        {
+          "group_key": "mi_req_ml_dm",
+          "requirement": "Machine Learning/Data Mining",
+          "need": 1,
+          "options": ["CS37300"]
+        },
+        {
+          "group_key": "mi_req_alg", 
+          "requirement": "Algorithms",
+          "need": 1,
+          "options": ["CS38100"]
+        },
+        {
+          "group_key": "mi_req_ai_or_ir",
+          "requirement": "AI or Information Retrieval",
+          "need": 1, 
+          "options": ["CS47100", "CS47300"]
+        },
+        {
+          "group_key": "mi_req_prob",
+          "requirement": "Probability/Statistics",
+          "need": 1,
+          "options": ["STAT41600", "MA41600", "STAT51200"] 
+        }
+      ],
+      "elective_courses": [
+        {
+          "group_key": "mi_electives",
+          "requirement": "MI Track Electives",
+          "need": 2,
+          "options": [
+            "CS31100", "CS41100", "CS31400", "CS34800", "CS35200",
+            "CS44800", "CS45600", "CS45800", "CS48300", "CS43900", 
+            "CS44000", "CS47500", "CS57700", "CS57800"
+          ]
+        }
+      ],
+      "progression_mapping": {
+        "TRACK_REQUIREMENT_1": {
+          "maps_to": "mi_req_ml_dm",
+          "default_course": "CS37300",
+          "semester": "fall_3rd_year"
+        },
+        "TRACK_REQUIREMENT_2": {
+          "maps_to": "mi_req_alg", 
+          "default_course": "CS38100",
+          "semester": "fall_3rd_year"
+        },
+        "TRACK_REQ_ELECTIVE_1": {
+          "maps_to": "mi_req_ai_or_ir",
+          "default_course": "CS47100", 
+          "semester": "spring_3rd_year"
+        },
+        "TRACK_ELECTIVE_1": {
+          "maps_to": "mi_req_prob",
+          "default_course": "STAT41600",
+          "semester": "spring_3rd_year"
+        },
+        "TRACK_ELECTIVE_2": {
+          "maps_to": "mi_electives",
+          "default_course": "CS57700",
+          "semester": "fall_4th_year"
+        },
+        "TRACK_ELECTIVE_3": {
+          "maps_to": "mi_electives", 
+          "default_course": "CS57800",
+          "semester": "spring_4th_year"
+        }
+      }
+    },
+
+    "software_engineering": {
+      "track_name": "Software Engineering",
+      "description": "Focus on large-scale software development, testing, and project management",
+      "total_track_credits": 18,
+      "required_courses": [
+        {
+          "group_key": "se_req_se1",
+          "requirement": "Software Engineering I",
+          "need": 1,
+          "options": ["CS30700"]
+        },
+        {
+          "group_key": "se_req_compiler_or_os",
+          "requirement": "Compilers or Operating Systems",
+          "need": 1,
+          "options": ["CS35200", "CS35400"]
+        },
+        {
+          "group_key": "se_req_alg",
+          "requirement": "Algorithms", 
+          "need": 1,
+          "options": ["CS38100"]
+        },
+        {
+          "group_key": "se_req_testing",
+          "requirement": "Software Testing",
+          "need": 1,
+          "options": ["CS40800"]
+        },
+        {
+          "group_key": "se_req_capstone",
+          "requirement": "Software Engineering Capstone",
+          "need": 1,
+          "options": ["CS40700"],
+          "special_rules": {
+            "epics_substitution": {
+              "courses": ["EPCS41100", "EPCS41200"],
+              "note": "EPICS pair may replace CS40700 with track-chair approval"
+            }
+          }
+        }
+      ],
+      "elective_courses": [
+        {
+          "group_key": "se_electives",
+          "requirement": "SE Track Electives",
+          "need": 1,
+          "options": [
+            "CS34800", "CS35100", "CS35200", "CS35300", "CS35400",
+            "CS37300", "CS42200", "CS42600", "CS44800", "CS45600",
+            "CS47100", "CS47300", "CS48900", "CS49000-DSO", 
+            "CS49000-SWS", "CS51000", "CS59000-SRS"
+          ],
+          "special_rules": {
+            "competitive_programming_pair": {
+              "courses": ["CS31100", "CS41100"],
+              "note": "CS31100+CS41100 pair counts as one elective"
+            }
+          }
+        }
+      ],
+      "progression_mapping": {
+        "TRACK_REQUIREMENT_1": {
+          "maps_to": "se_req_se1",
+          "default_course": "CS30700",
+          "semester": "fall_3rd_year"
+        },
+        "TRACK_REQUIREMENT_2": {
+          "maps_to": "se_req_alg",
+          "default_course": "CS38100", 
+          "semester": "fall_3rd_year"
+        },
+        "TRACK_REQ_ELECTIVE_1": {
+          "maps_to": "se_req_compiler_or_os",
+          "default_course": "CS35200",
+          "semester": "spring_3rd_year"
+        },
+        "TRACK_ELECTIVE_1": {
+          "maps_to": "se_req_testing",
+          "default_course": "CS40800",
+          "semester": "spring_3rd_year" 
+        },
+        "TRACK_ELECTIVE_2": {
+          "maps_to": "se_req_capstone",
+          "default_course": "CS40700",
+          "semester": "fall_4th_year"
+        },
+        "TRACK_ELECTIVE_3": {
+          "maps_to": "se_electives",
+          "default_course": "CS42200",
+          "semester": "spring_4th_year"
+        }
+      }
+    }
+  },
+
+  "core_requirements": {
+    "cs_major_math": {
+      "credits_required": "7-8",
+      "requirements": [
+        {
+          "requirement": "Multivariate Calculus",
+          "need": 1,
+          "options": ["MA26100", "MA27101"],
+          "notes": "Must achieve C or better for upper level CS courses"
+        },
+        {
+          "requirement": "Linear Algebra",
+          "need": 1,
+          "options": ["MA26500", "MA35100"], 
+          "notes": "Must achieve C or better for upper level CS courses"
+        }
+      ]
+    },
+
+    "cs_major_core": {
+      "credits_required": 21,
+      "requirements": [
+        "CS18000", "CS18200", "CS24000", "CS25000", "CS25100", "CS25200"
+      ],
+      "notes": "Must achieve C or better in all courses"
+    },
+
+    "cs_major_track_selectives": {
+      "credits_required": "18-21",
+      "note": "Must achieve C or better in all courses. Select from track-specific requirements."
+    },
+
+    "other_departmental_requirements": {
+      "credits_required": "32-62",
+      "includes": [
+        "English Composition",
+        "Calculus I & II", 
+        "Statistics",
+        "Technical Writing",
+        "Technical Presenting",
+        "Foreign Language Requirements",
+        "General Education Requirements",
+        "Great Issues",
+        "Multidisciplinary Experience",
+        "Lab Science Requirements"
+      ]
+    },
+
+    "university_core": {
+      "requirements": [
+        "Human Cultures Humanities",
+        "Human Cultures Behavioral/Social Science", 
+        "Information Literacy",
+        "Science #1",
+        "Science #2",
+        "Science, Technology, and Society",
+        "Written Communication",
+        "Oral Communication",
+        "Quantitative Reasoning"
+      ]
+    }
+  },
+
+  "intelligent_replacement_rules": {
+    "track_placeholder_mapping": {
+      "TRACK_REQUIREMENT_1": {
+        "description": "First major track requirement",
+        "replacement_logic": "context.track_selected → track_definitions[track].progression_mapping.TRACK_REQUIREMENT_1"
+      },
+      "TRACK_REQUIREMENT_2": {
+        "description": "Second major track requirement", 
+        "replacement_logic": "context.track_selected → track_definitions[track].progression_mapping.TRACK_REQUIREMENT_2"
+      },
+      "TRACK_REQ_ELECTIVE_1": {
+        "description": "Track requirement or elective course",
+        "replacement_logic": "context.track_selected → track_definitions[track].progression_mapping.TRACK_REQ_ELECTIVE_1"
+      },
+      "TRACK_ELECTIVE_1": {
+        "description": "First track elective",
+        "replacement_logic": "context.track_selected → track_definitions[track].progression_mapping.TRACK_ELECTIVE_1"
+      },
+      "TRACK_ELECTIVE_2": {
+        "description": "Second track elective",
+        "replacement_logic": "context.track_selected → track_definitions[track].progression_mapping.TRACK_ELECTIVE_2"
+      },
+      "TRACK_ELECTIVE_3": {
+        "description": "Third track elective (some tracks)",
+        "replacement_logic": "context.track_selected → track_definitions[track].progression_mapping.TRACK_ELECTIVE_3"
+      }
+    },
+
+    "query_analysis_patterns": {
+      "machine_intelligence_indicators": [
+        "AI", "artificial intelligence", "machine learning", "ML", "data mining",
+        "neural networks", "deep learning", "computer vision", "NLP", 
+        "natural language processing", "robotics", "data science"
+      ],
+      "software_engineering_indicators": [
+        "software engineering", "SE", "testing", "software testing",
+        "project management", "software development", "programming languages",
+        "compilers", "operating systems", "software architecture", "agile"
+      ]
+    },
+
+    "contextual_intelligence": {
+      "user_interest_analysis": {
+        "description": "Analyze user query for domain interests and career goals",
+        "patterns": {
+          "research_interest": ["PhD", "research", "graduate school", "thesis"],
+          "industry_focus": ["industry", "job", "career", "internship", "startup"],
+          "specialization_areas": ["security", "web development", "mobile", "games", "systems"]
+        }
+      },
+      "prerequisite_awareness": {
+        "description": "Ensure recommendations respect prerequisite chains",
+        "logic": "Check completed courses → validate prerequisites → suggest appropriate next courses"
+      },
+      "performance_context": {
+        "description": "Consider student's past performance for retake suggestions",
+        "thresholds": {
+          "retake_suggestion": "grade < C",
+          "foundation_strength": "grade >= B-",
+          "advanced_readiness": "grade >= B"
+        }
+      }
+    }
+  },
+
+  "smartcourse_integration": {
+    "evaluation_metrics": {
+      "plan_score": {
+        "description": "Fraction of recommendations that satisfy unmet plan requirements",
+        "formula": "|R ∩ P| / |R|"
+      },
+      "personal_score": {
+        "description": "Fraction addressing plan requirements or suggesting retakes",
+        "formula": "|R ∩ (P ∪ L)| / |R|"
+      },
+      "lift": {
+        "description": "Improvement from personalizing to low grades",
+        "formula": "PersonalScore - PlanScore"
+      },
+      "recall": {
+        "description": "Coverage of remaining plan courses",
+        "formula": "|R ∩ P| / |P|"
+      }
+    },
+    "context_modes": [
+      "full_context",
+      "no_transcript", 
+      "no_plan",
+      "question_only"
+    ]
+  }
+}

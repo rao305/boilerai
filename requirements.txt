@@ -6,6 +6,7 @@ uvicorn[standard]==0.24.0
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.12.1
+asyncpg==0.29.0
 
 # Data validation and serialization
 pydantic==2.5.0
@@ -28,6 +29,27 @@ python-dotenv==1.0.0
 
 # Logging
 structlog==23.2.0
+
+# RAG and Vector Search
+qdrant-client==1.7.0
+sentence-transformers==2.2.2
+rapidfuzz==3.5.2
+
+# LLM Providers
+google-generativeai==0.3.2
+openai==1.6.1
+
+# Document Processing and OCR
+pdfplumber==0.10.0
+pytesseract==0.3.10
+Pillow==10.1.0
+
+# Data Processing
+pandas==2.1.4
+orjson==3.9.10
+
+# Token counting
+tiktoken==0.5.2
 
 # Testing
 pytest==7.4.3

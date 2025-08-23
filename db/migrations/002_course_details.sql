@@ -56,3 +56,4 @@ CREATE INDEX idx_course_outcomes_course_id ON course_outcomes(course_id);
 CREATE INDEX idx_course_program_restrictions_course_id ON course_program_restrictions(course_id);
 CREATE INDEX idx_course_aliases_course_id ON course_aliases(course_id);
 
+

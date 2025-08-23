@@ -6,7 +6,7 @@ from api_gateway.db import db_query
 
 def _load_rules():
     reqs = db_query("SELECT key, rule FROM requirements WHERE major_id='CS'", [])
-    tgroups = db_query("""SELECT tg.key, tg.need, tg.course_list, t.id as track_id
+    tgroups = db_query("""SELECT tg.key, tg.need, tg.course_list, tg.pair_rules, t.id as track_id
                           FROM track_groups tg JOIN tracks t ON t.id=tg.track_id""", [])
     policies = db_query("SELECT * FROM policies WHERE major_id='CS'", [])
     prereqs = db_query("SELECT dst_course, kind, expr, min_grade FROM prereqs WHERE major_id='CS'", [])
@@ -92,19 +92,46 @@ def _validate_completed_requirements(completed: List[Dict], track_id: str, reqs:
         for bucket in track_buckets:
             need = int(bucket["need"])
             course_list = json.loads(bucket["course_list"]) if isinstance(bucket["course_list"], str) else bucket["course_list"]
+            pair_rules = json.loads(bucket["pair_rules"]) if isinstance(bucket["pair_rules"], str) else bucket.get("pair_rules", [])
             
-            # Count courses with grade >= C (policy requirement)
-            satisfied = sum(1 for cid in course_list 
-                           if cid in completed_courses and 
-                           _check_grade_requirement(completed_courses[cid].get("grade", "F"), "C"))
+            # Count individual satisfied courses (grade >= C)
+            satisfied_individual = sum(1 for cid in course_list 
+                                     if cid in completed_courses and 
+                                     _check_grade_requirement(completed_courses[cid].get("grade", "F"), "C"))
             
-            if satisfied < need:
+            # Track which courses are consumed by pairs to avoid double counting
+            consumed_courses = set()
+            satisfied_pairs = 0
+            pair_rationales = []
+            
+            # Check pair rules
+            for pair in pair_rules:
+                if all(cid in completed_courses and 
+                      _check_grade_requirement(completed_courses[cid].get("grade", "F"), "C") and
+                      cid not in consumed_courses
+                      for cid in pair):
+                    # All courses in pair are satisfied and not yet consumed
+                    satisfied_pairs += 1
+                    consumed_courses.update(pair)
+                    pair_rationales.append(f"{'+'.join(pair)} counted as 1 (pair rule)")
+            
+            # Count remaining individual courses not consumed by pairs
+            remaining_individual = sum(1 for cid in course_list 
+                                     if cid in completed_courses and 
+                                     _check_grade_requirement(completed_courses[cid].get("grade", "F"), "C") and
+                                     cid not in consumed_courses)
+            
+            total_satisfied = satisfied_pairs + remaining_individual
+            
+            if total_satisfied < need:
                 unmet_track_groups.append({
                     "key": bucket["key"],
                     "need": need,
-                    "have": satisfied,
-                    "missing": need - satisfied,
-                    "from": course_list
+                    "have": total_satisfied,
+                    "missing": need - total_satisfied,
+                    "from": course_list,
+                    "pair_rules": pair_rules,
+                    "pair_rationales": pair_rationales
                 })
     
     return unmet_requirements, unmet_track_groups
@@ -175,6 +202,24 @@ def compute_plan(profile_json: Dict[str,Any]) -> Dict[str,Any]:
     
     if track_id:
         rationales.append(f"Track '{track_id}' requirements being validated")
+        
+        # Add pair rationales for satisfied requirements
+        track_buckets = [g for g in tgroups if g["track_id"] == track_id]
+        for bucket in track_buckets:
+            course_list = json.loads(bucket["course_list"]) if isinstance(bucket["course_list"], str) else bucket["course_list"]
+            pair_rules = json.loads(bucket["pair_rules"]) if isinstance(bucket["pair_rules"], str) else bucket.get("pair_rules", [])
+            
+            completed_courses = {c["course_id"]: c for c in completed}
+            consumed_courses = set()
+            
+            # Check pair rules for rationales
+            for pair in pair_rules:
+                if all(cid in completed_courses and 
+                      _check_grade_requirement(completed_courses[cid].get("grade", "F"), "C") and
+                      cid not in consumed_courses
+                      for cid in pair):
+                    consumed_courses.update(pair)
+                    rationales.append(f"{'+'.join(pair)} counted as 1 elective (pair rule)")
     
     return {
         "plan": plan,

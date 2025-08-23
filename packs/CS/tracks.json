@@ -15,8 +15,20 @@
       "id": "software_engineering",
       "name": "Software Engineering",
       "groups": [
-        { "key": "se_required",  "need": 0, "from": [] },
-        { "key": "se_electives", "need": 0, "from": [] }
+        { "key": "se_req_se1",               "need": 1, "from": ["CS30700"] },
+        { "key": "se_req_compiler_or_os",    "need": 1, "from": ["CS35200","CS35400"] },
+        { "key": "se_req_alg",               "need": 1, "from": ["CS38100"] },
+        { "key": "se_req_testing",           "need": 1, "from": ["CS40800"] },
+        { "key": "se_req_capstone",          "need": 1, "from": ["CS40700"], "pair_rules": [["EPCS41100","EPCS41200"]] },
+        { "key": "se_electives",             "need": 1,
+          "from": ["CS34800","CS35100","CS35200","CS35300","CS35400","CS37300","CS42200","CS42600","CS44800","CS45600","CS47100","CS47300","CS48900","CS49000-DSO","CS49000-SWS","CS51000","CS59000-SRS"],
+          "pair_rules": [["CS31100","CS41100"]]
+        }
+      ],
+      "notes": [
+        "All major required courses, all track requirements/electives, and their prerequisites must be completed with grade C or better.",
+        "EPICS substitution: EPCS41100+EPCS41200 may replace CS40700 with track-chair approval.",
+        "CS31100+CS41100 pair counts as one elective."
       ]
     }
   ]
