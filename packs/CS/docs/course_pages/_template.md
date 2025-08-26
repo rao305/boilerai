@@ -60,3 +60,4 @@ Comprehensive course description including main topics, objectives, and what stu
 - **Prerequisites for**: CS 25100, CS 25200
 - **Similar to**: CS 24000 (alternative programming course)
 - **Advanced version**: CS 58000 (graduate level)
+

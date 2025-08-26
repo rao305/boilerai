@@ -6,6 +6,7 @@ const { redactHeaders } = require('../utils/redact');
 const { authenticateToken } = require('../middleware/auth');
 const { requireLLMConfig, getLLMOptions } = require('../middleware/llmConfig');
 const unifiedAIService = require('../services/unifiedAIService');
+const knowledgeBaseAcademicAdvisor = require('../services/knowledgeBaseAcademicAdvisor');
 
 const API_GATEWAY_URL = process.env.API_GATEWAY_URL || 'http://127.0.0.1:8001';
 const DISABLE_UNIFIED_AI_SERVICE = String(process.env.DISABLE_UNIFIED_AI_SERVICE || '0') === '1';
@@ -41,34 +42,34 @@ router.post('/chat', requireLLMConfig, async (req, res) => {
       });
     }
 
-    // Use unified AI service if enabled, otherwise proxy to structured gateway
+    // Use intelligent academic advisor if enabled, otherwise proxy to structured gateway
     if (!DISABLE_UNIFIED_AI_SERVICE) {
-      // Use unified AI service directly
-      logger.info('Using unified AI service', {
+      // Use knowledge-base-only academic advisor with pure RAG integration
+      logger.info('Using Knowledge Base Academic Advisor', {
         questionLength: question.length,
         userId: userId || 'anonymous',
         hasProfile: !!profile_json
       });
 
       const llmConfig = getLLMOptions(req);
-      const response = await unifiedAIService.sendMessage({
-        message: question,
-        apiKey: llmConfig.apiKey,
-        provider: llmConfig.provider,
-        model: llmConfig.model,
-        userId,
-        sessionId: req.body.sessionId || 'default'
-      });
+      const advisorResponse = await knowledgeBaseAcademicAdvisor.advise(
+        question,
+        profile_json,
+        llmConfig
+      );
 
       return res.json({
         success: true,
         data: {
-          content: response,
-          mode: 'unified_ai',
+          content: advisorResponse.content,
+          type: advisorResponse.type,
+          mode: advisorResponse.mode || 'intelligent_advisor',
+          withinScope: advisorResponse.withinScope !== false,
+          advisorNote: advisorResponse.advisorNote,
           timestamp: new Date().toISOString(),
           routing: {
-            service: 'unified_ai',
-            mode: 'direct'
+            service: 'intelligent_advisor',
+            mode: advisorResponse.type || 'rag_enhanced'
           }
         }
       });

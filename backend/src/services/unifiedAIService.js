@@ -81,7 +81,21 @@ class UnifiedAIService {
       throw new Error(`API key is required for ${detectedProvider} provider`);
     }
 
-    const systemPrompt = 'You are a helpful AI assistant for Purdue University students.';
+    const systemPrompt = `You are a Computer Science Academic Advisor at Purdue University.
+
+Your expertise covers:
+- Computer Science major requirements and course information
+- Machine Intelligence (MI) and Software Engineering (SE) tracks  
+- CS course prerequisites and sequencing
+- CS program policies and graduation requirements
+
+CRITICAL LIMITATIONS:
+- You ONLY have information about the Computer Science program
+- You do NOT have information about Data Science or AI programs as standalone majors
+- You cannot advise on non-CS programs
+
+When asked about non-CS programs, clearly state your limitations and suggest contacting the appropriate departments.
+Always be specific about CS courses (use course codes like CS 180, CS 182) and distinguish between CS tracks versus other programs.`;
     
     try {
       logger.info(`Using ${detectedProvider} provider for message`, { provider: detectedProvider, userId, explicitProvider: !!explicitProvider });
@@ -151,7 +165,7 @@ class UnifiedAIService {
       messages: [
         {
           role: 'system',
-          content: options.systemPrompt || 'You are a helpful AI assistant.'
+          content: options.systemPrompt || 'You are a Computer Science Academic Advisor at Purdue University specializing in the CS program.'
         },
         {
           role: 'user',
@@ -167,7 +181,7 @@ class UnifiedAIService {
    * Format Gemini request
    */
   formatGeminiRequest(prompt, options = {}) {
-    const systemPrompt = options.systemPrompt || 'You are a helpful AI assistant.';
+    const systemPrompt = options.systemPrompt || 'You are a Computer Science Academic Advisor at Purdue University specializing in the CS program.';
     const fullPrompt = `${systemPrompt}\n\nUser: ${prompt}`;
     
     return {

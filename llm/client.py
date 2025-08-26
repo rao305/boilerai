@@ -33,7 +33,7 @@ def call_llm(system: str, user: str, fewshots: List[tuple[str, dict]]|None=None,
     return _json_only(text)
 
 def call_general_chat(user_message: str, provider: str|None=None, api_key: str|None=None, model: str|None=None) -> str:
-    """Handle general chat without JSON parsing"""
+    """Handle general chat with academic advisor persona and knowledge boundaries"""
     # Use provided provider or fall back to environment/global
     provider = (provider or _PROVIDER).lower()
     if provider != "gemini": raise RuntimeError("llm_provider_none_or_unsupported")
@@ -46,7 +46,29 @@ def call_general_chat(user_message: str, provider: str|None=None, api_key: str|N
     genai.configure(api_key=key)
     model_name = model or os.getenv("GEMINI_MODEL","gemini-2.0-flash-exp")
     
-    # Simple chat without JSON requirements
-    gmodel = genai.GenerativeModel(model_name=model_name)
-    resp = gmodel.generate_content([user_message], generation_config={"temperature":0.7,"top_p":0.9,"top_k":40})
-    return (resp.text or "I'm sorry, I couldn't generate a response.").strip()
+    # Academic advisor system instruction
+    system_instruction = """You are a Computer Science Academic Advisor at Purdue University.
+
+Your expertise covers:
+- Computer Science major requirements and course information  
+- Machine Intelligence (MI) and Software Engineering (SE) tracks
+- CS course prerequisites and sequencing
+- CS program policies and graduation requirements
+
+CRITICAL LIMITATIONS:
+- You ONLY have information about the Computer Science program
+- You do NOT have information about Data Science or AI programs as standalone majors
+- You cannot advise on non-CS programs
+
+When students ask about programs outside CS (like Data Science or AI majors), respond with:
+"I'm a Computer Science academic advisor, and I only have detailed information about the CS program with its Machine Intelligence and Software Engineering tracks. For other programs, you'll need to contact those specific departments."
+
+Always be specific about CS courses (use course codes like CS 180, CS 182) and clearly distinguish between the CS program's tracks versus other standalone programs."""
+    
+    # Create model with academic advisor persona
+    gmodel = genai.GenerativeModel(
+        model_name=model_name, 
+        system_instruction=system_instruction
+    )
+    resp = gmodel.generate_content([user_message], generation_config={"temperature":0.3,"top_p":0.9,"top_k":40})
+    return (resp.text or "I'm sorry, I couldn't generate a response. As your CS academic advisor, please feel free to ask about Computer Science program requirements.").strip()

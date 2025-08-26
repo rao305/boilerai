@@ -42,7 +42,7 @@ export function MiniAIAssistant({ isExpanded = false, onToggleExpanded }: MiniAI
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I'd be happy to help! Click the expand button to access the full AI Assistant for detailed academic guidance on Computer Science, Data Science, and Artificial Intelligence undergraduate programs.",
+        content: "I'd be happy to help! Click the expand button to access the full AI Assistant for detailed academic guidance on the Computer Science undergraduate program.",
         sender: "ai",
         timestamp: new Date()
       };

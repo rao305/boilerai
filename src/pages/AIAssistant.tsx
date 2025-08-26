@@ -544,29 +544,29 @@ export default function AIAssistant() {
 
   return (
     <div className="flex h-full w-full">
-      {/* Sidebar */}
-      <div className={`${isSidebarOpen ? 'w-64' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden bg-neutral-900/40 border-r border-neutral-800 flex-shrink-0 relative`}>
+      {/* Sidebar - Made more compact */}
+      <div className={`${isSidebarOpen ? 'w-56' : 'w-0'} transition-all duration-300 ease-in-out overflow-hidden bg-neutral-900/40 border-r border-neutral-800 flex-shrink-0 relative`}>
         {isSidebarOpen && (
-          <div className="sidebar-content flex flex-col h-full p-4 transition-all duration-300 ease-in-out opacity-100">
-            {/* Sidebar Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-neutral-200">Chat History</h2>
+          <div className="sidebar-content flex flex-col h-full p-3 transition-all duration-300 ease-in-out opacity-100">
+            {/* Sidebar Header - More compact */}
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-neutral-200">Chat History</h2>
               <Button
                 onClick={createNewChat}
                 size="sm"
-                className="bg-purple-600 hover:bg-purple-500 text-white transition-all duration-200 hover:scale-105"
+                className="bg-purple-600 hover:bg-purple-500 text-white transition-all duration-200 hover:scale-105 px-2 py-1"
               >
-                <MessageSquare size={14} className="mr-1" />
-                New
+                <MessageSquare size={12} className="mr-1" />
+                <span className="text-xs">New</span>
               </Button>
             </div>
             
             {/* Chat Sessions List */}
-            <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto space-y-1.5 custom-scrollbar">
               {chatSessions.map((session) => (
                 <div
                   key={session.id}
-                  className={`chat-session-item p-3 rounded-lg cursor-pointer transition-all duration-200 ${
+                  className={`chat-session-item p-2.5 rounded-md cursor-pointer transition-all duration-200 ${
                     currentChatId === session.id
                       ? 'bg-purple-900/30 border border-purple-700/50 shadow-md'
                       : 'bg-neutral-800/50 hover:bg-neutral-700/50 hover:shadow-sm'
@@ -585,59 +585,59 @@ export default function AIAssistant() {
                             }
                           }}
                           onBlur={() => renameChat(session.id, editingTitle)}
-                          className="bg-neutral-700 text-neutral-200 text-sm rounded px-2 py-1 w-full"
+                          className="bg-neutral-700 text-neutral-200 text-xs rounded px-1.5 py-0.5 w-full"
                           autoFocus
                         />
                       ) : (
-                        <h3 className="text-sm font-medium text-neutral-200 truncate">
+                        <h3 className="text-xs font-medium text-neutral-200 truncate">
                           {session.title}
                         </h3>
                       )}
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-neutral-500">
-                          {session.messageCount} messages
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[10px] text-neutral-500">
+                          {session.messageCount} msgs
                         </span>
-                        <span className="text-xs text-neutral-500">•</span>
-                        <span className="text-xs text-neutral-500">
-                          {session.lastMessage.toLocaleDateString()}
+                        <span className="text-[10px] text-neutral-500">•</span>
+                        <span className="text-[10px] text-neutral-500">
+                          {session.lastMessage.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1 ml-2">
+                    <div className="flex items-center gap-0.5 ml-1.5">
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 hover:bg-neutral-600"
+                        className="h-5 w-5 p-0 hover:bg-neutral-600"
                         onClick={(e) => {
                           e.stopPropagation();
                           setEditingChatId(session.id);
                           setEditingTitle(session.title);
                         }}
                       >
-                        <Search size={12} className="text-neutral-400" />
+                        <Search size={10} className="text-neutral-400" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 hover:bg-red-600 text-red-400"
+                        className="h-5 w-5 p-0 hover:bg-red-600 text-red-400"
                         onClick={(e) => {
                           e.stopPropagation();
                           deleteChat(session.id);
                         }}
                       >
-                        ×
+                        <span className="text-xs">×</span>
                       </Button>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1 mt-2">
+                  <div className="flex items-center gap-0.5 mt-1">
                     {session.service === 'ai' ? (
-                      <span className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded flex items-center gap-1">
-                        <Brain size={10} />
+                      <span className="text-[10px] bg-blue-900/30 text-blue-300 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                        <Brain size={8} />
                         AI
                       </span>
                     ) : (
-                      <span className="text-xs bg-blue-900/30 text-blue-300 px-2 py-1 rounded flex items-center gap-1">
-                        <Users size={10} />
+                      <span className="text-[10px] bg-blue-900/30 text-blue-300 px-1.5 py-0.5 rounded flex items-center gap-0.5">
+                        <Users size={8} />
                         LinkedIn
                       </span>
                     )}
@@ -894,8 +894,8 @@ export default function AIAssistant() {
                           
                           {/* Final Response */}
                           <div className="flex justify-start">
-                            <Card className="max-w-[80%] bg-neutral-800 text-neutral-100">
-                              <CardContent className="p-3">
+                            <Card className="max-w-[80%] bg-neutral-800 text-neutral-100 text-sm">
+                              <CardContent className="p-2.5">
                                 <div className="whitespace-pre-wrap break-words">
                                   {message.content}
                                 </div>
@@ -960,17 +960,17 @@ export default function AIAssistant() {
                         key={message.id}
                         className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                       >
-                        <Card className={`max-w-[80%] ${
+                        <Card className={`max-w-[80%] text-sm ${
                           message.role === 'user' 
                             ? 'bg-blue-600 text-white' 
                             : 'bg-neutral-800 text-neutral-100'
                         }`}>
-                          <CardContent className="p-3">
+                          <CardContent className="p-2.5">
                             <div className="whitespace-pre-wrap break-words">
                               {message.content}
                             </div>
                             {message.role === 'assistant' && (message.provider || message.service) && (
-                              <div className="mt-2 text-xs opacity-70 flex items-center gap-2">
+                              <div className="mt-1.5 text-[10px] opacity-70 flex items-center gap-1.5">
                                 {message.service === 'clado' && (
                                   <span className="bg-blue-700 px-2 py-1 rounded flex items-center gap-1">
                                     <Search size={10} />
@@ -1015,13 +1015,13 @@ export default function AIAssistant() {
               )}
             </div>
             
-            {/* Input Area */}
-            <div className="border-t border-neutral-800 p-4 flex-shrink-0 bg-neutral-900/80 backdrop-blur-sm transition-all duration-300 ease-in-out">
+            {/* Input Area - More compact */}
+            <div className="border-t border-neutral-800 p-3 flex-shrink-0 bg-neutral-900/80 backdrop-blur-sm transition-all duration-300 ease-in-out">
               {/* DeepThink is always enabled - show simple control */}
               {currentService === 'ai' && (
-                <div className="mb-3 flex items-center justify-between">
+                <div className="mb-2.5 flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <label className="flex items-center gap-2 text-xs text-neutral-400">
+                    <label className="flex items-center gap-1.5 text-[10px] text-neutral-400">
                       <input
                         type="checkbox"
                         checked={showThinkingProcess}
@@ -1038,7 +1038,7 @@ export default function AIAssistant() {
                 </div>
               )}
               
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 <input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
@@ -1051,7 +1051,7 @@ export default function AIAssistant() {
                           : "Ask about CS tracks, courses, or requirements (upload transcript for personalized advice)..."
                         : "Ask about CS tracks, courses, requirements, or get personalized advice..."
                   }
-                  className="flex-1 rounded-xl border border-neutral-800 bg-neutral-950/60 px-4 py-3 text-sm text-neutral-200 outline-none placeholder:text-neutral-500 focus:border-neutral-600 transition-colors disabled:opacity-50"
+                  className="flex-1 rounded-xl border border-neutral-800 bg-neutral-950/60 px-3.5 py-2.5 text-sm text-neutral-200 outline-none placeholder:text-neutral-500 focus:border-neutral-600 transition-colors disabled:opacity-50"
                   onKeyPress={(e) => e.key === "Enter" && !isLoading && (currentService !== 'clado' || hasValidAPIConfig) && handleSendMessage()}
                   disabled={isLoading || (currentService === 'clado' && !hasValidAPIConfig)}
                 />
